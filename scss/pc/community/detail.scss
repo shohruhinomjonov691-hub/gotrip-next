@@ -28,6 +28,12 @@
 							height: 80px;
 							border-radius: 50%;
 							object-fit: cover;
+							transform-origin: center;
+							transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+							will-change: transform;
+							&:hover {
+								transform: translate3d(0, -1px, 0) scale(1.012);
+							}
 						}
 						.community-name {
 							.name {
@@ -436,6 +442,16 @@
 					gap: 5px;
 				}
 			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		#community-detail-page .container .main-box .left-config .image-info img {
+			transition: none;
+			transform: none;
+			will-change: auto;
+		}
+		#community-detail-page .container .main-box .left-config .image-info img:hover {
+			transform: none;
 		}
 	}
 }

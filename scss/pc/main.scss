@@ -65,9 +65,20 @@ body::-webkit-scrollbar {
 					align-items: center;
 					justify-content: space-between;
 					.logo-box {
+						a {
+							display: inline-flex;
+							align-items: center;
+						}
 						img {
 							width: 150px;
 							cursor: pointer;
+							transform-origin: center;
+							transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+							will-change: transform;
+						}
+						a:hover img,
+						a:focus-visible img {
+							transform: translate3d(0, -1px, 0) scale(1.012);
 						}
 					}
 					.router-box {
@@ -682,6 +693,12 @@ body::-webkit-scrollbar {
 							width: 128px;
 							height: 52px;
 							cursor: pointer;
+							transform-origin: center;
+							transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+							will-change: transform;
+							&:hover {
+								transform: translate3d(0, -1px, 0) scale(1.012);
+							}
 						}
 						span {
 							color: #bebdbd;
@@ -813,6 +830,19 @@ body::-webkit-scrollbar {
 					line-height: normal;
 				}
 			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.navbar .navbar-main .container .logo-box img,
+		.footer-container .main .left .footer-box .logo {
+			transition: none;
+			transform: none;
+			will-change: auto;
+		}
+		.navbar .navbar-main .container .logo-box a:hover img,
+		.navbar .navbar-main .container .logo-box a:focus-visible img,
+		.footer-container .main .left .footer-box .logo:hover {
+			transform: none;
 		}
 	}
 }

@@ -60,7 +60,7 @@ const MyFavorites: NextPage = () => {
 	};
 
 	if (device === 'mobile') {
-		return <div>NESTAR MY FAVORITES MOBILE</div>;
+		return <div>Saved tours mobile</div>;
 	} else {
 		return (
 			<div id="my-favorites-page">

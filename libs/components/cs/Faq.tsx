@@ -469,7 +469,7 @@ const Faq = () => {
 							changeCategoryHandler('agents');
 						}}
 					>
-						For Agents
+						For Guides
 					</div>
 					<div
 						className={category === 'membership' ? 'active' : ''}

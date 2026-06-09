@@ -11,6 +11,7 @@ const TopAgentCard = (props: TopAgentProps) => {
 	const { agent } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const roleLabel = agent?.memberType === 'AGENT' ? 'Guide / Operator' : agent?.memberType;
 	const agentImage = agent?.memberImage
 		? `${process.env.REACT_APP_API_URL}/${agent?.memberImage}`
 		: '/img/profile/defaultUser.svg';
@@ -23,7 +24,7 @@ const TopAgentCard = (props: TopAgentProps) => {
 				<img src={agentImage} alt="" />
 
 				<strong>{agent?.memberNick}</strong>
-				<span>{agent?.memberType}</span>
+				<span>{roleLabel}</span>
 			</Stack>
 		);
 	} else {
@@ -32,7 +33,7 @@ const TopAgentCard = (props: TopAgentProps) => {
 				<img src={agentImage} alt="" />
 
 				<strong>{agent?.memberNick}</strong>
-				<span>{agent?.memberType}</span>
+				<span>{roleLabel}</span>
 			</Stack>
 		);
 	}

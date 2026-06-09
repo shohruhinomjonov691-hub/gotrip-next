@@ -40,8 +40,8 @@ const Footer = () => {
 						<Box component={'div'} className={'bottom'}>
 							<div>
 								<strong>Popular Search</strong>
-								<span>Property for Rent</span>
-								<span>Property Low to hide</span>
+								<span>Guided tours</span>
+								<span>Saved tours</span>
 							</div>
 							<div>
 								<strong>Quick Links</strong>
@@ -63,7 +63,7 @@ const Footer = () => {
 					</Stack>
 				</Stack>
 				<Stack className={'second'}>
-					<span>© Nestar - All rights reserved. Nestar {moment().year()}</span>
+					<span>© GoTrip - All rights reserved. GoTrip {moment().year()}</span>
 				</Stack>
 			</Stack>
 		);
@@ -105,8 +105,8 @@ const Footer = () => {
 						<Box component={'div'} className={'bottom'}>
 							<div>
 								<strong>Popular Search</strong>
-								<span>Property for Rent</span>
-								<span>Property Low to hide</span>
+								<span>Guided tours</span>
+								<span>Saved tours</span>
 							</div>
 							<div>
 								<strong>Quick Links</strong>
@@ -128,7 +128,7 @@ const Footer = () => {
 					</Stack>
 				</Stack>
 				<Stack className={'second'}>
-					<span>© Nestar - All rights reserved. Nestar {moment().year()}</span>
+					<span>© GoTrip - All rights reserved. GoTrip {moment().year()}</span>
 					<span>Privacy · Terms · Sitemap</span>
 				</Stack>
 			</Stack>
