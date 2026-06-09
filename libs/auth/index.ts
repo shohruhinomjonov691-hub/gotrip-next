@@ -4,6 +4,7 @@ import { userVar } from '../../apollo/store';
 import { CustomJwtPayload } from '../types/customJwtPayload';
 import { sweetMixinErrorAlert } from '../sweetAlert';
 import { LOGIN, SIGN_UP } from '../../apollo/user/mutation';
+import { MemberInput } from '../types/member/member.input';
 
 export function getJwtToken(): any {
 	if (typeof window !== 'undefined') {
@@ -64,84 +65,45 @@ const requestJwtToken = async ({
 	}
 };
 
-interface SignUpAgentRequest {
-	wantsToBecomeAgent?: boolean;
-	agentRequestMessage?: string;
-	agentExperience?: string;
-}
-
-export const signUp = async (
-	nick: string,
-	password: string,
-	phone: string,
-	type: string,
-	agentRequest?: SignUpAgentRequest,
-): Promise<void> => {
+export const signUp = async (input: MemberInput): Promise<void> => {
 	try {
-		const { jwtToken } = await requestSignUpJwtToken({ nick, password, phone, type, ...agentRequest });
+		const { jwtToken } = await requestSignUpJwtToken(input);
 
 		if (jwtToken) {
 			updateStorage({ jwtToken });
 			updateUserInfo(jwtToken);
 		}
-	} catch (err) {
-		console.warn('login err', err);
+	} catch (err: any) {
+		console.error('signup err', err);
 		logOut();
-		// throw new Error('Login Err');
+		throw err;
 	}
 };
 
-const requestSignUpJwtToken = async ({
-	nick,
-	password,
-	phone,
-	type,
-	wantsToBecomeAgent,
-	agentRequestMessage,
-	agentExperience,
-}: {
-	nick: string;
-	password: string;
-	phone: string;
-	type: string;
-	wantsToBecomeAgent?: boolean;
-	agentRequestMessage?: string;
-	agentExperience?: string;
-}): Promise<{ jwtToken: string }> => {
+const requestSignUpJwtToken = async (input: MemberInput): Promise<{ jwtToken: string }> => {
 	const apolloClient = await initializeApollo();
 
 	try {
+		console.log('signup input:', input);
 		const result = await apolloClient.mutate({
 			mutation: SIGN_UP,
-			variables: {
-				input: {
-					memberNick: nick,
-					memberPassword: password,
-					memberPhone: phone,
-					memberType: type,
-					wantsToBecomeAgent,
-					agentRequestMessage,
-					agentExperience,
-				},
-			},
+			variables: { input },
 			fetchPolicy: 'network-only',
 		});
 
-		console.log('---------- login ----------');
+		console.log('---------- signup ----------');
 		const { accessToken } = result?.data?.signup;
 
 		return { jwtToken: accessToken };
 	} catch (err: any) {
-		console.log('request token err', err.graphQLErrors);
-		switch (err.graphQLErrors[0].message) {
-			case 'Definer: login and password do not match':
-				await sweetMixinErrorAlert('Please check your password again');
-				break;
-			case 'Definer: user has been blocked!':
-				await sweetMixinErrorAlert('User has been blocked!');
-				break;
-		}
-		throw new Error('token error');
+		const graphQLErrors = err?.graphQLErrors ?? err?.networkError?.result?.errors ?? [];
+		console.error('signup request error:', {
+			message: err?.message,
+			graphQLErrors,
+			networkError: err?.networkError,
+		});
+		const message = graphQLErrors?.[0]?.message ?? err?.message ?? 'Signup failed';
+		throw new Error(message);
 	}
 };
 

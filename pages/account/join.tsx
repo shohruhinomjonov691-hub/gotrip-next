@@ -7,6 +7,8 @@ import { useRouter } from 'next/router';
 import { logIn, signUp } from '../../libs/auth';
 import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { MemberType } from '../../libs/enums/member.enum';
+import { MemberInput } from '../../libs/types/member/member.input';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -17,11 +19,11 @@ export const getStaticProps = async ({ locale }: any) => ({
 const Join: NextPage = () => {
 	const router = useRouter();
 	const device = useDeviceDetect();
-	const [input, setInput] = useState({
-		nick: '',
-		password: '',
-		phone: '',
-		type: 'USER',
+	const [input, setInput] = useState<MemberInput>({
+		memberNick: '',
+		memberPassword: '',
+		memberPhone: '',
+		memberType: MemberType.USER,
 		wantsToBecomeAgent: false,
 		agentRequestMessage: '',
 		agentExperience: '',
@@ -33,47 +35,53 @@ const Join: NextPage = () => {
 		setLoginView(state);
 	};
 
-	const checkUserTypeHandler = (e: any) => {
-		const checked = e.target.checked;
-		if (checked) {
-			const value = e.target.name;
-			handleInput('type', value);
-		} else {
-			handleInput('type', 'USER');
-		}
-	};
-
-	const handleInput = useCallback((name: any, value: any) => {
+	const handleInput = useCallback((name: keyof MemberInput, value: any) => {
 		setInput((prev) => {
 			return { ...prev, [name]: value };
 		});
 	}, []);
 
 	const doLogin = useCallback(async () => {
-		console.warn(input);
 		try {
-			await logIn(input.nick, input.password);
+			await logIn(input.memberNick.trim(), input.memberPassword);
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
+			console.error('login form error:', err);
 			await sweetMixinErrorAlert(err.message);
 		}
+	}, [input]);
+
+	const buildSignupInput = useCallback((): MemberInput => {
+		const payload: MemberInput = {
+			memberNick: input.memberNick.trim(),
+			memberPassword: input.memberPassword,
+			memberPhone: input.memberPhone.trim(),
+			memberType: MemberType.USER,
+		};
+
+		if (input.wantsToBecomeAgent) {
+			const agentRequestMessage = input.agentRequestMessage?.trim();
+			const agentExperience = input.agentExperience?.trim();
+
+			payload.wantsToBecomeAgent = true;
+			if (agentRequestMessage) payload.agentRequestMessage = agentRequestMessage;
+			if (agentExperience) payload.agentExperience = agentExperience;
+		}
+
+		return payload;
 	}, [input]);
 
 	const doSignUp = useCallback(async () => {
-		console.warn(input);
 		try {
-			await signUp(input.nick, input.password, input.phone, input.type, {
-				wantsToBecomeAgent: input.wantsToBecomeAgent || input.type === 'AGENT',
-				agentRequestMessage: input.agentRequestMessage,
-				agentExperience: input.agentExperience,
-			});
+			const signupInput = buildSignupInput();
+			console.log('signup form payload:', signupInput);
+			await signUp(signupInput);
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
-			await sweetMixinErrorAlert(err.message);
+			console.error('signup form error:', err);
+			await sweetMixinErrorAlert(err.message ?? 'Signup failed');
 		}
-	}, [input]);
-
-	console.log('+input: ', input);
+	}, [buildSignupInput, router]);
 
 	if (device === 'mobile') {
 		return <div>LOGIN MOBILE</div>;
@@ -98,7 +106,8 @@ const Join: NextPage = () => {
 									<input
 										type="text"
 										placeholder={'Enter Nickname'}
-										onChange={(e) => handleInput('nick', e.target.value)}
+										value={input.memberNick}
+										onChange={(e) => handleInput('memberNick', e.target.value)}
 										required={true}
 										onKeyDown={(event) => {
 											if (event.key == 'Enter' && loginView) doLogin();
@@ -109,9 +118,10 @@ const Join: NextPage = () => {
 								<div className={'input-box'}>
 									<span>Password</span>
 									<input
-										type="text"
+										type="password"
 										placeholder={'Enter Password'}
-										onChange={(e) => handleInput('password', e.target.value)}
+										value={input.memberPassword}
+										onChange={(e) => handleInput('memberPassword', e.target.value)}
 										required={true}
 										onKeyDown={(event) => {
 											if (event.key == 'Enter' && loginView) doLogin();
@@ -125,7 +135,8 @@ const Join: NextPage = () => {
 										<input
 											type="text"
 											placeholder={'Enter Phone'}
-											onChange={(e) => handleInput('phone', e.target.value)}
+											value={input.memberPhone}
+											onChange={(e) => handleInput('memberPhone', e.target.value)}
 											required={true}
 											onKeyDown={(event) => {
 												if (event.key == 'Enter') doSignUp();
@@ -137,54 +148,27 @@ const Join: NextPage = () => {
 							<Box className={'register'}>
 								{!loginView && (
 									<div className={'type-option'}>
-										<span className={'text'}>I want to join as:</span>
-										<div>
-											<FormGroup>
-												<FormControlLabel
-													control={
-														<Checkbox
-															size="small"
-															name={'USER'}
-															onChange={checkUserTypeHandler}
-															checked={input?.type == 'USER'}
-														/>
-													}
-													label="Traveler"
-												/>
-											</FormGroup>
-											<FormGroup>
-												<FormControlLabel
-													control={
-														<Checkbox
-															size="small"
-															name={'AGENT'}
-															onChange={checkUserTypeHandler}
-															checked={input?.type == 'AGENT'}
-														/>
-													}
-													label="Guide / Operator"
-												/>
-											</FormGroup>
-										</div>
+										<span className={'text'}>Traveler account is the default.</span>
 										<FormGroup>
 											<FormControlLabel
 												control={
 													<Checkbox
 														size="small"
-														checked={input.wantsToBecomeAgent || input.type === 'AGENT'}
+														checked={Boolean(input.wantsToBecomeAgent)}
 														onChange={(event) => handleInput('wantsToBecomeAgent', event.target.checked)}
 													/>
 												}
 												label="Request guide/operator approval"
 											/>
 										</FormGroup>
-										{(input.wantsToBecomeAgent || input.type === 'AGENT') && (
+										{input.wantsToBecomeAgent && (
 											<>
 												<div className={'input-box'}>
 													<span>Request message</span>
 													<input
 														type="text"
 														placeholder={'Tell admins why you want to guide travelers'}
+														value={input.agentRequestMessage ?? ''}
 														onChange={(event) => handleInput('agentRequestMessage', event.target.value)}
 													/>
 												</div>
@@ -193,6 +177,7 @@ const Join: NextPage = () => {
 													<input
 														type="text"
 														placeholder={'Describe your tour or travel experience'}
+														value={input.agentExperience ?? ''}
 														onChange={(event) => handleInput('agentExperience', event.target.value)}
 													/>
 												</div>
@@ -214,7 +199,7 @@ const Join: NextPage = () => {
 									<Button
 										variant="contained"
 										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
-										disabled={input.nick == '' || input.password == ''}
+										disabled={input.memberNick.trim() == '' || input.memberPassword == ''}
 										onClick={doLogin}
 									>
 										LOGIN
@@ -222,7 +207,9 @@ const Join: NextPage = () => {
 								) : (
 									<Button
 										variant="contained"
-										disabled={input.nick == '' || input.password == '' || input.phone == '' || input.type == ''}
+										disabled={
+											input.memberNick.trim() == '' || input.memberPassword == '' || input.memberPhone.trim() == ''
+										}
 										onClick={doSignUp}
 										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
 									>
