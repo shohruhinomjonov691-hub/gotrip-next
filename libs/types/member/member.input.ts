@@ -1,4 +1,4 @@
-import { MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
+import { AgentRequestStatus, MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
 import { Direction } from '../../enums/common.enum';
 
 export interface MemberInput {
@@ -7,6 +7,9 @@ export interface MemberInput {
 	memberPhone: string;
 	memberType?: MemberType;
 	memberAuthType?: MemberAuthType;
+	wantsToBecomeAgent?: boolean;
+	agentRequestMessage?: string;
+	agentExperience?: string;
 }
 
 export interface LoginInput {
@@ -29,6 +32,7 @@ export interface AgentsInquiry {
 interface MISearch {
 	memberStatus?: MemberStatus;
 	memberType?: MemberType;
+	agentRequestStatus?: AgentRequestStatus;
 	text?: string;
 }
 

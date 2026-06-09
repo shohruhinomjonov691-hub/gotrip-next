@@ -11,7 +11,8 @@ export interface CustomJwtPayload extends JwtPayload {
 	memberImage?: string;
 	memberAddress?: string;
 	memberDesc?: string;
-	memberProperties: number;
+	memberTours: number;
+	memberProperties?: number;
 	memberRank: number;
 	memberArticles: number;
 	memberPoints: number;
@@ -19,4 +20,10 @@ export interface CustomJwtPayload extends JwtPayload {
 	memberViews: number;
 	memberWarnings: number;
 	memberBlocks: number;
+	agentRequestStatus?: string;
+	agentRequestMessage?: string;
+	agentExperience?: string;
+	agentApprovedAt?: Date;
+	agentRejectedAt?: Date;
+	isVerifiedAgent?: boolean;
 }

@@ -17,7 +17,15 @@ export const getStaticProps = async ({ locale }: any) => ({
 const Join: NextPage = () => {
 	const router = useRouter();
 	const device = useDeviceDetect();
-	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: 'USER' });
+	const [input, setInput] = useState({
+		nick: '',
+		password: '',
+		phone: '',
+		type: 'USER',
+		wantsToBecomeAgent: false,
+		agentRequestMessage: '',
+		agentExperience: '',
+	});
 	const [loginView, setLoginView] = useState<boolean>(true);
 
 	/** HANDLERS **/
@@ -54,7 +62,11 @@ const Join: NextPage = () => {
 	const doSignUp = useCallback(async () => {
 		console.warn(input);
 		try {
-			await signUp(input.nick, input.password, input.phone, input.type);
+			await signUp(input.nick, input.password, input.phone, input.type, {
+				wantsToBecomeAgent: input.wantsToBecomeAgent || input.type === 'AGENT',
+				agentRequestMessage: input.agentRequestMessage,
+				agentExperience: input.agentExperience,
+			});
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
 			await sweetMixinErrorAlert(err.message);
@@ -74,7 +86,7 @@ const Join: NextPage = () => {
 							{/* @ts-ignore */}
 							<Box className={'logo'}>
 								<img src="/img/logo/logoText.svg" alt="" />
-								<span>Nestar</span>
+								<span>GoTrip</span>
 							</Box>
 							<Box className={'info'}>
 								<span>{loginView ? 'login' : 'signup'}</span>
@@ -125,7 +137,7 @@ const Join: NextPage = () => {
 							<Box className={'register'}>
 								{!loginView && (
 									<div className={'type-option'}>
-										<span className={'text'}>I want to be registered as:</span>
+										<span className={'text'}>I want to join as:</span>
 										<div>
 											<FormGroup>
 												<FormControlLabel
@@ -137,7 +149,7 @@ const Join: NextPage = () => {
 															checked={input?.type == 'USER'}
 														/>
 													}
-													label="User"
+													label="Traveler"
 												/>
 											</FormGroup>
 											<FormGroup>
@@ -150,10 +162,42 @@ const Join: NextPage = () => {
 															checked={input?.type == 'AGENT'}
 														/>
 													}
-													label="Agent"
+													label="Guide / Operator"
 												/>
 											</FormGroup>
 										</div>
+										<FormGroup>
+											<FormControlLabel
+												control={
+													<Checkbox
+														size="small"
+														checked={input.wantsToBecomeAgent || input.type === 'AGENT'}
+														onChange={(event) => handleInput('wantsToBecomeAgent', event.target.checked)}
+													/>
+												}
+												label="Request guide/operator approval"
+											/>
+										</FormGroup>
+										{(input.wantsToBecomeAgent || input.type === 'AGENT') && (
+											<>
+												<div className={'input-box'}>
+													<span>Request message</span>
+													<input
+														type="text"
+														placeholder={'Tell admins why you want to guide travelers'}
+														onChange={(event) => handleInput('agentRequestMessage', event.target.value)}
+													/>
+												</div>
+												<div className={'input-box'}>
+													<span>Experience</span>
+													<input
+														type="text"
+														placeholder={'Describe your tour or travel experience'}
+														onChange={(event) => handleInput('agentExperience', event.target.value)}
+													/>
+												</div>
+											</>
+										)}
 									</div>
 								)}
 

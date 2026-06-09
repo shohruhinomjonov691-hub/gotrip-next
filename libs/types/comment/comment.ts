@@ -1,5 +1,5 @@
 import { CommentGroup, CommentStatus } from '../../enums/comment.enum';
-import { MeLiked, TotalCounter } from '../property/property';
+import { MeLiked, TotalCounter } from '../shared';
 import { Member } from '../member/member';
 
 export interface Comment {
@@ -8,6 +8,9 @@ export interface Comment {
 	commentGroup: CommentGroup;
 	commentContent: string;
 	commentRefId: string;
+	commentLikes?: number;
+	rating?: number;
+	parentCommentId?: string;
 	memberId: string;
 	createdAt: Date;
 	updatedAt: Date;

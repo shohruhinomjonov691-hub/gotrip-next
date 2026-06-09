@@ -57,27 +57,27 @@ const MyMenu = () => {
 				<Stack className={'sections'}>
 					<Stack className={'section'} style={{ height: user.memberType === 'AGENT' ? '228px' : '153px' }}>
 						<Typography className="title" variant={'h5'}>
-							MANAGE LISTINGS
+							MANAGE TOURS
 						</Typography>
 						<List className={'sub-section'}>
 							{user.memberType === 'AGENT' && (
 								<>
-									<ListItem className={pathname === 'addProperty' ? 'focus' : ''}>
+									<ListItem className={pathname === 'addTour' || pathname === 'addProperty' ? 'focus' : ''}>
 										<Link
 											href={{
 												pathname: '/mypage',
-												query: { category: 'addProperty' },
+												query: { category: 'addTour' },
 											}}
 											scroll={false}
 										>
 											<div className={'flex-box'}>
-												{category === 'addProperty' ? (
+												{category === 'addTour' || category === 'addProperty' ? (
 													<img className={'com-icon'} src={'/img/icons/whiteTab.svg'} alt={'com-icon'} />
 												) : (
 													<img className={'com-icon'} src={'/img/icons/newTab.svg'} alt={'com_icon'} />
 												)}
 												<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-													Add Property
+													Add Tour
 												</Typography>
 												<IconButton aria-label="delete" sx={{ ml: '40px' }}>
 													<PortraitIcon style={{ color: 'red' }} />
@@ -85,22 +85,22 @@ const MyMenu = () => {
 											</div>
 										</Link>
 									</ListItem>
-									<ListItem className={pathname === 'myProperties' ? 'focus' : ''}>
+									<ListItem className={pathname === 'myTours' || pathname === 'myProperties' ? 'focus' : ''}>
 										<Link
 											href={{
 												pathname: '/mypage',
-												query: { category: 'myProperties' },
+												query: { category: 'myTours' },
 											}}
 											scroll={false}
 										>
 											<div className={'flex-box'}>
-												{category === 'myProperties' ? (
+												{category === 'myTours' || category === 'myProperties' ? (
 													<img className={'com-icon'} src={'/img/icons/homeWhite.svg'} alt={'com-icon'} />
 												) : (
 													<img className={'com-icon'} src={'/img/icons/home.svg'} alt={'com-icon'} />
 												)}
 												<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-													My Properties
+													My Tours
 												</Typography>
 												<IconButton aria-label="delete" sx={{ ml: '36px' }}>
 													<PortraitIcon style={{ color: 'red' }} />
@@ -110,44 +110,44 @@ const MyMenu = () => {
 									</ListItem>
 								</>
 							)}
-							<ListItem className={pathname === 'myFavorites' ? 'focus' : ''}>
+							<ListItem className={pathname === 'savedTours' || pathname === 'myFavorites' ? 'focus' : ''}>
 								<Link
 									href={{
 										pathname: '/mypage',
-										query: { category: 'myFavorites' },
+										query: { category: 'savedTours' },
 									}}
 									scroll={false}
 								>
 									<div className={'flex-box'}>
-										{category === 'myFavorites' ? (
+										{category === 'savedTours' || category === 'myFavorites' ? (
 											<img className={'com-icon'} src={'/img/icons/likeWhite.svg'} alt={'com-icon'} />
 										) : (
 											<img className={'com-icon'} src={'/img/icons/like.svg'} alt={'com-icon'} />
 										)}
 
 										<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-											My Favorites
+											Saved Tours
 										</Typography>
 									</div>
 								</Link>
 							</ListItem>
-							<ListItem className={pathname === 'recentlyVisited' ? 'focus' : ''}>
+							<ListItem className={pathname === 'recentlyViewed' || pathname === 'recentlyVisited' ? 'focus' : ''}>
 								<Link
 									href={{
 										pathname: '/mypage',
-										query: { category: 'recentlyVisited' },
+										query: { category: 'recentlyViewed' },
 									}}
 									scroll={false}
 								>
 									<div className={'flex-box'}>
-										{category === 'recentlyVisited' ? (
+										{category === 'recentlyViewed' || category === 'recentlyVisited' ? (
 											<img className={'com-icon'} src={'/img/icons/searchWhite.svg'} alt={'com-icon'} />
 										) : (
 											<img className={'com-icon'} src={'/img/icons/search.svg'} alt={'com-icon'} />
 										)}
 
 										<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-											Recently Visited
+											Recently Viewed Tours
 										</Typography>
 									</div>
 								</Link>

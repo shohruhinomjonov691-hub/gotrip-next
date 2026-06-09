@@ -119,6 +119,14 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 					<Stack className="right-box">
 						<Typography className="main-title">My Profile</Typography>
 						<Typography className="sub-title">We are glad to see you again!</Typography>
+						<Typography className="sub-title">
+							Guide request: {user.agentRequestStatus ?? 'NONE'}
+							{user.isVerifiedAgent ? ' · Verified guide/operator' : ''}
+						</Typography>
+						{user.agentRequestMessage && (
+							<Typography className="sub-title">Request message: {user.agentRequestMessage}</Typography>
+						)}
+						{user.agentExperience && <Typography className="sub-title">Experience: {user.agentExperience}</Typography>}
 					</Stack>
 				</Stack>
 				<Stack className="top-box">

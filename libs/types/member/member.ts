@@ -1,5 +1,5 @@
-import { MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
-import { MeLiked, TotalCounter } from '../property/property';
+import { AgentRequestStatus, MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
+import { MeLiked, TotalCounter } from '../shared';
 import { MeFollowed } from '../follow/follow';
 
 export interface Member {
@@ -14,7 +14,8 @@ export interface Member {
 	memberImage?: string;
 	memberAddress?: string;
 	memberDesc?: string;
-	memberProperties: number;
+	memberTours: number;
+	memberProperties?: number;
 	memberRank: number;
 	memberArticles: number;
 	memberPoints: number;
@@ -25,6 +26,12 @@ export interface Member {
 	memberComments: number;
 	memberWarnings: number;
 	memberBlocks: number;
+	agentRequestStatus?: AgentRequestStatus;
+	agentRequestMessage?: string;
+	agentExperience?: string;
+	agentApprovedAt?: Date;
+	agentRejectedAt?: Date;
+	isVerifiedAgent?: boolean;
 	deletedAt?: Date;
 	createdAt: Date;
 	updatedAt: Date;

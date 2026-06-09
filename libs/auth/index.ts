@@ -64,9 +64,21 @@ const requestJwtToken = async ({
 	}
 };
 
-export const signUp = async (nick: string, password: string, phone: string, type: string): Promise<void> => {
+interface SignUpAgentRequest {
+	wantsToBecomeAgent?: boolean;
+	agentRequestMessage?: string;
+	agentExperience?: string;
+}
+
+export const signUp = async (
+	nick: string,
+	password: string,
+	phone: string,
+	type: string,
+	agentRequest?: SignUpAgentRequest,
+): Promise<void> => {
 	try {
-		const { jwtToken } = await requestSignUpJwtToken({ nick, password, phone, type });
+		const { jwtToken } = await requestSignUpJwtToken({ nick, password, phone, type, ...agentRequest });
 
 		if (jwtToken) {
 			updateStorage({ jwtToken });
@@ -84,11 +96,17 @@ const requestSignUpJwtToken = async ({
 	password,
 	phone,
 	type,
+	wantsToBecomeAgent,
+	agentRequestMessage,
+	agentExperience,
 }: {
 	nick: string;
 	password: string;
 	phone: string;
 	type: string;
+	wantsToBecomeAgent?: boolean;
+	agentRequestMessage?: string;
+	agentExperience?: string;
 }): Promise<{ jwtToken: string }> => {
 	const apolloClient = await initializeApollo();
 
@@ -96,7 +114,15 @@ const requestSignUpJwtToken = async ({
 		const result = await apolloClient.mutate({
 			mutation: SIGN_UP,
 			variables: {
-				input: { memberNick: nick, memberPassword: password, memberPhone: phone, memberType: type },
+				input: {
+					memberNick: nick,
+					memberPassword: password,
+					memberPhone: phone,
+					memberType: type,
+					wantsToBecomeAgent,
+					agentRequestMessage,
+					agentExperience,
+				},
 			},
 			fetchPolicy: 'network-only',
 		});
@@ -142,7 +168,7 @@ export const updateUserInfo = (jwtToken: any) => {
 				: `${claims.memberImage}`,
 		memberAddress: claims.memberAddress ?? '',
 		memberDesc: claims.memberDesc ?? '',
-		memberProperties: claims.memberProperties,
+		memberTours: claims.memberTours ?? claims.memberProperties ?? 0,
 		memberRank: claims.memberRank,
 		memberArticles: claims.memberArticles,
 		memberPoints: claims.memberPoints,
@@ -150,6 +176,12 @@ export const updateUserInfo = (jwtToken: any) => {
 		memberViews: claims.memberViews,
 		memberWarnings: claims.memberWarnings,
 		memberBlocks: claims.memberBlocks,
+		agentRequestStatus: claims.agentRequestStatus ?? '',
+		agentRequestMessage: claims.agentRequestMessage ?? '',
+		agentExperience: claims.agentExperience ?? '',
+		agentApprovedAt: claims.agentApprovedAt,
+		agentRejectedAt: claims.agentRejectedAt,
+		isVerifiedAgent: claims.isVerifiedAgent ?? false,
 	});
 };
 
@@ -176,7 +208,7 @@ const deleteUserInfo = () => {
 		memberImage: '',
 		memberAddress: '',
 		memberDesc: '',
-		memberProperties: 0,
+		memberTours: 0,
 		memberRank: 0,
 		memberArticles: 0,
 		memberPoints: 0,
@@ -184,5 +216,9 @@ const deleteUserInfo = () => {
 		memberViews: 0,
 		memberWarnings: 0,
 		memberBlocks: 0,
+		agentRequestStatus: '',
+		agentRequestMessage: '',
+		agentExperience: '',
+		isVerifiedAgent: false,
 	});
 };

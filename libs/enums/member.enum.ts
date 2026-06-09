@@ -15,3 +15,10 @@ export enum MemberAuthType {
 	EMAIL = 'EMAIL',
 	TELEGRAM = 'TELEGRAM',
 }
+
+export enum AgentRequestStatus {
+	NONE = 'NONE',
+	PENDING = 'PENDING',
+	APPROVED = 'APPROVED',
+	REJECTED = 'REJECTED',
+}

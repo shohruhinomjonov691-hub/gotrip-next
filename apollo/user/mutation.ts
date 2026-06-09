@@ -1,5 +1,199 @@
 import { gql } from '@apollo/client';
 
+export const CREATE_TOUR = gql`
+	mutation CreateTour($input: TourInput!) {
+		createTour(input: $input) {
+			_id
+			tourCategory
+			tourStatus
+			tourLocation
+			tourTitle
+			tourPrice
+			tourDuration
+			tourMaxPeople
+			tourMinPeople
+			tourAvailableSeats
+			tourImages
+			tourDesc
+			tourItinerary
+			tourIncluded
+			tourExcluded
+			tourMeetingPoint
+			tourLanguage
+			tourDifficulty
+			memberId
+			destinationId
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const UPDATE_TOUR = gql`
+	mutation UpdateTour($input: TourUpdate!) {
+		updateTour(input: $input) {
+			_id
+			tourCategory
+			tourStatus
+			tourLocation
+			tourTitle
+			tourPrice
+			tourDuration
+			tourMaxPeople
+			tourMinPeople
+			tourAvailableSeats
+			tourImages
+			tourDesc
+			tourItinerary
+			tourIncluded
+			tourExcluded
+			tourMeetingPoint
+			tourLanguage
+			tourDifficulty
+			memberId
+			destinationId
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const LIKE_TARGET_TOUR = gql`
+	mutation LikeTargetTour($tourId: String!) {
+		likeTargetTour(tourId: $tourId) {
+			_id
+			tourLikes
+		}
+	}
+`;
+
+export const TOGGLE_WISHLIST = gql`
+	mutation ToggleWishlist($input: WishlistInput!) {
+		toggleWishlist(input: $input) {
+			_id
+			wishlistGroup
+			wishlistRefId
+			memberId
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const LIKE_TARGET_DESTINATION = gql`
+	mutation LikeTargetDestination($destinationId: String!) {
+		likeTargetDestination(destinationId: $destinationId) {
+			_id
+			destinationLikes
+		}
+	}
+`;
+
+export const CREATE_TOUR_SCHEDULE = gql`
+	mutation CreateTourSchedule($input: TourScheduleInput!) {
+		createTourSchedule(input: $input) {
+			_id
+			scheduleStatus
+			tourId
+			startDate
+			endDate
+			availableSeats
+			reservedSeats
+			price
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const UPDATE_TOUR_SCHEDULE = gql`
+	mutation UpdateTourSchedule($input: TourScheduleUpdate!) {
+		updateTourSchedule(input: $input) {
+			_id
+			scheduleStatus
+			tourId
+			startDate
+			endDate
+			availableSeats
+			reservedSeats
+			price
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const DELETE_TOUR_SCHEDULE = gql`
+	mutation DeleteTourSchedule($scheduleId: String!) {
+		deleteTourSchedule(scheduleId: $scheduleId) {
+			_id
+			scheduleStatus
+		}
+	}
+`;
+
+export const CREATE_BOOKING = gql`
+	mutation CreateBooking($input: BookingInput!) {
+		createBooking(input: $input) {
+			_id
+			bookingStatus
+			bookingNumber
+			tourId
+			scheduleId
+			peopleCount
+			totalPrice
+		}
+	}
+`;
+
+export const CANCEL_BOOKING = gql`
+	mutation CancelBooking($bookingId: String!, $cancelReason: String!) {
+		cancelBooking(bookingId: $bookingId, cancelReason: $cancelReason) {
+			_id
+			bookingStatus
+			cancelReason
+			cancelledAt
+		}
+	}
+`;
+
+export const CREATE_PAYMENT = gql`
+	mutation CreatePayment($input: PaymentInput!) {
+		createPayment(input: $input) {
+			_id
+			paymentStatus
+			paymentMethod
+			paymentAmount
+			bookingId
+			tourId
+		}
+	}
+`;
+
+export const MARK_NOTIFICATION_READ = gql`
+	mutation MarkNotificationRead($notificationId: String!) {
+		markNotificationRead(notificationId: $notificationId) {
+			_id
+			notificationStatus
+		}
+	}
+`;
+
+export const MARK_ALL_NOTIFICATIONS_READ = gql`
+	mutation MarkAllNotificationsRead {
+		markAllNotificationsRead
+	}
+`;
+
+export const DELETE_NOTIFICATION = gql`
+	mutation DeleteNotification($notificationId: String!) {
+		deleteNotification(notificationId: $notificationId) {
+			_id
+			notificationStatus
+		}
+	}
+`;
+
 /**************************
  *         MEMBER         *
  *************************/
@@ -19,7 +213,7 @@ export const SIGN_UP = gql`
 			memberDesc
 			memberWarnings
 			memberBlocks
-			memberProperties
+			memberTours
 			memberRank
 			memberArticles
 			memberPoints
@@ -48,7 +242,7 @@ export const LOGIN = gql`
 			memberDesc
 			memberWarnings
 			memberBlocks
-			memberProperties
+			memberTours
 			memberRank
 			memberPoints
 			memberLikes
@@ -74,7 +268,7 @@ export const UPDATE_MEMBER = gql`
 			memberImage
 			memberAddress
 			memberDesc
-			memberProperties
+			memberTours
 			memberRank
 			memberArticles
 			memberPoints
@@ -105,7 +299,7 @@ export const LIKE_TARGET_MEMBER = gql`
 			memberDesc
 			memberWarnings
 			memberBlocks
-			memberProperties
+			memberTours
 			memberRank
 			memberPoints
 			memberLikes

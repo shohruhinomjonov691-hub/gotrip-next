@@ -28,34 +28,39 @@ const withLayoutBasic = (Component: any) => {
 				bgImage = '';
 
 			switch (router.pathname) {
+				case '/tour':
+					title = 'Tour Search';
+					desc = 'Find guided trips and travel experiences.';
+					bgImage = '/img/banner/properties.png';
+					break;
 				case '/property':
-					title = 'Property Search';
-					desc = 'We are glad to see you again!';
+					title = 'Tour Search';
+					desc = 'Find guided trips and travel experiences.';
 					bgImage = '/img/banner/properties.png';
 					break;
 				case '/agent':
-					title = 'Agents';
-					desc = 'Home / For Rent';
+					title = 'Guides';
+					desc = 'Meet local guides and tour operators.';
 					bgImage = '/img/banner/agents.webp';
 					break;
 				case '/agent/detail':
-					title = 'Agent Page';
-					desc = 'Home / For Rent';
+					title = 'Guide Page';
+					desc = 'Tours by this guide.';
 					bgImage = '/img/banner/header2.svg';
 					break;
 				case '/mypage':
-					title = 'my page';
-					desc = 'Home / For Rent';
+					title = 'My Page';
+					desc = 'Manage tours, saved tours, and profile.';
 					bgImage = '/img/banner/header1.svg';
 					break;
 				case '/community':
 					title = 'Community';
-					desc = 'Home / For Rent';
+					desc = 'Traveler stories and questions.';
 					bgImage = '/img/banner/header2.svg';
 					break;
 				case '/community/detail':
 					title = 'Community Detail';
-					desc = 'Home / For Rent';
+					desc = 'Traveler story.';
 					bgImage = '/img/banner/header2.svg';
 					break;
 				case '/cs':
@@ -71,7 +76,7 @@ const withLayoutBasic = (Component: any) => {
 					break;
 				case '/member':
 					title = 'Member Page';
-					desc = 'Home / For Rent';
+					desc = 'Member activity.';
 					bgImage = '/img/banner/header1.svg';
 					break;
 				default:

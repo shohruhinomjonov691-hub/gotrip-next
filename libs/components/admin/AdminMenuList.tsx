@@ -31,7 +31,7 @@ const AdminMenuList = (props: any) => {
 
 		switch (pathnames[1]) {
 			case 'properties':
-				setClickMenu(['Properties']);
+				setClickMenu(['Tours']);
 				break;
 			case 'community':
 				setClickMenu(['Community']);
@@ -47,6 +47,9 @@ const AdminMenuList = (props: any) => {
 		switch (pathnames[2]) {
 			case 'logs':
 				setClickSubMenu('Logs');
+				break;
+			case 'agent-requests':
+				setClickSubMenu('Agent Requests');
 				break;
 			case 'inquiry':
 				setClickSubMenu('1:1 Inquiry');
@@ -84,9 +87,9 @@ const AdminMenuList = (props: any) => {
 			on_click: () => subMenuChangeHandler('Users'),
 		},
 		{
-			title: 'Properties',
+			title: 'Tours',
 			icon: <UserCircleGear size={20} color="#bdbdbd" weight="fill" />,
-			on_click: () => subMenuChangeHandler('Properties'),
+			on_click: () => subMenuChangeHandler('Tours'),
 		},
 		{
 			title: 'Community',
@@ -101,8 +104,11 @@ const AdminMenuList = (props: any) => {
 	];
 
 	const sub_menu_set: any = {
-		Users: [{ title: 'List', url: '/_admin/users' }],
-		Properties: [{ title: 'List', url: '/_admin/properties' }],
+		Users: [
+			{ title: 'List', url: '/_admin/users' },
+			{ title: 'Agent Requests', url: '/_admin/users/agent-requests' },
+		],
+		Tours: [{ title: 'List', url: '/_admin/properties' }],
 		Community: [{ title: 'List', url: '/_admin/community' }],
 		Cs: [
 			{ title: 'FAQ', url: '/_admin/cs/faq' },

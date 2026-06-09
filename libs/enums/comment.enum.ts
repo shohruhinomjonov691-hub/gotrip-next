@@ -6,6 +6,8 @@ export enum CommentStatus {
 export enum CommentGroup {
 	MEMBER = 'MEMBER',
 	ARTICLE = 'ARTICLE',
-	PROPERTY = 'PROPERTY',
+	TOUR = 'TOUR',
+	PROPERTY = 'TOUR',
+	DESTINATION = 'DESTINATION',
 	COMMENT = 'COMMENT',
 }
