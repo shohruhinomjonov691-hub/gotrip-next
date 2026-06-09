@@ -2,11 +2,431 @@
 
 #mobile-wrap {
   .top {
-    height: 100px;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    height: auto;
+    min-height: 72px;
+    padding: 12px 12px;
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    background: rgba(10, 21, 32, 0.84);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    a {
+      flex: 0 0 auto;
+    }
+    div {
+      padding: 10px 13px;
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.86);
+      font-family: $font;
+      font-size: 13px;
+      font-weight: 800;
+      &.active {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.15);
+      }
+    }
+  }
+
+  .header-main {
+    position: relative;
+    width: 100%;
+    min-height: 820px;
+    padding: 34px 14px 44px;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(6, 15, 23, 0.72) 0%, rgba(6, 15, 23, 0.25) 56%, #ffffff 100%),
+      url('/img/banner/header1.svg');
+    background-size: cover;
+    background-position: center;
+    box-sizing: border-box;
+    .hero-container {
+      width: 100%;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .hero-copy {
+      width: 100%;
+      align-items: flex-start;
+      color: #ffffff;
+      .hero-kicker {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 17px 0 0;
+        color: #ffffff;
+        font-family: $font;
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+      p {
+        margin: 14px 0 0;
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.58;
+      }
+      .hero-actions {
+        margin-top: 19px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        .MuiButton-root {
+          height: 44px;
+          padding: 0 17px;
+          border-radius: 999px;
+          font-weight: 900;
+        }
+        .hero-primary {
+          background: linear-gradient(135deg, #18a999 0%, #f26a4f 100%);
+        }
+        .hero-secondary {
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.44);
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+    .hero-search-wrap {
+      width: 100%;
+    }
+    .hero-stats {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      div {
+        padding: 12px 8px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        text-align: center;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        strong {
+          display: block;
+          font-size: 20px;
+          font-weight: 900;
+        }
+        span {
+          display: block;
+          margin-top: 3px;
+          color: rgba(255, 255, 255, 0.78);
+          font-size: 11px;
+          font-weight: 800;
+        }
+      }
+    }
+  }
+
+  .tour-search-panel {
+    width: 100%;
+    padding: 16px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 22px 60px rgba(10, 20, 30, 0.22);
+    backdrop-filter: blur(24px) saturate(145%);
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    box-sizing: border-box;
+    .search-heading {
+      gap: 7px;
+      .glass-chip {
+        width: fit-content;
+        border-radius: 999px;
+        background: rgba(20, 150, 136, 0.12);
+        color: #0f766e;
+        font-weight: 900;
+      }
+      .search-title {
+        color: #10212b;
+        font-size: 22px;
+        font-weight: 900;
+        line-height: 1.18;
+      }
+      .search-copy {
+        color: #51616f;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.45;
+      }
+    }
+    .search-grid {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .MuiOutlinedInput-root {
+        border-radius: 16px;
+      }
+      .search-submit {
+        height: 48px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #10212b 0%, #18a999 100%);
+        font-weight: 900;
+      }
+    }
+    .destination-discovery {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(16, 33, 43, 0.08);
+      .destination-title-row {
+        margin-bottom: 10px;
+        p {
+          color: #10212b;
+          font-size: 14px;
+          font-weight: 900;
+        }
+        span {
+          color: #0f766e;
+          font-size: 12px;
+          font-weight: 900;
+        }
+      }
+      .destination-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        .destination-card {
+          position: relative;
+          height: 96px;
+          overflow: hidden;
+          border-radius: 18px;
+          background: #10212b;
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0.82;
+          }
+          div {
+            position: absolute;
+            inset: auto 10px 10px;
+            padding: 9px 11px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            strong,
+            span {
+              display: block;
+              color: #ffffff;
+            }
+            strong {
+              font-size: 14px;
+              font-weight: 900;
+            }
+            span {
+              margin-top: 3px;
+              color: rgba(255, 255, 255, 0.82);
+              font-size: 12px;
+              font-weight: 800;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .tour-highlight-section {
+    width: 100%;
+    padding: 44px 0;
+    background: #ffffff;
+    .tour-highlight-container {
+      width: 100%;
+      padding: 0 14px;
+      box-sizing: border-box;
+    }
+    .tour-section-heading {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      .eyebrow {
+        color: #0f766e;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .section-title {
+        color: #10212b;
+        font-size: 26px;
+        font-weight: 900;
+        line-height: 1.16;
+      }
+      .section-copy {
+        color: #60707d;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.48;
+      }
+      .section-link {
+        padding: 0;
+        color: #10212b;
+        font-weight: 900;
+      }
+    }
+    .tour-card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+  }
+
+  .tour-card-premium {
+    min-height: 450px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 22px;
+    background: #ffffff;
+    border: 1px solid rgba(16, 33, 43, 0.08);
+    box-shadow: 0 18px 42px rgba(16, 33, 43, 0.1);
+    .tour-card-media {
+      position: relative;
+      height: 220px;
+      .tour-card-image {
+        height: 100%;
+        overflow: hidden;
+        background: #e9f4f2;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+      .tour-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(8, 18, 26, 0.04) 20%, rgba(8, 18, 26, 0.62) 100%);
+      }
+      .tour-card-category,
+      .tour-card-price,
+      .tour-card-actions {
+        position: absolute;
+        z-index: 2;
+      }
+      .tour-card-category {
+        left: 12px;
+        top: 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        color: #10212b;
+        font-weight: 900;
+      }
+      .tour-card-price {
+        left: 12px;
+        bottom: 12px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #10212b;
+        font-size: 14px;
+        font-weight: 900;
+      }
+      .tour-card-actions {
+        right: 12px;
+        top: 12px;
+        display: flex;
+        gap: 8px;
+        .MuiIconButton-root {
+          width: 38px;
+          height: 38px;
+          color: #10212b;
+          background: rgba(255, 255, 255, 0.86);
+          &.active {
+            color: #ffffff;
+            background: #f05f49;
+          }
+        }
+      }
+    }
+    .tour-card-body {
+      flex: 1;
+      padding: 16px;
+      gap: 10px;
+      .tour-card-title {
+        min-height: 50px;
+        color: #10212b;
+        font-size: 19px;
+        font-weight: 900;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .tour-card-location {
+        color: #60707d;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .tour-card-meta {
+        gap: 8px;
+        flex-wrap: wrap;
+        span {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: #f3f8f7;
+          color: #42515c;
+          font-size: 12px;
+          font-weight: 800;
+          svg {
+            width: 16px;
+            height: 16px;
+            color: #0f766e;
+          }
+        }
+      }
+      .tour-card-footer {
+        margin-top: auto;
+        .tour-card-views svg {
+          width: 17px;
+          height: 17px;
+          color: #0f766e;
+        }
+        .tour-card-guide {
+          max-width: 140px;
+          color: #10212b;
+          font-size: 12px;
+          font-weight: 900;
+          text-align: right;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+      .tour-card-cta {
+        height: 46px;
+        margin-top: 4px;
+        border-radius: 14px;
+        background: #10212b;
+        font-weight: 900;
+      }
+    }
   }
 
   .info-box {

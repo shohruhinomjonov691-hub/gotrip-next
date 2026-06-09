@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import Link from 'next/link';
 import { Button, Stack, Typography } from '@mui/material';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import { motion } from 'framer-motion';
 import TourCard from '../tour/TourCard';
 import { GET_TOURS } from '../../../apollo/user/query';
 import { LIKE_TARGET_TOUR, TOGGLE_WISHLIST } from '../../../apollo/user/mutation';
@@ -12,6 +14,10 @@ import { WishlistGroup } from '../../enums/tour.enum';
 import { userVar } from '../../../apollo/store';
 import { T } from '../../types/common';
 import { sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { fadeUp, staggerContainer } from './motion';
+
+const MotionStack = motion(Stack);
+const MotionDiv = motion.div;
 
 interface TourHighlightsProps {
 	title: string;
@@ -48,6 +54,7 @@ const TourHighlights = ({ title, sort, direction = Direction.DESC, limit = 3 }: 
 		try {
 			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
 			await toggleWishlist({ variables: { input: { wishlistGroup: WishlistGroup.TOUR, wishlistRefId: tourId } } });
+			await refetch({ input });
 			await sweetTopSmallSuccessAlert('Saved tours updated', 900);
 		} catch (err) {
 			await sweetErrorHandling(err);
@@ -55,33 +62,47 @@ const TourHighlights = ({ title, sort, direction = Direction.DESC, limit = 3 }: 
 	};
 
 	return (
-		<Stack sx={{ width: '100%', py: 5, bgcolor: '#fff' }}>
-			<Stack sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 2 }} spacing={2.5}>
-				<Stack direction="row" alignItems="center" justifyContent="space-between">
-					<Typography fontSize={28} fontWeight={800}>
-						{title}
-					</Typography>
+		<MotionStack
+			className={'tour-highlight-section'}
+			variants={fadeUp}
+			initial="hidden"
+			whileInView="visible"
+			viewport={{ once: true, amount: 0.18 }}
+		>
+			<Stack className={'tour-highlight-container'} spacing={2.5}>
+				<Stack className={'tour-section-heading'} direction="row" alignItems="flex-end" justifyContent="space-between">
+					<Stack spacing={0.7}>
+						<Typography className={'eyebrow'}>Featured experiences</Typography>
+						<Typography className={'section-title'}>{title}</Typography>
+						<Typography className={'section-copy'}>
+							Handpicked tours with trusted guides, flexible group sizes, and easy booking paths.
+						</Typography>
+					</Stack>
 					<Link href="/tour">
-						<Button>View all</Button>
+						<Button className={'section-link'} endIcon={<ArrowForwardRoundedIcon />}>
+							View all
+						</Button>
 					</Link>
 				</Stack>
 				{loading && tours.length === 0 ? (
-					<Typography color="text.secondary">Loading tours...</Typography>
+					<Typography className={'tour-loading'}>Loading tours...</Typography>
 				) : (
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-							gap: 16,
-						}}
+					<MotionDiv
+						className={'tour-card-grid'}
+						variants={staggerContainer}
+						initial="hidden"
+						whileInView="visible"
+						viewport={{ once: true, amount: 0.12 }}
 					>
 						{tours.map((tour) => (
-							<TourCard key={tour._id} tour={tour} onLike={likeHandler} onSave={saveHandler} />
+							<MotionDiv variants={fadeUp} key={tour._id}>
+								<TourCard tour={tour} onLike={likeHandler} onSave={saveHandler} />
+							</MotionDiv>
 						))}
-					</div>
+					</MotionDiv>
 				)}
 			</Stack>
-		</Stack>
+		</MotionStack>
 	);
 };
 

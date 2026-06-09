@@ -5,9 +5,14 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import { motion } from 'framer-motion';
 import { Tour } from '../../types/tour/tour';
 import { REACT_APP_API_URL } from '../../config';
 import { formatterStr } from '../../utils';
+import { hoverLift, tapPress } from '../homepage/motion';
 
 interface TourCardProps {
 	tour: Tour;
@@ -20,61 +25,67 @@ const TourCard = ({ tour, onLike, onSave }: TourCardProps) => {
 	const isLiked = !!tour.meLiked?.[0]?.myFavorite;
 
 	return (
-		<Stack
-			sx={{
-				border: '1px solid #e7e7e7',
-				borderRadius: '8px',
-				overflow: 'hidden',
-				bgcolor: '#fff',
-				minHeight: 430,
-			}}
-		>
-			<Link href={`/tour/detail?id=${tour._id}`}>
-				<div style={{ height: 220, cursor: 'pointer', overflow: 'hidden', backgroundColor: '#f5f5f5' }}>
-					<img
-						src={image}
-						alt={tour.tourTitle}
-						style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-					/>
-				</div>
-			</Link>
-			<Stack spacing={1.2} sx={{ p: 2, flex: 1 }}>
-				<Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-					<Chip label={tour.tourCategory} size="small" />
-					<Typography fontWeight={700}>${formatterStr(tour.tourPrice)}</Typography>
-				</Stack>
+		<motion.div className={'tour-card-premium'} whileHover={hoverLift}>
+			<div className={'tour-card-media'}>
 				<Link href={`/tour/detail?id=${tour._id}`}>
-					<Typography sx={{ cursor: 'pointer' }} fontSize={18} fontWeight={700} lineHeight={1.25}>
-						{tour.tourTitle}
-					</Typography>
+					<div className={'tour-card-image'}>
+						<img src={image} alt={tour.tourTitle} loading="lazy" />
+						<div className={'tour-card-overlay'} />
+					</div>
 				</Link>
-				<Typography color="text.secondary" fontSize={14}>
-					{tour.tourLocation} · {tour.tourDuration} days · {tour.tourMinPeople}-{tour.tourMaxPeople} travelers
-				</Typography>
-				<Typography color="text.secondary" fontSize={14}>
-					{tour.tourAvailableSeats} seats available
-				</Typography>
-				<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
-					<Stack direction="row" spacing={1} alignItems="center">
-						<VisibilityIcon fontSize="small" />
-						<Typography fontSize={13}>{tour.tourViews}</Typography>
-					</Stack>
-					<Stack direction="row" spacing={0.5}>
-						<IconButton aria-label="Like tour" onClick={() => onLike?.(tour._id)} size="small">
-							{isLiked ? <FavoriteIcon color="primary" /> : <FavoriteBorderIcon />}
+				<Chip className={'tour-card-category'} label={tour.tourCategory} size="small" />
+				<div className={'tour-card-price'}>${formatterStr(tour.tourPrice)}</div>
+				<div className={'tour-card-actions'}>
+					<motion.div whileTap={tapPress}>
+						<IconButton
+							aria-label="Like tour"
+							onClick={() => onLike?.(tour._id)}
+							size="small"
+							className={isLiked ? 'active' : ''}
+						>
+							{isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
 						</IconButton>
+					</motion.div>
+					<motion.div whileTap={tapPress}>
 						<IconButton aria-label="Save tour" onClick={() => onSave?.(tour._id)} size="small">
 							<BookmarkAddOutlinedIcon />
 						</IconButton>
+					</motion.div>
+				</div>
+			</div>
+			<Stack className={'tour-card-body'}>
+				<Link href={`/tour/detail?id=${tour._id}`}>
+					<Typography className={'tour-card-title'}>
+						{tour.tourTitle}
+					</Typography>
+				</Link>
+				<Typography className={'tour-card-location'}>
+					{tour.tourLocation} · {tour.tourDuration} days
+				</Typography>
+				<Stack className={'tour-card-meta'} direction="row">
+					<span>
+						<GroupsOutlinedIcon fontSize="small" />
+						{tour.tourMinPeople}-{tour.tourMaxPeople} travelers
+					</span>
+					<span>
+						<EventAvailableOutlinedIcon fontSize="small" />
+						{tour.tourAvailableSeats} seats
+					</span>
+				</Stack>
+				<Stack className={'tour-card-footer'} direction="row" alignItems="center" justifyContent="space-between">
+					<Stack className={'tour-card-views'} direction="row" spacing={0.7} alignItems="center">
+						<VisibilityIcon fontSize="small" />
+						<Typography fontSize={13}>{tour.tourViews}</Typography>
 					</Stack>
+					<Typography className={'tour-card-guide'}>{tour.tourLanguage || 'Local guide'}</Typography>
 				</Stack>
 				<Link href={`/tour/detail?id=${tour._id}`}>
-					<Button variant="outlined" fullWidth>
-						View tour
+					<Button className={'tour-card-cta'} variant="contained" fullWidth endIcon={<ArrowForwardRoundedIcon />}>
+						Check availability
 					</Button>
 				</Link>
 			</Stack>
-		</Stack>
+		</motion.div>
 	);
 };
 

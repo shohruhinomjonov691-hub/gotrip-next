@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useState } from 'react';
 import { useRouter, withRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
@@ -17,6 +17,10 @@ import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import { Logout } from '@mui/icons-material';
 import { REACT_APP_API_URL } from '../config';
+import { motion } from 'framer-motion';
+import { hoverLift, tapPress } from './homepage/motion';
+
+const MotionDiv = motion.div;
 
 const Top = () => {
 	const device = useDeviceDetect();
@@ -86,6 +90,13 @@ const Top = () => {
 		}
 	};
 
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		changeNavbarColor();
+		window.addEventListener('scroll', changeNavbarColor, { passive: true });
+		return () => window.removeEventListener('scroll', changeNavbarColor);
+	}, []);
+
 	const handleClose = () => {
 		setAnchorEl(null);
 	};
@@ -136,28 +147,27 @@ const Top = () => {
 		},
 	}));
 
-	if (typeof window !== 'undefined') {
-		window.addEventListener('scroll', changeNavbarColor);
-	}
+	const navItems = [
+		{ href: '/', label: t('Home'), active: router.pathname === '/' },
+		{ href: '/tour', label: 'Tours', active: router.pathname === '/tour' || router.pathname === '/property' },
+		{ href: '/agent', label: 'Guides', active: router.pathname === '/agent' },
+		{ href: '/community?articleCategory=FREE', label: t('Community'), active: router.pathname.startsWith('/community') },
+		...(user?._id ? [{ href: '/mypage', label: t('My Page'), active: router.pathname === '/mypage' }] : []),
+		{ href: '/cs', label: t('CS'), active: router.pathname === '/cs' },
+	];
 
 	if (device == 'mobile') {
 		return (
 			<Stack className={'top'}>
-				<Link href={'/'}>
-					<div>{t('Home')}</div>
-				</Link>
-				<Link href={'/tour'}>
-					<div>Tours</div>
-				</Link>
-				<Link href={'/agent'}>
-					<div> Guides </div>
-				</Link>
-				<Link href={'/community?articleCategory=FREE'}>
-					<div> {t('Community')} </div>
-				</Link>
-				<Link href={'/cs'}>
-					<div> {t('CS')} </div>
-				</Link>
+				{navItems
+					.filter((item) => item.href !== '/mypage')
+					.map((item) => (
+						<Link href={item.href} key={item.href}>
+							<MotionDiv className={item.active ? 'active' : ''} whileTap={tapPress}>
+								{item.label}
+							</MotionDiv>
+						</Link>
+					))}
 			</Stack>
 		);
 	} else {
@@ -171,38 +181,30 @@ const Top = () => {
 							</Link>
 						</Box>
 						<Box component={'div'} className={'router-box'}>
-							<Link href={'/'}>
-								<div>{t('Home')}</div>
-							</Link>
-							<Link href={'/tour'}>
-								<div>Tours</div>
-							</Link>
-							<Link href={'/agent'}>
-								<div> Guides </div>
-							</Link>
-							<Link href={'/community?articleCategory=FREE'}>
-								<div> {t('Community')} </div>
-							</Link>
-							{user?._id && (
-								<Link href={'/mypage'}>
-									<div> {t('My Page')} </div>
+							{navItems.map((item) => (
+								<Link href={item.href} key={item.href}>
+									<MotionDiv className={item.active ? 'active' : ''} whileHover={hoverLift} whileTap={tapPress}>
+										{item.label}
+									</MotionDiv>
 								</Link>
-							)}
-							<Link href={'/cs'}>
-								<div> {t('CS')} </div>
-							</Link>
+							))}
 						</Box>
 						<Box component={'div'} className={'user-box'}>
 							{user?._id ? (
 								<>
-									<div className={'login-user'} onClick={(event: any) => setLogoutAnchor(event.currentTarget)}>
+									<MotionDiv
+										className={'login-user'}
+										onClick={(event: any) => setLogoutAnchor(event.currentTarget)}
+										whileHover={{ scale: 1.04 }}
+										whileTap={tapPress}
+									>
 										<img
 											src={
 												user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'
 											}
 											alt=""
 										/>
-									</div>
+									</MotionDiv>
 
 									<Menu
 										id="basic-menu"
@@ -221,17 +223,21 @@ const Top = () => {
 								</>
 							) : (
 								<Link href={'/account/join'}>
-									<div className={'join-box'}>
+									<MotionDiv className={'join-box'} whileHover={{ scale: 1.025, y: -1 }} whileTap={tapPress}>
 										<AccountCircleOutlinedIcon />
 										<span>
 											{t('Login')} / {t('Register')}
 										</span>
-									</div>
+									</MotionDiv>
 								</Link>
 							)}
 
 							<div className={'lan-box'}>
-								{user?._id && <NotificationsOutlinedIcon className={'notification-icon'} />}
+								{user?._id && (
+									<MotionDiv className={'notification-pill'} whileHover={{ scale: 1.06 }} whileTap={tapPress}>
+										<NotificationsOutlinedIcon className={'notification-icon'} />
+									</MotionDiv>
+								)}
 								<Button
 									disableRipple
 									className="btn-lang"
