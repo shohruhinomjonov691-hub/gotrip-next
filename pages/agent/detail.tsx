@@ -1,6 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import TourCard from '../../libs/components/tour/TourCard';
 import ReviewCard from '../../libs/components/agent/ReviewCard';
@@ -29,7 +28,6 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) => {
-	const device = useDeviceDetect();
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const [agentId, setAgentId] = useState<string | null>(null);
@@ -152,7 +150,7 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 
 	const createCommentHandler = async () => {
 		try {
-			if (user._id) throw new Error(Messages.error2);
+			if (!user._id) throw new Error(Messages.error2);
 			if (user._id === agentId) throw new Error('Connot write a review for yourself');
 
 			await createComment({
@@ -185,10 +183,7 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 		}
 	};
 
-	if (device === 'mobile') {
-		return <div>AGENT DETAIL PAGE MOBILE</div>;
-	} else {
-		return (
+	return (
 			<Stack className={'agent-detail-page'}>
 				<Stack className={'container'}>
 					<Stack className={'agent-info'}>
@@ -270,6 +265,7 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 							<Typography className={'main-title'}>Leave A Review</Typography>
 							<Typography className={'review-title'}>Review</Typography>
 							<textarea
+								aria-label="Write a review for this guide"
 								onChange={({ target: { value } }: any) => {
 									setInsertCommentData({ ...insertCommentData, commentContent: value });
 								}}
@@ -302,7 +298,6 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 				</Stack>
 			</Stack>
 		);
-	}
 };
 
 AgentDetail.defaultProps = {

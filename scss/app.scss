@@ -1,11 +1,49 @@
 /** IMPORTS **/
 @import 'variables.scss';
+@import 'gotrip-theme.scss';
 @import 'reset.scss';
 
 a {
 	white-space: nowrap;
 	text-decoration: none;
-	color: #212121;
+	color: var(--gt-text);
+}
+
+[data-theme='dark'] a {
+	color: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role='button']:focus-visible,
+.MuiButtonBase-root:focus-visible {
+	outline: 3px solid var(--gt-focus-ring);
+	outline-offset: 3px;
+}
+
+[data-theme='dark'] {
+	color-scheme: dark;
+}
+
+[data-theme='dark'] .MuiDialog-paper,
+[data-theme='dark'] .MuiPopover-paper,
+[data-theme='dark'] .MuiMenu-paper {
+	background: var(--gt-paper);
+	color: var(--gt-text);
+	border: 1px solid var(--gt-border);
+}
+
+[data-theme='dark'] .MuiInputBase-input::placeholder {
+	color: var(--gt-input-placeholder);
+	opacity: 1;
+}
+
+[data-theme='dark'] button.outline {
+	border-color: var(--gt-border);
+	color: var(--gt-text);
 }
 button {
 	text-transform: none;
@@ -13,10 +51,10 @@ button {
 	padding: 0;
 }
 button.outline {
-	border: 1px solid #eee;
+	border: 1px solid var(--gt-border);
 }
 button.contain {
-	color: #fff;
+	color: var(--gt-inverse-text);
 }
 span,
 p {
@@ -29,11 +67,11 @@ body {
 	}
 	&::-webkit-scrollbar-thumb {
 		height: 30%;
-		background: #bdbdbd;
-		border-radius: 10px;
+		background: var(--gt-muted);
+		border-radius: var(--gt-radius-sm);
 	}
 	&::-webkit-scrollbar-track {
-		background: #eee;
+		background: var(--gt-surface-2);
 	}
 
 	.MuiPopover-paper {
@@ -43,7 +81,7 @@ body {
 hr {
 	border-width: 0;
 	border-bottom-width: thin;
-	border-color: #eee;
+	border-color: var(--gt-divider);
 	margin: auto;
 }
 

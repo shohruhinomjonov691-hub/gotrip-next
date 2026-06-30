@@ -1,254 +1,132 @@
 import React from 'react';
 import Link from 'next/link';
-import {
-	TableCell,
-	TableHead,
-	TableBody,
-	TableRow,
-	Table,
-	TableContainer,
-	Button,
-	Menu,
-	Fade,
-	MenuItem,
-} from '@mui/material';
-import Avatar from '@mui/material/Avatar';
-import Typography from '@mui/material/Typography';
-import { Stack } from '@mui/material';
+import { Avatar, Box, Button, Menu, MenuItem, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Member } from '../../../types/member/member';
 import { REACT_APP_API_URL } from '../../../config';
 import { MemberStatus, MemberType } from '../../../enums/member.enum';
 
-interface Data {
-	id: string;
-	nickname: string;
-	fullname: string;
-	phone: string;
-	type: string;
-	state: string;
-	warning: string;
-	block: string;
-}
-
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-	if (b[orderBy] < a[orderBy]) {
-		return -1;
-	}
-	if (b[orderBy] > a[orderBy]) {
-		return 1;
-	}
-	return 0;
-}
-
-type Order = 'asc' | 'desc';
-
-interface HeadCell {
-	disablePadding: boolean;
-	id: keyof Data;
-	label: string;
-	numeric: boolean;
-}
-
-const headCells: readonly HeadCell[] = [
-	{
-		id: 'id',
-		numeric: true,
-		disablePadding: false,
-		label: 'MB ID',
-	},
-	{
-		id: 'nickname',
-		numeric: true,
-		disablePadding: false,
-		label: 'NICK NAME',
-	},
-	{
-		id: 'fullname',
-		numeric: false,
-		disablePadding: false,
-		label: 'FULL NAME',
-	},
-	{
-		id: 'phone',
-		numeric: true,
-		disablePadding: false,
-		label: 'PHONE NUM',
-	},
-	{
-		id: 'type',
-		numeric: false,
-		disablePadding: false,
-		label: 'MEMBER TYPE',
-	},
-	{
-		id: 'warning',
-		numeric: false,
-		disablePadding: false,
-		label: 'WARNING',
-	},
-	{
-		id: 'block',
-		numeric: false,
-		disablePadding: false,
-		label: 'BLOCK CRIMES',
-	},
-	{
-		id: 'state',
-		numeric: false,
-		disablePadding: false,
-		label: 'STATE',
-	},
-];
-
-interface EnhancedTableProps {
-	numSelected: number;
-	onRequestSort: (event: React.MouseEvent<unknown>, property: keyof Data) => void;
-	onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	order: Order;
-	orderBy: string;
-	rowCount: number;
-}
-
-function EnhancedTableHead(props: EnhancedTableProps) {
-	const { onSelectAllClick } = props;
-
-	return (
-		<TableHead>
-			<TableRow>
-				{headCells.map((headCell) => (
-					<TableCell
-						key={headCell.id}
-						align={headCell.numeric ? 'left' : 'center'}
-						padding={headCell.disablePadding ? 'none' : 'normal'}
-					>
-						{headCell.label}
-					</TableCell>
-				))}
-			</TableRow>
-		</TableHead>
-	);
-}
-
-interface MemberPanelListType {
+interface MemberPanelListProps {
 	members: Member[];
-	anchorEl: any;
-	menuIconClickHandler: any;
-	menuIconCloseHandler: any;
-	updateMemberHandler: any;
+	anchorEl: Record<string, HTMLElement | null>;
+	menuIconClickHandler: (event: React.MouseEvent<HTMLElement>, key: string) => void;
+	menuIconCloseHandler: () => void;
+	updateMemberHandler: (input: { _id: string; memberType?: MemberType; memberStatus?: MemberStatus }) => void;
+	loading?: boolean;
 }
 
-export const MemberPanelList = (props: MemberPanelListType) => {
-	const { members, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateMemberHandler } = props;
+const toStatusClass = (value?: string) => `admin-status admin-status--${(value ?? 'hold').toLowerCase()}`;
+
+export const MemberPanelList = ({
+	members,
+	anchorEl,
+	menuIconClickHandler,
+	menuIconCloseHandler,
+	updateMemberHandler,
+	loading = false,
+}: MemberPanelListProps) => {
+	const reduceMotion = useReducedMotion();
+
+	if (loading) {
+		return (
+			<Box className="admin-table-skeleton" aria-label="Loading members" role="status">
+				{Array.from({ length: 6 }).map((_, index) => <span key={index} />)}
+			</Box>
+		);
+	}
+
+	if (!members.length) {
+		return <Box className="admin-state admin-state--empty">No members match these controls.</Box>;
+	}
 
 	return (
-		<Stack>
-			<TableContainer>
-				<Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={'medium'}>
-					{/*@ts-ignore*/}
-					<EnhancedTableHead />
+		<motion.div initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+			<TableContainer className="admin-data-table">
+				<Table aria-label="Members">
+					<TableHead>
+						<TableRow>
+							<TableCell>Member</TableCell>
+							<TableCell>Phone</TableCell>
+							<TableCell>Role</TableCell>
+							<TableCell align="center">Warnings</TableCell>
+							<TableCell align="center">Blocks</TableCell>
+							<TableCell>Status</TableCell>
+						</TableRow>
+					</TableHead>
 					<TableBody>
-						{members.length === 0 && (
-							<TableRow>
-								<TableCell align="center" colSpan={8}>
-									<span className={'no-data'}>data not found!</span>
-								</TableCell>
-							</TableRow>
-						)}
+						{members.map((member) => {
+							const image = member.memberImage ? `${REACT_APP_API_URL}/${member.memberImage}` : '/img/profile/defaultUser.svg';
+							const roleKey = `${member._id}-role`;
+							const statusKey = `${member._id}-status`;
 
-						{members.length !== 0 &&
-							members.map((member: Member, index: number) => {
-								const member_image = member.memberImage
-									? `${REACT_APP_API_URL}/${member.memberImage}`
-									: '/img/profile/defaultUser.svg';
-								return (
-									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-										<TableCell align="left">{member._id}</TableCell>
-
-										<TableCell align="left" className={'name'}>
-											<Stack direction={'row'}>
-												<Link href={`/member?memberId=${member._id}`}>
-													<div>
-														<Avatar alt="Remy Sharp" src={member_image} sx={{ ml: '2px', mr: '10px' }} />
-													</div>
-												</Link>
-												<Link href={`/member?memberId=${member._id}`}>
-													<div>{member.memberNick}</div>
-												</Link>
-											</Stack>
-										</TableCell>
-
-										<TableCell align="center">{member.memberFullName ?? '-'}</TableCell>
-										<TableCell align="left">{member.memberPhone}</TableCell>
-
-										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
-												{member.memberType}
-											</Button>
-
-											<Menu
-												className={'menu-modal'}
-												MenuListProps={{
-													'aria-labelledby': 'fade-button',
-												}}
-												anchorEl={anchorEl[index]}
-												open={Boolean(anchorEl[index])}
-												onClose={menuIconCloseHandler}
-												TransitionComponent={Fade}
-												sx={{ p: 1 }}
-											>
-												{Object.values(MemberType)
-													.filter((ele) => ele !== member?.memberType)
-													.map((type: string) => (
-														<MenuItem
-															onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}
-															key={type}
-														>
-															<Typography variant={'subtitle1'} component={'span'}>
-																{type}
-															</Typography>
-														</MenuItem>
-													))}
-											</Menu>
-										</TableCell>
-
-										<TableCell align="center">{member.memberWarnings}</TableCell>
-										<TableCell align="center">{member.memberBlocks}</TableCell>
-										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
-												{member.memberStatus}
-											</Button>
-
-											<Menu
-												className={'menu-modal'}
-												MenuListProps={{
-													'aria-labelledby': 'fade-button',
-												}}
-												anchorEl={anchorEl[member._id]}
-												open={Boolean(anchorEl[member._id])}
-												onClose={menuIconCloseHandler}
-												TransitionComponent={Fade}
-												sx={{ p: 1 }}
-											>
-												{Object.values(MemberStatus)
-													.filter((ele: string) => ele !== member?.memberStatus)
-													.map((status: string) => (
-														<MenuItem
-															onClick={() => updateMemberHandler({ _id: member._id, memberStatus: status })}
-															key={status}
-														>
-															<Typography variant={'subtitle1'} component={'span'}>
-																{status}
-															</Typography>
-														</MenuItem>
-													))}
-											</Menu>
-										</TableCell>
-									</TableRow>
-								);
-							})}
+							return (
+								<TableRow key={member._id}>
+									<TableCell>
+										<Stack direction="row" alignItems="center" spacing={1.5} className="admin-person">
+											<Avatar src={image} alt={member.memberNick} />
+											<Box>
+												<Link href={`/member?memberId=${member._id}`}>{member.memberNick}</Link>
+												<Typography component="span">{member.memberFullName || member._id}</Typography>
+											</Box>
+										</Stack>
+									</TableCell>
+									<TableCell>{member.memberPhone}</TableCell>
+									<TableCell>
+										<Button className={toStatusClass(member.memberType)} onClick={(event) => menuIconClickHandler(event, roleKey)}>
+											{member.memberType}
+										</Button>
+										<Menu anchorEl={anchorEl[roleKey]} open={Boolean(anchorEl[roleKey])} onClose={menuIconCloseHandler}>
+											{Object.values(MemberType).filter((type) => type !== member.memberType).map((type) => (
+												<MenuItem key={type} onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}>{type}</MenuItem>
+											))}
+										</Menu>
+									</TableCell>
+									<TableCell align="center">{member.memberWarnings}</TableCell>
+									<TableCell align="center">{member.memberBlocks}</TableCell>
+									<TableCell>
+										<Button className={toStatusClass(member.memberStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>
+											{member.memberStatus}
+										</Button>
+										<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>
+											{Object.values(MemberStatus).filter((status) => status !== member.memberStatus).map((status) => (
+												<MenuItem key={status} onClick={() => updateMemberHandler({ _id: member._id, memberStatus: status })}>{status}</MenuItem>
+											))}
+										</Menu>
+									</TableCell>
+								</TableRow>
+							);
+						})}
 					</TableBody>
 				</Table>
 			</TableContainer>
-		</Stack>
+			<Box className="admin-mobile-cards">
+				{members.map((member, index) => {
+					const image = member.memberImage ? `${REACT_APP_API_URL}/${member.memberImage}` : '/img/profile/defaultUser.svg';
+					const roleKey = `${member._id}-mobile-role`;
+					const statusKey = `${member._id}-mobile-status`;
+					return (
+						<motion.article
+							key={member._id}
+							className="admin-mobile-card"
+							initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.18, delay: reduceMotion ? 0 : Math.min(index * 0.025, 0.12) }}
+						>
+							<Stack direction="row" spacing={1.5} alignItems="center">
+								<Avatar src={image} alt={member.memberNick} />
+								<Box><Link href={`/member?memberId=${member._id}`}>{member.memberNick}</Link><Typography component="span">{member.memberPhone}</Typography></Box>
+							</Stack>
+							<Box className="admin-mobile-card__meta"><span>Warnings {member.memberWarnings}</span><span>Blocks {member.memberBlocks}</span></Box>
+							<Box className="admin-mobile-card__actions">
+								<Button className={toStatusClass(member.memberType)} onClick={(event) => menuIconClickHandler(event, roleKey)}>{member.memberType}</Button>
+								<Button className={toStatusClass(member.memberStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>{member.memberStatus}</Button>
+							</Box>
+							<Menu anchorEl={anchorEl[roleKey]} open={Boolean(anchorEl[roleKey])} onClose={menuIconCloseHandler}>{Object.values(MemberType).filter((type) => type !== member.memberType).map((type) => <MenuItem key={type} onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}>{type}</MenuItem>)}</Menu>
+							<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>{Object.values(MemberStatus).filter((status) => status !== member.memberStatus).map((status) => <MenuItem key={status} onClick={() => updateMemberHandler({ _id: member._id, memberStatus: status })}>{status}</MenuItem>)}</Menu>
+						</motion.article>
+					);
+				})}
+			</Box>
+		</motion.div>
 	);
 };

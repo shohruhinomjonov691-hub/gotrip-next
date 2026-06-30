@@ -1,154 +1,84 @@
 import React from 'react';
-import { NextPage } from 'next';
+import type { NextPage } from 'next';
+import Link from 'next/link';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Stack, Box } from '@mui/material';
+import { Box, Stack } from '@mui/material';
+
+const CapabilityCards = ({ compact = false }: { compact?: boolean }) => (
+	<Stack className={'boxes'} sx={compact ? { mt: 3, gap: 2 } : undefined}>
+		<Stack className={'box'} sx={compact ? { width: '100%', mr: 0, p: 2, borderRadius: 2, bgcolor: 'var(--gt-surface)' } : undefined}>
+			<div>
+				<img src="/img/icons/discovery.svg" alt="" />
+			</div>
+			<span>Destination-led discovery</span>
+			<p>Start with a place, compare guided tours, and keep travel details together while you plan.</p>
+		</Stack>
+		<Stack className={'box'} sx={compact ? { width: '100%', mr: 0, p: 2, borderRadius: 2, bgcolor: 'var(--gt-surface)' } : undefined}>
+			<div>
+				<img src="/img/icons/securePayment.svg" alt="" />
+			</div>
+			<span>Traveler account tools</span>
+			<p>Save tours, manage bookings and payment records, and join travel conversations when you are signed in.</p>
+		</Stack>
+	</Stack>
+);
+
+const SupportPanel = ({ compact = false }: { compact?: boolean }) => (
+	<Stack className={'help'} sx={compact ? { mt: 3, width: '100%' } : undefined}>
+		<Stack
+			className={'container'}
+			sx={
+				compact
+					? { p: 2.5, borderRadius: 2, bgcolor: 'var(--gt-surface-2)', alignItems: 'flex-start', gap: 2 }
+					: undefined
+			}
+		>
+			<Box className={'left'} component={'div'}>
+				<strong>Need travel-platform guidance?</strong>
+				<p>Read current notices, terms, and available inquiry guidance in the GoTrip Help Center.</p>
+			</Box>
+			<Box className={'right'} component={'div'} sx={compact ? { width: '100%' } : undefined}>
+				<Link href="/cs?tab=inquiry">
+					<Box
+						className={'black'}
+						component={'div'}
+						sx={compact ? { m: 0, width: '100%', minHeight: 44, color: '#fff', bgcolor: 'var(--gt-deep-ocean)' } : undefined}
+					>
+						Open support
+					</Box>
+				</Link>
+			</Box>
+		</Stack>
+	</Stack>
+);
 
 const About: NextPage = () => {
 	const device = useDeviceDetect();
+	const isMobile = device === 'mobile';
 
-	if (device === 'mobile') {
-		return <div>ABOUT PAGE MOBILE</div>;
-	} else {
-		return (
-			<Stack className={'about-page'}>
-				<Stack className={'intro'}>
-					<Stack className={'container'}>
-						<Stack className={'left'}>
-							<strong>We're on a Mission to Change View of Real Estate Field.</strong>
-						</Stack>
-						<Stack className={'right'}>
-							<p>
-								It doesn’t matter how organized you are — a surplus of toys will always ensure your house is a mess
-								waiting to happen. Fortunately, getting kids on board with the idea of ditching their stuff is a lot
-								easier than it sounds.
-								<br />
-								<br />
-								Maecenas quis viverra metus, et efficitur ligula. Nam congue augue et ex congue, sed luctus lectus
-								congue. Integer convallis condimentum sem. Duis elementum tortor eget condimentum tempor. Praesent
-								sollicitudin lectus ut pharetra pulvinar.
-							</p>
-							<Stack className={'boxes'}>
-								<div className={'box'}>
-									<div>
-										<img src="/img/icons/garden.svg" alt="" />
-									</div>
-									<span>Modern Villa</span>
-									<p>Nullam sollicitudin blandit Nullam maximus.</p>
-								</div>
-								<div className={'box'}>
-									<div>
-										<img src="/img/icons/securePayment.svg" alt="" />
-									</div>
-									<span>Secure Payment</span>
-									<p>Nullam sollicitudin blandit Nullam maximus.</p>
-								</div>
-							</Stack>
-						</Stack>
+	return (
+		<Stack className={'about-page'} sx={isMobile ? { px: 2, py: 3, gap: 3 } : undefined}>
+			<Stack className={'intro'}>
+				<Stack
+					className={'container'}
+					sx={isMobile ? { width: '100%', flexDirection: 'column', alignItems: 'flex-start', gap: 2 } : undefined}
+				>
+					<Stack className={'left'} sx={isMobile ? { width: '100%' } : undefined}>
+						<strong>Travel designed around destinations, guides, and real local experiences.</strong>
 					</Stack>
-				</Stack>
-				<Stack className={'statistics'}>
-					<Stack className={'container'}>
-						<Stack className={'banner'}>
-							<img src="/img/banner/header1.svg" alt="" />
-						</Stack>
-						<Stack className={'info'}>
-							<Box component={'div'}>
-								<strong>4M</strong>
-								<p>Award Winning</p>
-							</Box>
-							<Box component={'div'}>
-								<strong>12K</strong>
-								<p>Property Ready</p>
-							</Box>
-							<Box component={'div'}>
-								<strong>20M</strong>
-								<p>Happy Customer</p>
-							</Box>
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'agents'}>
-					<Stack className={'container'}>
-						<span className={'title'}>Our Exclusive Agetns</span>
-						<p className={'desc'}>Aliquam lacinia diam quis lacus euismod</p>
-						<Stack className={'wrap'}>
-							{/*{[1, 2, 3, 4, 5].map(() => {*/}
-							{/*	return <AgentCard />;*/}
-							{/*})}*/}
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'options'}>
-					<img src="/img/banner/aboutBanner.svg" alt="" className={'about-banner'} />
-					<Stack className={'container'}>
-						<strong>Let’s find the right selling option for you</strong>
-						<Stack>
-							<div className={'icon-box'}>
-								<img src="/img/icons/security.svg" alt="" />
-							</div>
-							<div className={'text-box'}>
-								<span>Property Management</span>
-								<p>Nullam sollicitudin blandit eros eu pretium. Nullam maximus ultricies auctor.</p>
-							</div>
-						</Stack>
-						<Stack>
-							<div className={'icon-box'}>
-								<img src="/img/icons/keywording.svg" alt="" />
-							</div>
-							<div className={'text_-box'}>
-								<span>Property Management</span>
-								<p>Nullam sollicitudin blandit eros eu pretium. Nullam maximus ultricies auctor.</p>
-							</div>
-						</Stack>
-						<Stack>
-							<div className={'icon-box'}>
-								<img src="/img/icons/investment.svg" alt="" />
-							</div>
-							<div className={'text-box'}>
-								<span>Property Management</span>
-								<p>Nullam sollicitudin blandit eros eu pretium. Nullam maximus ultricies auctor.</p>
-							</div>
-						</Stack>
-						<Stack className={'btn'}>
-							Learn More
-							<img src="/img/icons/rightup.svg" alt="" />
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'partners'}>
-					<Stack className={'container'}>
-						<span>Trusted bu the world's best</span>
-						<Stack className={'wrap'}>
-							<img src="/img/icons/brands/amazon.svg" alt="" />
-							<img src="/img/icons/brands/amd.svg" alt="" />
-							<img src="/img/icons/brands/cisco.svg" alt="" />
-							<img src="/img/icons/brands/dropcam.svg" alt="" />
-							<img src="/img/icons/brands/spotify.svg" alt="" />
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'help'}>
-					<Stack className={'container'}>
-						<Box component={'div'} className={'left'}>
-							<strong>Need help? Talk to our expert.</strong>
-							<p>Talk to our experts or Browse through more properties.</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'white'}>
-								Contact Us
-								<img src="/img/icons/rightup.svg" alt="" />
-							</div>
-							<div className={'black'}>
-								<img src="/img/icons/call.svg" alt="" />
-								920 851 9087
-							</div>
-						</Box>
+					<Stack className={'right'} sx={isMobile ? { width: '100%' } : undefined}>
+						<p>
+							GoTrip brings destination discovery, guided tours, traveler accounts, bookings, payments, and community stories into
+							one place. Explore at your pace, save the experiences that fit, and return when you are ready to plan further.
+						</p>
+						<CapabilityCards compact={isMobile} />
 					</Stack>
 				</Stack>
 			</Stack>
-		);
-	}
+			<SupportPanel compact={isMobile} />
+		</Stack>
+	);
 };
 
 export default withLayoutBasic(About);

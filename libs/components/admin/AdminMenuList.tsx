@@ -1,174 +1,107 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter, withRouter } from 'next/router';
-import Link from 'next/link';
-import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import Collapse from '@mui/material/Collapse';
-import Typography from '@mui/material/Typography';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import { ChatsCircle, Headset, User, UserCircleGear } from 'phosphor-react';
-import cookies from 'js-cookie';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
+import { useRouter } from 'next/router';
+import { Collapse, List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import { Bell, CalendarCheck, ChartLineUp, ChatsCircle, CreditCard, Headset, MapPin, User, UserCircleGear } from 'phosphor-react';
 
-const AdminMenuList = (props: any) => {
+interface AdminMenuListProps {
+	onNavigate?: () => void;
+}
+
+interface AdminMenuChild {
+	title: string;
+	url: string;
+}
+
+interface AdminMenuItem {
+	title: string;
+	icon: React.ReactNode;
+	url?: string;
+	children: AdminMenuChild[];
+}
+
+const menuItems: AdminMenuItem[] = [
+	{ title: 'Overview', url: '/_admin', icon: <ChartLineUp size={20} weight="fill" />, children: [] },
+	{
+		title: 'Users',
+		icon: <User size={20} weight="fill" />,
+		children: [
+			{ title: 'All users', url: '/_admin/users' },
+			{ title: 'Agent requests', url: '/_admin/users/agent-requests' },
+		],
+	},
+	{ title: 'Tours', icon: <UserCircleGear size={20} weight="fill" />, children: [{ title: 'Tour inventory', url: '/_admin/tours' }] },
+	{ title: 'Destinations', icon: <MapPin size={20} weight="fill" />, children: [{ title: 'Destination inventory', url: '/_admin/destinations' }] },
+	{ title: 'Bookings', icon: <CalendarCheck size={20} weight="fill" />, children: [{ title: 'Booking operations', url: '/_admin/bookings' }] },
+	{ title: 'Payments', icon: <CreditCard size={20} weight="fill" />, children: [{ title: 'Payment operations', url: '/_admin/payments' }] },
+	{ title: 'Community', icon: <ChatsCircle size={20} weight="fill" />, children: [{ title: 'Article moderation', url: '/_admin/community' }] },
+	{ title: 'Audit', icon: <Bell size={20} weight="fill" />, children: [{ title: 'Notifications', url: '/_admin/notifications' }, { title: 'Comment moderation', url: '/_admin/comments' }] },
+	{
+		title: 'Help center',
+		icon: <Headset size={20} weight="fill" />,
+		children: [{ title: 'Notices', url: '/_admin/cs/notice' }],
+	},
+];
+
+const AdminMenuList = ({ onNavigate }: AdminMenuListProps) => {
 	const router = useRouter();
-	const device = useDeviceDetect();
-	const [mobileLayout, setMobileLayout] = useState(false);
-	const [openSubMenu, setOpenSubMenu] = useState('Users');
-	const [openMenu, setOpenMenu] = useState(typeof window === 'object' ? cookies.get('admin_menu') === 'true' : false);
-	const [clickMenu, setClickMenu] = useState<any>([]);
-	const [clickSubMenu, setClickSubMenu] = useState('');
+	const [expanded, setExpanded] = useState<string>('');
+	const pathname = router.pathname;
 
-	const {
-		router: { pathname },
-	} = props;
+	const activeItem = menuItems.find((item) => item.url === pathname || item.children.some((child) => pathname.startsWith(child.url)));
 
-	const pathnames = pathname.split('/').filter((x: any) => x);
-
-	/** LIFECYCLES **/
 	useEffect(() => {
-		if (device === 'mobile') setMobileLayout(true);
+		setExpanded(activeItem?.title ?? '');
+	}, [activeItem?.title]);
 
-		switch (pathnames[1]) {
-			case 'properties':
-				setClickMenu(['Tours']);
-				break;
-			case 'community':
-				setClickMenu(['Community']);
-				break;
-			case 'cs':
-				setClickMenu(['Cs']);
-				break;
-			default:
-				setClickMenu(['Users']);
-				break;
-		}
-
-		switch (pathnames[2]) {
-			case 'logs':
-				setClickSubMenu('Logs');
-				break;
-			case 'agent-requests':
-				setClickSubMenu('Agent Requests');
-				break;
-			case 'inquiry':
-				setClickSubMenu('1:1 Inquiry');
-				break;
-			case 'notice':
-				setClickSubMenu('Notice');
-				break;
-			case 'faq':
-				setClickSubMenu('FAQ');
-				break;
-			case 'board_create':
-				setClickSubMenu('Board Create');
-				break;
-			default:
-				setClickSubMenu('List');
-				break;
-		}
-	}, []);
-
-	/** HANDLERS **/
-	const subMenuChangeHandler = (target: string) => {
-		if (clickMenu.find((item: string) => item === target)) {
-			// setOpenSubMenu('');
-			setClickMenu(clickMenu.filter((menu: string) => target !== menu));
-		} else {
-			// setOpenSubMenu(target);
-			setClickMenu([...clickMenu, target]);
-		}
-	};
-
-	const menu_set = [
-		{
-			title: 'Users',
-			icon: <User size={20} color="#bdbdbd" weight="fill" />,
-			on_click: () => subMenuChangeHandler('Users'),
-		},
-		{
-			title: 'Tours',
-			icon: <UserCircleGear size={20} color="#bdbdbd" weight="fill" />,
-			on_click: () => subMenuChangeHandler('Tours'),
-		},
-		{
-			title: 'Community',
-			icon: <ChatsCircle size={20} color="#bdbdbd" weight="fill" />,
-			on_click: () => subMenuChangeHandler('Community'),
-		},
-		{
-			title: 'Cs',
-			icon: <Headset size={20} color="#bdbdbd" weight="fill" />,
-			on_click: () => subMenuChangeHandler('Cs'),
-		},
-	];
-
-	const sub_menu_set: any = {
-		Users: [
-			{ title: 'List', url: '/_admin/users' },
-			{ title: 'Agent Requests', url: '/_admin/users/agent-requests' },
-		],
-		Tours: [{ title: 'List', url: '/_admin/properties' }],
-		Community: [{ title: 'List', url: '/_admin/community' }],
-		Cs: [
-			{ title: 'FAQ', url: '/_admin/cs/faq' },
-			{ title: 'Notice', url: '/_admin/cs/notice' },
-		],
+	const navigate = (url: string) => {
+		router.push(url).then();
+		onNavigate?.();
 	};
 
 	return (
-		<>
-			{menu_set.map((item, index) => (
-				<List className={'menu_wrap'} key={index} disablePadding>
-					<ListItemButton
-						onClick={item.on_click}
-						component={'li'}
-						className={clickMenu[0] === item.title ? 'menu on' : 'menu'}
-						sx={{
-							minHeight: 48,
-							justifyContent: openMenu ? 'initial' : 'center',
-							px: 2.5,
-						}}
-					>
-						<ListItemIcon
-							sx={{
-								minWidth: 0,
-								mr: openMenu ? 3 : 'auto',
-								justifyContent: 'center',
-							}}
+		<List disablePadding className="admin-menu-list">
+			{menuItems.map((item) => {
+				const hasChildren = item.children.length > 0;
+				const isActive = activeItem?.title === item.title;
+				const isExpanded = expanded === item.title;
+
+				return (
+					<div key={item.title} className="admin-menu-list__group">
+						<ListItemButton
+							className={isActive ? 'admin-menu-list__item is-active' : 'admin-menu-list__item'}
+							onClick={() => (hasChildren ? setExpanded(isExpanded ? '' : item.title) : navigate(item.url || '/_admin'))}
+							aria-expanded={hasChildren ? isExpanded : undefined}
 						>
-							{item.icon}
-						</ListItemIcon>
-						<ListItemText>{item.title}</ListItemText>
-						{clickMenu.find((menu: string) => item.title === menu) ? <ExpandLess /> : <ExpandMore />}
-					</ListItemButton>
-					<Collapse
-						in={!!clickMenu.find((menu: string) => menu === item.title)}
-						className="menu"
-						timeout="auto"
-						component="li"
-						unmountOnExit
-					>
-						<List className="menu-list" disablePadding>
-							{sub_menu_set[item.title] &&
-								sub_menu_set[item.title].map((sub: any, i: number) => (
-									<Link href={sub.url} shallow={true} replace={true} key={i}>
-										<ListItemButton
-											component="li"
-											className={clickMenu[0] === item.title && clickSubMenu === sub.title ? 'li on' : 'li'}
-										>
-											<Typography variant={sub.title} component={'span'}>
-												{sub.title}
-											</Typography>
-										</ListItemButton>
-									</Link>
-								))}
-						</List>
-					</Collapse>
-				</List>
-			))}
-		</>
+							<ListItemIcon>{item.icon}</ListItemIcon>
+							<ListItemText primary={item.title} />
+							{hasChildren && (isExpanded ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />)}
+						</ListItemButton>
+						{hasChildren && (
+							<Collapse in={isExpanded} timeout={180} unmountOnExit>
+								<List disablePadding className="admin-menu-list__children">
+									{item.children.map((child) => {
+										const childActive = pathname === child.url;
+										return (
+											<ListItemButton
+												key={child.url}
+												className={childActive ? 'admin-menu-list__child is-active' : 'admin-menu-list__child'}
+												onClick={() => navigate(child.url)}
+												aria-current={childActive ? 'page' : undefined}
+											>
+												<ListItemText primary={child.title} />
+											</ListItemButton>
+										);
+									})}
+								</List>
+							</Collapse>
+						)}
+					</div>
+				);
+			})}
+		</List>
 	);
 };
 
-export default withRouter(AdminMenuList);
+export default AdminMenuList;

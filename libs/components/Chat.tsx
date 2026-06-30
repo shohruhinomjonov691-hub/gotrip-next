@@ -132,11 +132,18 @@ const Chat = () => {
 	return (
 		<Stack className="chatting">
 			{openButton ? (
-				<button className="chat-button" onClick={handleOpenChat}>
+				<button
+					type="button"
+					className="chat-button"
+					aria-label={open ? 'Close live chat' : 'Open live chat'}
+					aria-expanded={open}
+					aria-controls="live-chat-frame"
+					onClick={handleOpenChat}
+				>
 					{open ? <CloseFullscreenIcon /> : <MarkChatUnreadIcon />}
 				</button>
 			) : null}
-			<Stack className={`chat-frame ${open ? 'open' : ''}`}>
+			<Stack id="live-chat-frame" className={`chat-frame ${open ? 'open' : ''}`} role="region" aria-label="Live chat">
 				<Box className={'chat-top'} component={'div'}>
 					<div style={{ fontFamily: 'Nunito' }}>Online Chat</div>
 					<RippleBadge style={{ margin: '-18px 0 0 21px' }} badgeContent={onlineUsers} />
@@ -179,12 +186,13 @@ const Chat = () => {
 						type={'text'}
 						name={'message'}
 						className={'msg-input'}
+						aria-label="Write a chat message"
 						placeholder={'Type message'}
 						value={messageInput}
 						onChange={getInputMessageHandler}
 						onKeyDown={getKeyHandler}
 					/>
-					<button className={'send-msg-btn'} onClick={onClickHandler}>
+					<button type="button" className={'send-msg-btn'} aria-label="Send chat message" onClick={onClickHandler}>
 						<SendIcon style={{ color: '#fff' }} />
 					</button>
 				</Box>

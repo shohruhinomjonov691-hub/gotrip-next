@@ -10,6 +10,9 @@ import RecentlyViewedTours from '../../libs/components/mypage/RecentlyViewedTour
 import AddNewTour from '../../libs/components/mypage/AddNewTour';
 import MyProfile from '../../libs/components/mypage/MyProfile';
 import MyArticles from '../../libs/components/mypage/MyArticles';
+import MyBookings from '../../libs/components/mypage/MyBookings';
+import MyPayments from '../../libs/components/mypage/MyPayments';
+import NotificationsCenter from '../../libs/components/mypage/NotificationsCenter';
 import { useMutation, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import MyMenu from '../../libs/components/mypage/MyMenu';
@@ -21,6 +24,13 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
 import { Messages } from '../../libs/config';
 
+const legacyCategoryAliases: Record<string, string> = {
+	addProperty: 'addTour',
+	myProperties: 'myTours',
+	myFavorites: 'savedTours',
+	recentlyVisited: 'recentlyViewed',
+};
+
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
 		...(await serverSideTranslations(locale, ['common'])),
@@ -31,7 +41,9 @@ const MyPage: NextPage = () => {
 	const device = useDeviceDetect();
 	const user = useReactiveVar(userVar);
 	const router = useRouter();
-	const category: any = router.query?.category ?? 'myProfile';
+	const routeCategory = router.query?.category;
+	const category: any =
+		(typeof routeCategory === 'string' && legacyCategoryAliases[routeCategory]) || routeCategory || 'myProfile';
 
 	/** APOLLO REQUESTS **/
 	const [subscribe] = useMutation(SUBSCRIBE);
@@ -42,6 +54,21 @@ const MyPage: NextPage = () => {
 	useEffect(() => {
 		if (!user._id) router.push('/').then();
 	}, [user]);
+
+	useEffect(() => {
+		if (!router.isReady || typeof routeCategory !== 'string') return;
+		const canonicalCategory = legacyCategoryAliases[routeCategory];
+		if (!canonicalCategory) return;
+
+		router.replace(
+			{
+				pathname: router.pathname,
+				query: { ...router.query, category: canonicalCategory },
+			},
+			undefined,
+			{ shallow: true, scroll: false },
+		);
+	}, [routeCategory, router]);
 
 	/** HANDLERS **/
 	const subscribeHandler = async (id: string, refetch: any, query: any) => {
@@ -105,50 +132,49 @@ const MyPage: NextPage = () => {
 		}
 	};
 
-	if (device === 'mobile') {
-		return <div>MY PAGE</div>;
-	} else {
-		return (
-			<div id="my-page" style={{ position: 'relative' }}>
-				<div className="container">
-					<Stack className={'my-page'}>
-						<Stack className={'back-frame'}>
-							<Stack className={'left-config'}>
-								<MyMenu />
-							</Stack>
-							<Stack className="main-config" mb={'76px'}>
-								<Stack className={'list-config'}>
-									{(category === 'addTour' || category === 'addProperty') && <AddNewTour />}
-									{(category === 'myTours' || category === 'myProperties') && <MyTours />}
-									{(category === 'savedTours' || category === 'myFavorites') && <SavedTours />}
-									{(category === 'recentlyViewed' || category === 'recentlyVisited') && <RecentlyViewedTours />}
-									{category === 'myArticles' && <MyArticles />}
-									{category === 'writeArticle' && <WriteArticle />}
-									{category === 'myProfile' && <MyProfile />}
-									{category === 'followers' && (
-										<MemberFollowers
-											subscribeHandler={subscribeHandler}
-											unsubscribeHandler={unsubscribeHandler}
-											likeMemberHandler={likeMemberHandler}
-											redirectToMemberPageHandler={redirectToMemberPageHandler}
-										/>
-									)}
-									{category === 'followings' && (
-										<MemberFollowings
-											subscribeHandler={subscribeHandler}
-											unsubscribeHandler={unsubscribeHandler}
-											likeMemberHandler={likeMemberHandler}
-											redirectToMemberPageHandler={redirectToMemberPageHandler}
-										/>
-									)}
-								</Stack>
+	return (
+		<div id="my-page" style={{ position: 'relative' }}>
+			<div className="container">
+				<Stack className={'my-page'}>
+					<Stack className={'back-frame'}>
+						<Stack className={'left-config'}>
+							<MyMenu />
+						</Stack>
+						<Stack className="main-config" mb={'76px'}>
+							<Stack className={'list-config'}>
+								{category === 'addTour' && <AddNewTour />}
+								{category === 'myTours' && <MyTours />}
+								{category === 'savedTours' && <SavedTours />}
+								{category === 'recentlyViewed' && <RecentlyViewedTours />}
+								{category === 'myBookings' && <MyBookings />}
+								{category === 'myPayments' && <MyPayments />}
+								{category === 'notifications' && <NotificationsCenter />}
+								{category === 'myArticles' && <MyArticles />}
+								{category === 'writeArticle' && <WriteArticle />}
+								{category === 'myProfile' && <MyProfile />}
+								{category === 'followers' && (
+									<MemberFollowers
+										subscribeHandler={subscribeHandler}
+										unsubscribeHandler={unsubscribeHandler}
+										likeMemberHandler={likeMemberHandler}
+										redirectToMemberPageHandler={redirectToMemberPageHandler}
+									/>
+								)}
+								{category === 'followings' && (
+									<MemberFollowings
+										subscribeHandler={subscribeHandler}
+										unsubscribeHandler={unsubscribeHandler}
+										likeMemberHandler={likeMemberHandler}
+										redirectToMemberPageHandler={redirectToMemberPageHandler}
+									/>
+								)}
 							</Stack>
 						</Stack>
 					</Stack>
-				</div>
+				</Stack>
 			</div>
-		);
-	}
+		</div>
+	);
 };
 
 export default withLayoutBasic(MyPage);

@@ -1,6 +1,6 @@
 #pc-wrap {
 	#my-page {
-		background: #f6f6f6;
+		background: var(--gt-surface);
 		.container {
 			.my-page {
 				position: relative;
@@ -330,5 +330,1193 @@
 				}
 			}
 		}
+	}
+}
+
+.mobile-my-menu {
+	width: min(100% - 32px, 720px);
+	margin: 112px auto 20px;
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+
+	a {
+		min-height: 46px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 16px;
+		color: var(--gt-text);
+		background: var(--gt-card);
+		border: 1px solid var(--gt-line);
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		box-shadow: var(--gt-shadow-soft);
+		transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+
+		&.active,
+		&:hover {
+			color: #fff;
+			background: var(--gt-blue);
+			border-color: rgba(255, 255, 255, 0.24);
+			transform: translateY(-1px);
+		}
+	}
+}
+
+#mobile-wrap {
+	#my-page {
+		width: 100%;
+		background: linear-gradient(180deg, #f9f9ff 0%, #eef4ff 48%, #ffffff 100%);
+
+		.container {
+			width: 100%;
+			display: block;
+		}
+
+		.my-page {
+			width: 100%;
+			padding: 0 0 32px;
+		}
+
+		.back-frame {
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			gap: 18px;
+		}
+
+		.left-config,
+		.main-config,
+		.list-config {
+			width: 100%;
+		}
+
+		.list-config {
+			padding: 0 16px 86px;
+		}
+	}
+}
+
+.mypage-panel {
+	width: min(100%, 920px);
+	margin: 0 auto;
+	padding: 28px;
+	border-radius: 24px;
+	background: var(--gt-card);
+	border: 1px solid var(--gt-line);
+	box-shadow: var(--gt-shadow-soft);
+
+	.panel-heading {
+		gap: 18px;
+		margin-bottom: 24px;
+
+		.MuiTextField-root {
+			min-width: 210px;
+		}
+	}
+
+	.panel-kicker {
+		color: var(--gt-blue);
+		font-family: $font;
+		font-size: 12px;
+		font-weight: 800;
+		letter-spacing: 0;
+		text-transform: uppercase;
+	}
+
+	.panel-title {
+		margin-top: 4px;
+		color: var(--gt-text);
+		font-family: $font-heading;
+		font-size: 30px;
+		font-weight: 850;
+		line-height: 1.1;
+	}
+
+	.panel-copy {
+		max-width: 620px;
+		margin-top: 8px;
+		color: var(--gt-muted);
+		font-family: $font;
+		font-size: 14px;
+		line-height: 1.6;
+	}
+
+	.booking-list {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	.booking-row,
+	.notification-center-row {
+		padding: 18px;
+		border-radius: 18px;
+		transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+
+		&:hover {
+			transform: translateY(-2px);
+			border-color: rgba(22, 119, 255, 0.28);
+			box-shadow: 0 20px 45px rgba(15, 46, 92, 0.12);
+		}
+	}
+
+	.notification-center-row.unread {
+		border-color: rgba(22, 119, 255, 0.34);
+		background:
+			linear-gradient(135deg, rgba(22, 119, 255, 0.1), rgba(255, 255, 255, 0.72)),
+			var(--gt-card);
+	}
+
+	.booking-number {
+		margin-top: 10px;
+		color: var(--gt-text);
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 800;
+	}
+
+	.booking-price {
+		color: var(--gt-text);
+		font-family: $font-heading;
+		font-size: 24px;
+		font-weight: 850;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.status-chip {
+		height: 26px;
+		border-radius: 999px;
+		color: #194b7f;
+		background: rgba(22, 119, 255, 0.12);
+		font-family: $font;
+		font-size: 11px;
+		font-weight: 800;
+
+		&.confirmed,
+		&.paid {
+			color: #0f6848;
+			background: rgba(13, 148, 100, 0.14);
+		}
+
+		&.cancelled,
+		&.failed {
+			color: #a43c35;
+			background: rgba(235, 103, 83, 0.15);
+		}
+
+		&.completed,
+		&.refunded,
+		&.neutral {
+			color: #475467;
+			background: rgba(102, 112, 133, 0.12);
+		}
+	}
+
+	&.account-flow-panel {
+		overflow: hidden;
+		background:
+			linear-gradient(135deg, rgba(50, 100, 255, 0.08), rgba(255, 255, 255, 0.7) 32%, rgba(212, 175, 55, 0.08)),
+			var(--gt-card);
+		backdrop-filter: blur(18px);
+	}
+
+	.account-panel-heading {
+		align-items: flex-start;
+
+		.MuiOutlinedInput-root {
+			border-radius: 16px;
+			background: rgba(255, 255, 255, 0.76);
+		}
+	}
+
+	.account-panel-metrics {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 12px;
+		margin-bottom: 18px;
+	}
+
+	.account-metric-card {
+		min-height: 96px;
+		padding: 16px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		border-radius: 18px;
+		border: 1px solid rgba(50, 100, 255, 0.13);
+		background: rgba(255, 255, 255, 0.68);
+		box-shadow: 0 16px 36px rgba(15, 41, 77, 0.08);
+
+		svg {
+			width: 22px;
+			height: 22px;
+			color: var(--gt-blue);
+		}
+
+		span {
+			color: var(--gt-muted);
+			font-family: $font;
+			font-size: 12px;
+			font-weight: 700;
+		}
+
+		strong {
+			color: var(--gt-text);
+			font-family: $font-heading;
+			font-size: 22px;
+			font-weight: 850;
+			font-variant-numeric: tabular-nums;
+		}
+
+		&.gold {
+			border-color: rgba(212, 175, 55, 0.26);
+			background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(255, 255, 255, 0.7));
+		}
+	}
+
+	.status-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 0 0 20px;
+
+		button {
+			min-height: 38px;
+			padding: 0 15px;
+			border: 1px solid rgba(50, 100, 255, 0.14);
+			border-radius: 999px;
+			color: var(--gt-muted);
+			background: rgba(255, 255, 255, 0.62);
+			font-family: $font;
+			font-size: 12px;
+			font-weight: 850;
+			letter-spacing: 0;
+			cursor: pointer;
+			box-shadow: 0 12px 26px rgba(15, 41, 77, 0.06);
+			transition: color 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+
+			&.active {
+				color: #fff;
+				border-color: rgba(50, 100, 255, 0.9);
+				background: linear-gradient(135deg, #3264ff, #0f294d);
+				box-shadow: 0 18px 34px rgba(50, 100, 255, 0.22);
+			}
+		}
+	}
+
+	.booking-dashboard-card,
+	.payment-dashboard-card {
+		border-color: rgba(50, 100, 255, 0.14);
+		background:
+			linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(245, 249, 255, 0.68)),
+			var(--gt-card);
+		box-shadow: 0 18px 40px rgba(15, 41, 77, 0.1);
+	}
+
+	.booking-card-content {
+		display: grid;
+		grid-template-columns: 132px minmax(0, 1fr);
+		gap: 18px;
+	}
+
+	.booking-card-media {
+		min-height: 158px;
+		padding: 16px;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		border-radius: 16px;
+		color: #fff;
+		background:
+			linear-gradient(145deg, rgba(15, 41, 77, 0.9), rgba(50, 100, 255, 0.78)),
+			#0f294d;
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+
+		svg {
+			width: 30px;
+			height: 30px;
+			margin-bottom: auto;
+			color: #d4af37;
+		}
+
+		span {
+			margin-bottom: 4px;
+			color: rgba(255, 255, 255, 0.7);
+			font-family: $font;
+			font-size: 11px;
+			font-weight: 800;
+			text-transform: uppercase;
+		}
+
+		strong {
+			font-family: $font-heading;
+			font-size: 18px;
+			font-weight: 850;
+		}
+	}
+
+	.booking-card-main {
+		min-width: 0;
+	}
+
+	.booking-card-top,
+	.payment-card-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 18px;
+		margin-bottom: 18px;
+	}
+
+	.booking-card-price {
+		text-align: right;
+	}
+
+	.booking-card-meta-grid,
+	.payment-card-meta-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+		margin-bottom: 16px;
+
+		div {
+			min-width: 0;
+			padding: 12px;
+			display: grid;
+			grid-template-columns: 20px minmax(0, 1fr);
+			column-gap: 8px;
+			row-gap: 2px;
+			border-radius: 14px;
+			background: rgba(255, 255, 255, 0.64);
+			border: 1px solid rgba(50, 100, 255, 0.1);
+		}
+
+		svg {
+			grid-row: span 2;
+			width: 18px;
+			height: 18px;
+			color: var(--gt-blue);
+		}
+
+		span {
+			color: var(--gt-muted);
+			font-family: $font;
+			font-size: 11px;
+			font-weight: 800;
+			text-transform: uppercase;
+		}
+
+		strong {
+			min-width: 0;
+			overflow-wrap: anywhere;
+			color: var(--gt-text);
+			font-family: $font;
+			font-size: 13px;
+			font-weight: 800;
+		}
+	}
+
+	.booking-card-actions {
+		.MuiButton-root {
+			min-height: 42px;
+			border-radius: 14px;
+			text-transform: none;
+			font-family: $font;
+			font-weight: 850;
+		}
+	}
+
+	.booking-inline-success,
+	.payment-readonly-note {
+		margin-top: 14px;
+		padding: 12px 14px;
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		border-radius: 14px;
+		color: #0f6848;
+		background: rgba(13, 148, 100, 0.12);
+		border: 1px solid rgba(13, 148, 100, 0.18);
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 750;
+
+		svg {
+			width: 18px;
+			height: 18px;
+		}
+	}
+
+	.payment-card-meta-grid {
+		margin-bottom: 0;
+	}
+
+	.payment-readonly-note {
+		flex-wrap: wrap;
+		color: #194b7f;
+		background: rgba(50, 100, 255, 0.1);
+		border-color: rgba(50, 100, 255, 0.16);
+	}
+
+	.account-empty-state,
+	.account-error-state {
+		min-height: 220px;
+		padding: 28px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		border-radius: 20px;
+		border: 1px solid rgba(50, 100, 255, 0.14);
+		background: rgba(255, 255, 255, 0.64);
+		box-shadow: 0 18px 38px rgba(15, 41, 77, 0.08);
+
+		svg {
+			width: 42px;
+			height: 42px;
+			margin-bottom: 12px;
+			color: var(--gt-blue);
+		}
+	}
+
+	.account-state-title {
+		color: var(--gt-text);
+		font-family: $font-heading;
+		font-size: 20px;
+		font-weight: 850;
+	}
+
+	.account-error-state {
+		gap: 12px;
+	}
+
+	.account-skeleton-card {
+		min-height: 186px;
+		padding: 18px;
+		display: grid;
+		gap: 14px;
+		border-radius: 18px;
+		border: 1px solid rgba(50, 100, 255, 0.12);
+		background: rgba(255, 255, 255, 0.64);
+
+		span,
+		strong,
+		em {
+			display: block;
+			border-radius: 999px;
+			background: linear-gradient(90deg, rgba(226, 236, 255, 0.75), rgba(246, 249, 255, 0.95), rgba(226, 236, 255, 0.75));
+			background-size: 200% 100%;
+			animation: gtSkeleton 1.35s ease infinite;
+		}
+
+		span {
+			width: 96px;
+			height: 26px;
+		}
+
+		strong {
+			width: 58%;
+			height: 22px;
+		}
+
+		em {
+			width: 100%;
+			height: 78px;
+			border-radius: 16px;
+		}
+	}
+}
+
+.gt-soft-danger-button.MuiButton-root {
+	color: #a43c35;
+	border: 1px solid rgba(235, 103, 83, 0.24);
+	background: rgba(235, 103, 83, 0.1);
+	text-transform: none;
+	font-family: $font;
+	font-weight: 850;
+
+	&:hover {
+		border-color: rgba(235, 103, 83, 0.36);
+		background: rgba(235, 103, 83, 0.16);
+	}
+}
+
+.cancel-booking-dialog {
+	.MuiPaper-root {
+		border-radius: 24px;
+		border: 1px solid rgba(50, 100, 255, 0.14);
+		background:
+			linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(245, 249, 255, 0.9)),
+			#fff;
+		box-shadow: 0 24px 70px rgba(15, 41, 77, 0.18);
+	}
+
+	.MuiDialogTitle-root {
+		color: var(--gt-text);
+		font-family: $font-heading;
+		font-weight: 850;
+	}
+
+	.MuiOutlinedInput-root {
+		border-radius: 16px;
+	}
+}
+
+[data-theme='dark'] {
+	#pc-wrap #my-page {
+		background:
+			radial-gradient(circle at top left, rgba(22, 119, 255, 0.18), transparent 32rem),
+			var(--gt-surface);
+	}
+
+	.mypage-panel {
+		background: rgba(13, 24, 43, 0.78);
+
+		.notification-center-row.unread {
+			background:
+				linear-gradient(135deg, rgba(22, 119, 255, 0.18), rgba(13, 24, 43, 0.78)),
+				var(--gt-card);
+		}
+
+		&.account-flow-panel {
+			background:
+				linear-gradient(135deg, rgba(50, 100, 255, 0.16), rgba(13, 24, 43, 0.78), rgba(212, 175, 55, 0.08)),
+				var(--gt-card);
+		}
+
+		.account-panel-heading .MuiOutlinedInput-root,
+		.account-metric-card,
+		.booking-card-meta-grid div,
+		.payment-card-meta-grid div,
+		.account-empty-state,
+		.account-error-state,
+		.booking-dashboard-card,
+		.payment-dashboard-card,
+		.account-skeleton-card {
+			background: rgba(18, 33, 58, 0.72);
+		}
+
+		.status-tabs button {
+			background: rgba(18, 33, 58, 0.78);
+		}
+	}
+}
+
+@media (max-width: 900px) {
+	.mypage-panel {
+		width: min(100% - 32px, 720px);
+		padding: 20px;
+
+		.panel-title {
+			font-size: 24px;
+		}
+
+		.account-panel-metrics {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.booking-card-content {
+			grid-template-columns: 1fr;
+		}
+
+		.booking-card-media {
+			min-height: 118px;
+		}
+
+		.booking-card-top,
+		.payment-card-top {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.booking-card-price {
+			text-align: left;
+		}
+
+		.booking-card-actions {
+			.MuiButton-root {
+				width: 100%;
+			}
+		}
+	}
+}
+
+@media (max-width: 560px) {
+	.mypage-panel {
+		.account-panel-metrics,
+		.booking-card-meta-grid,
+		.payment-card-meta-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.status-tabs {
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: 4px;
+
+			button {
+				white-space: nowrap;
+			}
+		}
+	}
+}
+
+/* Agent schedule controls stay inside the existing operator hub. */
+#pc-wrap #my-page {
+	.agent-hub {
+		width: 100%;
+		gap: 20px;
+		color: var(--gt-on-background);
+
+		header,
+		.agent-kpis,
+		.agent-toolbar,
+		.agent-grid,
+		.agent-booking-unavailable {
+			width: 100%;
+		}
+
+		.agent-tour__actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin-top: 16px;
+
+			.MuiButton-root {
+				min-height: 40px;
+				border-radius: 10px;
+				color: var(--gt-primary);
+				font-weight: 800;
+				text-transform: none;
+			}
+		}
+
+		.agent-ops-grid {
+			display: grid;
+			width: 100%;
+			gap: 20px;
+		}
+
+		.agent-ops-panel {
+			display: grid;
+			gap: 18px;
+			padding: 22px;
+			border: 1px solid var(--gt-border);
+			border-radius: 16px;
+			background:
+				linear-gradient(135deg, rgba(50, 100, 255, 0.08), rgba(212, 175, 55, 0.06)),
+				var(--gt-glass-surface);
+			box-shadow: 0 18px 44px rgba(15, 41, 77, 0.1);
+			backdrop-filter: blur(18px) saturate(130%);
+			-webkit-backdrop-filter: blur(18px) saturate(130%);
+		}
+
+		.agent-ops-panel__heading {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 16px;
+
+			h2 {
+				margin: 0;
+				color: var(--gt-deep-ocean);
+				font-family: var(--gt-font-heading);
+				font-size: 22px;
+				font-weight: 850;
+			}
+
+			p {
+				max-width: 760px;
+				margin: 6px 0 0;
+				color: var(--gt-slate-text);
+				font-size: 14px;
+				line-height: 1.55;
+			}
+
+			> strong {
+				flex: 0 0 auto;
+				padding: 8px 12px;
+				border-radius: 999px;
+				background: rgba(50, 100, 255, 0.1);
+				color: var(--gt-primary);
+				font-size: 13px;
+			}
+		}
+
+		.agent-ops-note {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 12px 14px;
+			border: 1px solid rgba(212, 175, 55, 0.24);
+			border-radius: 12px;
+			background: rgba(212, 175, 55, 0.1);
+			color: var(--gt-deep-ocean);
+			font-size: 13px;
+			font-weight: 700;
+
+			svg {
+				color: var(--gt-gold);
+			}
+		}
+
+		.agent-ops-filters {
+			display: grid;
+			grid-template-columns: repeat(6, minmax(130px, 1fr)) auto;
+			gap: 10px;
+			align-items: end;
+
+			label {
+				display: grid;
+				gap: 6px;
+				min-width: 0;
+			}
+
+			span {
+				color: var(--gt-slate-text);
+				font-size: 12px;
+				font-weight: 800;
+			}
+
+			input,
+			select {
+				width: 100%;
+				min-height: 42px;
+				padding: 0 12px;
+				border: 1px solid var(--gt-border);
+				border-radius: 10px;
+				background: rgba(255, 255, 255, 0.82);
+				color: var(--gt-on-background);
+				font-family: var(--gt-font-body);
+				font-size: 13px;
+			}
+
+			button {
+				min-height: 42px;
+				padding: 0 16px;
+				border: 1px solid rgba(50, 100, 255, 0.18);
+				border-radius: 10px;
+				background: rgba(50, 100, 255, 0.08);
+				color: var(--gt-primary);
+				font-weight: 850;
+				cursor: pointer;
+			}
+		}
+
+		.agent-ops-table {
+			display: grid;
+			gap: 10px;
+		}
+
+		.agent-ops-row {
+			display: grid;
+			grid-template-columns: minmax(150px, 1.2fr) repeat(6, minmax(96px, 1fr)) minmax(120px, 1fr) auto;
+			gap: 12px;
+			align-items: center;
+			padding: 14px;
+			border: 1px solid var(--gt-border);
+			border-radius: 14px;
+			background: rgba(255, 255, 255, 0.86);
+
+			> div {
+				min-width: 0;
+			}
+
+			span {
+				display: block;
+				color: var(--gt-slate-text);
+				font-size: 11px;
+				font-weight: 800;
+			}
+
+			strong {
+				display: block;
+				overflow: hidden;
+				color: var(--gt-deep-ocean);
+				font-size: 13px;
+				font-weight: 850;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			small {
+				display: block;
+				overflow: hidden;
+				margin-top: 3px;
+				color: var(--gt-slate-text);
+				font-size: 11px;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+		}
+
+		.agent-ops-row--payment {
+			grid-template-columns: minmax(140px, 1.1fr) repeat(7, minmax(96px, 1fr)) auto;
+		}
+
+		.agent-ops-row__main {
+			display: grid;
+			gap: 8px;
+		}
+
+		.agent-ops-badge {
+			display: inline-flex;
+			width: fit-content;
+			padding: 5px 9px;
+			border-radius: 999px;
+			background: rgba(69, 88, 115, 0.12);
+			color: var(--gt-slate-text);
+			font-size: 11px;
+			font-weight: 900;
+
+			&.is-pending {
+				background: rgba(212, 175, 55, 0.14);
+				color: #80620b;
+			}
+
+			&.is-confirmed,
+			&.is-paid {
+				background: rgba(0, 73, 227, 0.12);
+				color: var(--gt-primary);
+			}
+
+			&.is-completed {
+				background: rgba(21, 128, 61, 0.12);
+				color: #166534;
+			}
+
+			&.is-cancelled,
+			&.is-failed,
+			&.is-refunded {
+				background: rgba(185, 28, 28, 0.1);
+				color: #991b1b;
+			}
+		}
+
+		.agent-ops-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			justify-content: flex-end;
+
+			.MuiButton-root {
+				min-height: 38px;
+				border-radius: 10px;
+				color: var(--gt-primary);
+				font-size: 12px;
+				font-weight: 850;
+				text-transform: none;
+			}
+
+			.agent-ops-danger {
+				color: #991b1b;
+			}
+		}
+
+		.agent-ops-state {
+			display: grid;
+			min-height: 110px;
+			place-items: center;
+			gap: 10px;
+			padding: 22px;
+			border: 1px dashed rgba(50, 100, 255, 0.24);
+			border-radius: 14px;
+			background: rgba(255, 255, 255, 0.7);
+			color: var(--gt-slate-text);
+			text-align: center;
+		}
+
+		.agent-ops-pagination {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 12px;
+
+			span {
+				color: var(--gt-slate-text);
+				font-size: 13px;
+				font-weight: 800;
+			}
+
+			.MuiButton-root {
+				min-height: 38px;
+				border-radius: 10px;
+				font-weight: 850;
+				text-transform: none;
+			}
+		}
+	}
+}
+
+.agent-ops-detail-dialog {
+	.MuiPaper-root {
+		border: 1px solid var(--gt-border);
+		border-radius: 16px;
+		background: var(--gt-surface);
+		box-shadow: 0 18px 44px rgba(15, 41, 77, 0.18);
+	}
+
+	.MuiDialogTitle-root {
+		color: var(--gt-deep-ocean);
+		font-family: var(--gt-font-heading);
+		font-weight: 850;
+	}
+
+	.agent-ops-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+}
+
+.agent-ops-detail-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+
+	div {
+		min-width: 0;
+		padding: 12px;
+		border: 1px solid var(--gt-border);
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.74);
+	}
+
+	dt {
+		color: var(--gt-slate-text);
+		font-size: 12px;
+		font-weight: 850;
+	}
+
+	dd {
+		overflow-wrap: anywhere;
+		margin: 5px 0 0;
+		color: var(--gt-deep-ocean);
+		font-size: 13px;
+		font-weight: 800;
+	}
+}
+
+.agent-schedule-dialog {
+	.MuiPaper-root {
+		border: 1px solid var(--gt-border);
+		border-radius: 16px;
+		background: var(--gt-surface);
+		box-shadow: 0 18px 44px rgba(15, 41, 77, 0.18);
+	}
+
+	.MuiDialogTitle-root {
+		color: var(--gt-deep-ocean);
+		font-family: var(--gt-font-heading);
+		font-weight: 850;
+
+		svg {
+			color: var(--gt-gold);
+		}
+	}
+
+	.MuiDialogContent-root {
+		padding: 22px;
+	}
+
+	.MuiDialogActions-root {
+		padding: 14px 22px;
+	}
+}
+
+.agent-schedule-dialog__content {
+	display: grid;
+	grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+	gap: 20px;
+}
+
+.agent-schedule-form,
+.agent-schedule-list {
+	min-width: 0;
+	padding: 20px;
+	border: 1px solid var(--gt-border);
+	border-radius: 14px;
+	background: var(--gt-surface-2);
+}
+
+.agent-schedule-form__heading,
+.agent-schedule-list__heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 18px;
+
+	h3 {
+		margin: 0;
+		color: var(--gt-deep-ocean);
+		font-family: var(--gt-font-heading);
+		font-size: 18px;
+		font-weight: 850;
+	}
+
+	p {
+		margin: 5px 0 0;
+		color: var(--gt-slate-text);
+		font-size: 13px;
+		line-height: 1.5;
+	}
+
+	.MuiButton-root {
+		min-height: 36px;
+		color: var(--gt-primary);
+		font-weight: 800;
+		text-transform: none;
+	}
+}
+
+.agent-schedule-form__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+
+	.MuiTextField-root {
+		min-width: 0;
+	}
+
+	.MuiOutlinedInput-root {
+		border-radius: 10px;
+		background: var(--gt-surface);
+	}
+}
+
+.agent-schedule-form__error {
+	margin-top: 14px;
+	color: #a43c35;
+	font-size: 13px;
+	font-weight: 750;
+}
+
+.agent-schedule-form__submit.MuiButton-root {
+	width: 100%;
+	min-height: 44px;
+	margin-top: 16px;
+	border-radius: 10px;
+	background: var(--gt-primary);
+	color: #ffffff;
+	font-family: var(--gt-font-heading);
+	font-weight: 850;
+	text-transform: none;
+}
+
+.agent-schedule-table {
+	border: 1px solid var(--gt-border);
+	border-radius: 12px;
+	background: var(--gt-surface);
+
+	.MuiTableCell-root {
+		border-bottom-color: var(--gt-border);
+		color: var(--gt-on-background);
+	}
+
+	.MuiTableHead-root .MuiTableCell-root {
+		color: var(--gt-slate-text);
+		font-size: 11px;
+		font-weight: 850;
+		text-transform: uppercase;
+	}
+
+	.MuiTableBody-root .MuiTableCell-root {
+		font-size: 13px;
+	}
+
+	strong,
+	span {
+		display: block;
+	}
+
+	strong {
+		font-weight: 800;
+	}
+
+	span:not(.agent-schedule-status) {
+		margin-top: 3px;
+		color: var(--gt-slate-text);
+		font-size: 12px;
+	}
+
+	.MuiIconButton-root {
+		width: 38px;
+		height: 38px;
+		color: var(--gt-primary);
+	}
+}
+
+.agent-schedule-status {
+	display: inline-flex;
+	align-items: center;
+	min-height: 26px;
+	padding: 0 9px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 850;
+
+	&.is-active {
+		background: rgba(33, 125, 90, 0.12);
+		color: #16734d;
+	}
+
+	&.is-full {
+		background: rgba(164, 60, 53, 0.12);
+		color: #a43c35;
+	}
+
+	&.is-paused,
+	&.is-deleted {
+		background: rgba(69, 88, 115, 0.12);
+		color: var(--gt-slate-text);
+	}
+}
+
+.agent-schedule-delete {
+	color: #a43c35 !important;
+}
+
+.agent-schedule-mobile-list {
+	display: none;
+}
+
+.agent-schedule-state {
+	min-height: 180px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	border: 1px dashed var(--gt-border);
+	border-radius: 12px;
+	background: var(--gt-surface);
+	color: var(--gt-slate-text);
+	text-align: center;
+
+	svg {
+		color: var(--gt-gold);
+	}
+
+	&--error {
+		color: #a43c35;
+	}
+
+	.MuiButton-root {
+		min-height: 38px;
+		color: var(--gt-primary);
+		font-weight: 800;
+		text-transform: none;
+	}
+}
+
+@media (max-width: 900px) {
+	.agent-schedule-dialog__content {
+		grid-template-columns: 1fr;
 	}
 }

@@ -8,8 +8,8 @@ import Switch, { SwitchProps } from '@mui/material/Switch';
 
 export const RippleBadge = styled(Badge)(({ theme }) => ({
 	'& .MuiBadge-badge': {
-		backgroundColor: '#b4dcff8f',
-		color: '#2c40bdd6',
+		backgroundColor: 'var(--gt-blue-soft)',
+		color: 'var(--gt-blue)',
 		boxShadow: `0`,
 		'&::after': {
 			position: 'absolute',
@@ -19,7 +19,7 @@ export const RippleBadge = styled(Badge)(({ theme }) => ({
 			height: '100%',
 			borderRadius: '50%',
 			animation: 'ripple 1.2s infinite ease-in-out',
-			border: '2px solid #32c2c1',
+			border: '2px solid var(--gt-blue)',
 			content: '""',
 		},
 	},
@@ -47,9 +47,9 @@ export const IOSSwitch = styled(Switch)(({ theme }) => ({
 		transitionDuration: '200ms',
 		'&.Mui-checked': {
 			transform: 'translateX(16px)',
-			color: '#fff',
+			color: 'var(--gt-inverse-text)',
 			'& + .MuiSwitch-track': {
-				backgroundColor: theme.palette.mode === 'dark' ? '#2ECA45' : '#E92C28',
+				backgroundColor: 'var(--gt-blue)',
 				opacity: 1,
 				border: 0,
 			},
@@ -58,8 +58,8 @@ export const IOSSwitch = styled(Switch)(({ theme }) => ({
 			},
 		},
 		'&.Mui-focusVisible .MuiSwitch-thumb': {
-			color: '#33cf4d',
-			border: '6px solid #fff',
+			color: 'var(--gt-blue)',
+			border: '6px solid var(--gt-surface)',
 		},
 		'&.Mui-disabled .MuiSwitch-thumb': {
 			color: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[600],
@@ -74,8 +74,8 @@ export const IOSSwitch = styled(Switch)(({ theme }) => ({
 		height: 22,
 	},
 	'& .MuiSwitch-track': {
-		borderRadius: 26 / 2,
-		backgroundColor: theme.palette.mode === 'light' ? '#E9E9EA' : '#39393D',
+		borderRadius: 'var(--gt-radius-xl)',
+		backgroundColor: 'var(--gt-surface-2)',
 		opacity: 1,
 		transition: theme.transitions.create(['background-color'], {
 			duration: 500,
@@ -89,18 +89,19 @@ export const IOSSwitch = styled(Switch)(({ theme }) => ({
 // TEXT FIELD STYLE
 export const RedditTextField = styled(TextField)(({ theme }) => ({
 	'& .MuiFilledInput-root': {
-		border: '1px solid #eee',
+		border: '1px solid var(--gt-border)',
 		overflow: 'hidden',
-		borderRadius: 4,
-		backgroundColor: theme.palette.mode === 'light' ? '#fff' : '#fff',
+		borderRadius: 'var(--gt-radius-sm)',
+		backgroundColor: 'var(--gt-input-bg)',
+		color: 'var(--gt-input-text)',
 		transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
 		'&:hover': {
-			backgroundColor: 'transparent',
+			backgroundColor: 'var(--gt-surface-2)',
 		},
 		'&.Mui-focused': {
-			backgroundColor: 'transparent',
-			boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 0 2px`,
-			borderColor: theme.palette.primary.main,
+			backgroundColor: 'var(--gt-input-bg)',
+			boxShadow: '0 0 0 3px var(--gt-focus-ring)',
+			borderColor: 'var(--gt-blue)',
 		},
 	},
 }));
@@ -108,12 +109,12 @@ export const RedditTextField = styled(TextField)(({ theme }) => ({
 // TEXT FIELD STYLE
 export const StyleButton = styled(Button)(({ theme }) => ({
 	'& .Button-root': {
-		border: '1px solid #eee',
+		border: '1px solid var(--gt-border)',
 		overflow: 'hidden',
-		backgroundColor: theme.palette.mode === 'light' ? '#fff' : '#fff',
+		backgroundColor: 'var(--gt-surface)',
 		transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
 		'&:hover': {
-			backgroundColor: 'transparent',
+			backgroundColor: 'var(--gt-surface-2)',
 		},
 	},
 }));

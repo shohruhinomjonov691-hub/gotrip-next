@@ -1,8 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Button, Stack, Typography } from '@mui/material';
+import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ExploreOutlinedIcon from '@mui/icons-material/ExploreOutlined';
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
+import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 import axios from 'axios';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Messages, REACT_APP_API_URL } from '../../config';
 import { getJwtToken, updateStorage, updateUserInfo } from '../../auth';
 import { useMutation, useReactiveVar } from '@apollo/client';
@@ -10,32 +16,75 @@ import { userVar } from '../../../apollo/store';
 import { MemberUpdate } from '../../types/member/member.update';
 import { UPDATE_MEMBER } from '../../../apollo/user/mutation';
 import { sweetErrorHandling, sweetMixinSuccessAlert } from '../../sweetAlert';
+import { formatterStr } from '../../utils';
 
-const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
-	const device = useDeviceDetect();
+const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+
+const MyProfile: NextPage = ({ initialValues }: any) => {
 	const token = getJwtToken();
 	const user = useReactiveVar(userVar);
+	const shouldReduceMotion = useReducedMotion();
 	const [updateData, setUpdateData] = useState<MemberUpdate>(initialValues);
+	const [formError, setFormError] = useState('');
+	const [uploadingImage, setUploadingImage] = useState(false);
 
 	/** APOLLO REQUESTS **/
-	const [updateMember] = useMutation(UPDATE_MEMBER);
+	const [updateMember, { loading: updatingProfile }] = useMutation(UPDATE_MEMBER);
+
+	const sectionMotion = {
+		hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 18 },
+		visible: {
+			opacity: 1,
+			y: 0,
+			transition: { duration: shouldReduceMotion ? 0.18 : 0.42, ease: easeOutExpo },
+		},
+	};
+
+	const listMotion = {
+		hidden: {},
+		visible: {
+			transition: {
+				staggerChildren: shouldReduceMotion ? 0 : 0.05,
+				delayChildren: shouldReduceMotion ? 0 : 0.08,
+			},
+		},
+	};
+
+	const profileImage = updateData?.memberImage
+		? `${REACT_APP_API_URL}/${updateData.memberImage}`
+		: '/img/profile/defaultUser.svg';
+
+	const profileStats = useMemo(
+		() => [
+			{ label: 'Tours', value: user.memberTours ?? 0 },
+			{ label: 'Articles', value: user.memberArticles ?? 0 },
+			{ label: 'Views', value: user.memberViews ?? 0 },
+			{ label: 'Likes', value: user.memberLikes ?? 0 },
+			{ label: 'Points', value: user.memberPoints ?? 0 },
+			{ label: 'Rank', value: user.memberRank ?? 0 },
+		],
+		[user],
+	);
 
 	/** LIFECYCLES **/
 	useEffect(() => {
-		setUpdateData({
-			...updateData,
+		setUpdateData((prevData) => ({
+			...prevData,
 			memberNick: user.memberNick,
 			memberPhone: user.memberPhone,
 			memberAddress: user.memberAddress,
 			memberImage: user.memberImage,
-		});
+			memberDesc: user.memberDesc,
+		}));
 	}, [user]);
 
 	/** HANDLERS **/
 	const uploadImage = async (e: any) => {
 		try {
-			const image = e.target.files[0];
-			console.log('+image:', image);
+			const image = e.target.files?.[0];
+			if (!image) return;
+			setFormError('');
+			setUploadingImage(true);
 
 			const formData = new FormData();
 			formData.append(
@@ -67,35 +116,40 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 			});
 
 			const responseImage = response.data.data.imageUploader;
-			console.log('+responseImage: ', responseImage);
-			updateData.memberImage = responseImage;
-			setUpdateData({ ...updateData });
+			setUpdateData((prevData) => ({ ...prevData, memberImage: responseImage }));
 
 			return `${REACT_APP_API_URL}/${responseImage}`;
-		} catch (err) {
+		} catch (err: any) {
+			setFormError(err?.message ?? 'Image upload failed. Please try again.');
 			console.log('Error, uploadImage:', err);
+		} finally {
+			setUploadingImage(false);
 		}
 	};
 
-	const updatePropertyHandler = useCallback(async () => {
+	const updateProfileHandler = useCallback(async () => {
 		try {
+			setFormError('');
 			if (!user._id) throw new Error(Messages.error2);
-			updateData._id = user._id;
 			const result = await updateMember({
 				variables: {
-					input: updateData,
+					input: {
+						...updateData,
+						_id: user._id,
+					},
 				},
 			});
 
-			// @ts-ignore 
+			// @ts-ignore
 			const jwtToken = result.data.updateMember?.accessToken;
 			await updateStorage({ jwtToken });
 			updateUserInfo(result.data.updateMember?.accessToken);
 			await sweetMixinSuccessAlert('Information updated successfully.');
 		} catch (err: any) {
+			setFormError(err?.message ?? 'Profile update failed. Please try again.');
 			sweetErrorHandling(err).then();
 		}
-	}, [updateData]);
+	}, [updateData, updateMember, user._id]);
 
 	const doDisabledCheck = () => {
 		if (
@@ -106,108 +160,157 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 		) {
 			return true;
 		}
+		return uploadingImage || updatingProfile;
 	};
 
-	console.log('+updateData', updateData);
-
-	if (device === 'mobile') {
-		return <>MY PROFILE PAGE MOBILE</>;
-	} else
-		return (
-			<div id="my-profile-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">My Profile</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-						<Typography className="sub-title">
-							Guide request: {user.agentRequestStatus ?? 'NONE'}
-							{user.isVerifiedAgent ? ' · Verified guide/operator' : ''}
-						</Typography>
-						{user.agentRequestMessage && (
-							<Typography className="sub-title">Request message: {user.agentRequestMessage}</Typography>
-						)}
-						{user.agentExperience && <Typography className="sub-title">Experience: {user.agentExperience}</Typography>}
-					</Stack>
+	return (
+		<motion.div id="my-profile-page" variants={listMotion} initial="hidden" animate="visible">
+			<motion.div className="profile-hero" variants={sectionMotion}>
+				<Stack className="profile-hero-copy">
+					<Typography className="profile-kicker">GoTrip Concierge</Typography>
+					<Typography className="main-title">My Profile</Typography>
+					<Typography className="sub-title">Keep your traveler profile ready for the next reservation.</Typography>
 				</Stack>
-				<Stack className="top-box">
-					<Stack className="photo-box">
-						<Typography className="title">Photo</Typography>
-						<Stack className="image-big-box">
-							<Stack className="image-box">
-								<img
-									src={
-										updateData?.memberImage
-											? `${REACT_APP_API_URL}/${updateData?.memberImage}`
-											: `/img/profile/defaultUser.svg`
-									}
-									alt=""
-								/>
-							</Stack>
-							<Stack className="upload-big-box">
-								<input
-									type="file"
-									hidden
-									id="hidden-input"
-									onChange={uploadImage}
-									accept="image/jpg, image/jpeg, image/png"
-								/>
-								<label htmlFor="hidden-input" className="labeler">
-									<Typography>Upload Profile Image</Typography>
-								</label>
-								<Typography className="upload-text">A photo must be in JPG, JPEG or PNG format!</Typography>
-							</Stack>
+				<Stack className="profile-status-card">
+					<Stack className="status-row">
+						<BadgeOutlinedIcon />
+						<span>{user.memberType || 'USER'}</span>
+					</Stack>
+					<Stack className="status-row">
+						<WorkspacePremiumOutlinedIcon />
+						<span>Guide request: {user.agentRequestStatus || 'NONE'}</span>
+					</Stack>
+					{user.isVerifiedAgent && (
+						<Stack className="status-row verified">
+							<CheckCircleRoundedIcon />
+							<span>Verified guide/operator</span>
+						</Stack>
+					)}
+				</Stack>
+			</motion.div>
+
+			<motion.div className="profile-grid" variants={listMotion}>
+				<motion.aside className="traveler-card" variants={sectionMotion}>
+					<div className="avatar-frame">
+						<img src={profileImage} alt={`${user.memberNick || 'GoTrip traveler'} profile`} />
+					</div>
+					<div className="traveler-card-copy">
+						<Typography className="traveler-name">{user.memberNick || 'GoTrip traveler'}</Typography>
+						<Typography className="traveler-phone">{user.memberPhone || 'Phone number not added'}</Typography>
+						<Typography className="traveler-address">{user.memberAddress || 'Address not added'}</Typography>
+					</div>
+					<motion.div className="profile-stats" variants={listMotion}>
+						{profileStats.map((stat) => (
+							<motion.div className="profile-stat" key={stat.label} variants={sectionMotion}>
+								<strong>{formatterStr(stat.value) || stat.value}</strong>
+								<span>{stat.label}</span>
+							</motion.div>
+						))}
+					</motion.div>
+					{user.agentRequestMessage && (
+						<div className="guide-note">
+							<span>Request message</span>
+							<p>{user.agentRequestMessage}</p>
+						</div>
+					)}
+					{user.agentExperience && (
+						<div className="guide-note">
+							<span>Experience</span>
+							<p>{user.agentExperience}</p>
+						</div>
+					)}
+				</motion.aside>
+
+				<motion.section className="profile-editor" variants={sectionMotion}>
+					<Stack className="photo-panel">
+						<div className="photo-preview">
+							<img src={profileImage} alt="Profile preview" />
+						</div>
+						<Stack className="photo-actions">
+							<Typography className="section-title">Photo</Typography>
+							<Typography className="helper-text">A photo must be in JPG, JPEG or PNG format.</Typography>
+							<input
+								type="file"
+								hidden
+								id="hidden-input"
+								onChange={uploadImage}
+								accept="image/jpg, image/jpeg, image/png"
+							/>
+							<motion.label htmlFor="hidden-input" className="upload-button" whileTap={{ scale: 0.97 }}>
+								<PhotoCameraOutlinedIcon />
+								<span>{uploadingImage ? 'Uploading...' : 'Upload profile image'}</span>
+							</motion.label>
 						</Stack>
 					</Stack>
-					<Stack className="small-input-box">
-						<Stack className="input-box">
-							<Typography className="title">Username</Typography>
+
+					<form className="profile-form" onSubmit={(event) => event.preventDefault()}>
+						<div className="form-field">
+							<label htmlFor="memberNick">Username</label>
 							<input
+								id="memberNick"
 								type="text"
 								placeholder="Your username"
-								value={updateData.memberNick}
+								value={updateData.memberNick || ''}
 								onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberNick: value })}
 							/>
-						</Stack>
-						<Stack className="input-box">
-							<Typography className="title">Phone</Typography>
+						</div>
+						<div className="form-field">
+							<label htmlFor="memberPhone">Phone</label>
 							<input
-								type="text"
-								placeholder="Your Phone"
-								value={updateData.memberPhone}
+								id="memberPhone"
+								type="tel"
+								placeholder="Your phone"
+								value={updateData.memberPhone || ''}
 								onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberPhone: value })}
 							/>
+						</div>
+						<div className="form-field full">
+							<label htmlFor="memberAddress">Address</label>
+							<input
+								id="memberAddress"
+								type="text"
+								placeholder="Your address"
+								value={updateData.memberAddress || ''}
+								onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberAddress: value })}
+							/>
+						</div>
+						<div className="form-field full">
+							<label htmlFor="memberDesc">About your travel style</label>
+							<textarea
+								id="memberDesc"
+								placeholder="Share a little about how you like to travel"
+								value={updateData.memberDesc || ''}
+								onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberDesc: value })}
+							/>
+						</div>
+					</form>
+
+					{formError && (
+						<Typography className="profile-error" role="alert">
+							{formError}
+						</Typography>
+					)}
+
+					<Stack className="profile-actions">
+						<Stack className="profile-assurance">
+							<ExploreOutlinedIcon />
+							<span>Your account stays traveler-first. Guide/operator approval is handled separately.</span>
 						</Stack>
+						<motion.div whileTap={{ scale: 0.97 }}>
+							<Button
+								className="update-button"
+								onClick={updateProfileHandler}
+								disabled={doDisabledCheck()}
+								endIcon={<ArrowOutwardRoundedIcon />}
+							>
+								{updatingProfile ? 'Saving...' : 'Update profile'}
+							</Button>
+						</motion.div>
 					</Stack>
-					<Stack className="address-box">
-						<Typography className="title">Address</Typography>
-						<input
-							type="text"
-							placeholder="Your address"
-							value={updateData.memberAddress}
-							onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberAddress: value })}
-						/>
-					</Stack>
-					<Stack className="about-me-box">
-						<Button className="update-button" onClick={updatePropertyHandler} disabled={doDisabledCheck()}>
-							<Typography>Update Profile</Typography>
-							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
-								<g clipPath="url(#clip0_7065_6985)">
-									<path
-										d="M12.6389 0H4.69446C4.49486 0 4.33334 0.161518 4.33334 0.361122C4.33334 0.560727 4.49486 0.722245 4.69446 0.722245H11.7672L0.105803 12.3836C-0.0352676 12.5247 -0.0352676 12.7532 0.105803 12.8942C0.176321 12.9647 0.268743 13 0.361131 13C0.453519 13 0.545907 12.9647 0.616459 12.8942L12.2778 1.23287V8.30558C12.2778 8.50518 12.4393 8.6667 12.6389 8.6667C12.8385 8.6667 13 8.50518 13 8.30558V0.361122C13 0.161518 12.8385 0 12.6389 0Z"
-										fill="white"
-									/>
-								</g>
-								<defs>
-									<clipPath id="clip0_7065_6985">
-										<rect width="13" height="13" fill="white" />
-									</clipPath>
-								</defs>
-							</svg>
-						</Button>
-					</Stack>
-				</Stack>
-			</div>
-		);
+				</motion.section>
+			</motion.div>
+		</motion.div>
+	);
 };
 
 MyProfile.defaultProps = {
@@ -217,6 +320,7 @@ MyProfile.defaultProps = {
 		memberNick: '',
 		memberPhone: '',
 		memberAddress: '',
+		memberDesc: '',
 	},
 };
 

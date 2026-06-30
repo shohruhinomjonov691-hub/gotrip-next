@@ -1,5 +1,4 @@
 import React from 'react';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Stack, Box, Typography } from '@mui/material';
 import Link from 'next/link';
 import { REACT_APP_API_URL } from '../../config';
@@ -17,17 +16,15 @@ interface AgentCardProps {
 
 const AgentCard = (props: AgentCardProps) => {
 	const { agent, likeMemberHandler } = props;
-	const device = useDeviceDetect();
 	const user = useReactiveVar(userVar);
 	const tourCount = agent?.memberTours ?? agent?.memberProperties ?? 0;
 	const imagePath: string = agent?.memberImage
 		? `${REACT_APP_API_URL}/${agent?.memberImage}`
 		: '/img/profile/defaultUser.svg';
+	const guideName = agent?.memberFullName ?? agent?.memberNick ?? 'guide';
+	const isLiked = !!agent?.meLiked?.[0]?.myFavorite;
 
-	if (device === 'mobile') {
-		return <div>AGENT CARD</div>;
-	} else {
-		return (
+	return (
 			<Stack className="agent-general-card">
 				<Link
 					href={{
@@ -54,20 +51,20 @@ const AgentCard = (props: AgentCardProps) => {
 						<Link
 							href={{
 								pathname: '/agent/detail',
-								query: { agentId: 'id' },
+							query: { agentId: agent?._id },
 							}}
 						>
-							<strong>{agent?.memberFullName ?? agent?.memberNick}</strong>
+							<strong>{guideName}</strong>
 						</Link>
 						<span>Guide / Operator</span>
 					</Box>
 					<Box component={'div'} className={'buttons'}>
-						<IconButton color={'default'}>
-							<RemoveRedEyeIcon />
-						</IconButton>
-						<Typography className="view-cnt">{agent?.memberViews}</Typography>
-						<IconButton color={'default'} onClick={() => likeMemberHandler(user, agent?._id)}>
-							{agent?.meLiked && agent?.meLiked[0]?.myFavorite ? (
+							<IconButton component="span" color={'default'} disableRipple tabIndex={-1} aria-hidden="true">
+								<RemoveRedEyeIcon />
+							</IconButton>
+							<Typography className="view-cnt">{agent?.memberViews}</Typography>
+							<IconButton color={'default'} aria-label={`${isLiked ? 'Unlike' : 'Like'} ${guideName}`} onClick={() => likeMemberHandler(user, agent?._id)}>
+								{isLiked ? (
 								<FavoriteIcon color={'primary'} />
 							) : (
 								<FavoriteBorderIcon />
@@ -78,7 +75,6 @@ const AgentCard = (props: AgentCardProps) => {
 				</Stack>
 			</Stack>
 		);
-	}
 };
 
 export default AgentCard;

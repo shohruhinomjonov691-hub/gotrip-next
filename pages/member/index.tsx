@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import { Stack } from '@mui/material';
 import MemberMenu from '../../libs/components/member/MemberMenu';
-import MemberProperties from '../../libs/components/member/MemberProperties';
+import MemberTours from '../../libs/components/member/MemberTours';
 import { useRouter } from 'next/router';
 import MemberFollowers from '../../libs/components/member/MemberFollowers';
 import MemberArticles from '../../libs/components/member/MemberArticles';
@@ -23,9 +22,9 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 const MemberPage: NextPage = () => {
-	const device = useDeviceDetect();
 	const router = useRouter();
-	const category: any = router.query?.category;
+	const routeCategory: any = router.query?.category;
+	const category: any = routeCategory === 'properties' ? 'tours' : routeCategory ?? 'tours';
 	const user = useReactiveVar(userVar);
 
 	/** APOLLO REQUESTS **/
@@ -36,17 +35,17 @@ const MemberPage: NextPage = () => {
 	/** LIFECYCLES **/
 	useEffect(() => {
 		if (!router.isReady) return;
-		if (!category) {
+		if (!routeCategory || routeCategory === 'properties') {
 			router.replace(
 				{
 					pathname: router.pathname,
-					query: { ...router.query, category: 'properties' },
+					query: { ...router.query, category: 'tours' },
 				},
 				undefined,
-				{ shallow: true },
+				{ shallow: true, scroll: false },
 			);
 		}
-	}, [category, router]);
+	}, [routeCategory, router]);
 
 	/** HANDLERS **/
 	const subscribeHandler = async (id: string, refetch: any, query: any) => {
@@ -110,10 +109,7 @@ const MemberPage: NextPage = () => {
 		}
 	};
 
-	if (device === 'mobile') {
-		return <>MEMBER PAGE MOBILE</>;
-	} else {
-		return (
+	return (
 			<div id="member-page" style={{ position: 'relative' }}>
 				<div className="container">
 					<Stack className={'member-page'}>
@@ -123,7 +119,7 @@ const MemberPage: NextPage = () => {
 							</Stack>
 							<Stack className="main-config" mb={'76px'}>
 								<Stack className={'list-config'}>
-									{category === 'properties' && <MemberProperties />}
+									{category === 'tours' && <MemberTours />}
 									{category === 'followers' && (
 										<MemberFollowers
 											subscribeHandler={subscribeHandler}
@@ -148,7 +144,6 @@ const MemberPage: NextPage = () => {
 				</div>
 			</div>
 		);
-	}
 };
 
 export default withLayoutBasic(MemberPage);

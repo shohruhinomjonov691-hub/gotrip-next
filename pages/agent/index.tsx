@@ -1,6 +1,5 @@
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import { Stack, Box, Button, Pagination } from '@mui/material';
 import { Menu, MenuItem } from '@mui/material';
@@ -23,7 +22,6 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 const AgentList: NextPage = ({ initialInput, ...props }: any) => {
-	const device = useDeviceDetect();
 	const router = useRouter();
 	const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
 	const [filterSortName, setFilterSortName] = useState('Recent');
@@ -124,16 +122,14 @@ const AgentList: NextPage = ({ initialInput, ...props }: any) => {
 		}
 	};
 
-	if (device === 'mobile') {
-		return <h1>AGENTS PAGE MOBILE</h1>;
-	} else {
-		return (
+	return (
 			<Stack className={'agent-list-page'}>
 				<Stack className={'container'}>
 					<Stack className={'filter'}>
 						<Box component={'div'} className={'left'}>
 							<input
 								type="text"
+								aria-label="Search guides"
 								placeholder={'Search for an agent'}
 								value={searchText}
 								onChange={(e: any) => setSearchText(e.target.value)}
@@ -206,7 +202,6 @@ const AgentList: NextPage = ({ initialInput, ...props }: any) => {
 				</Stack>
 			</Stack>
 		);
-	}
 };
 
 AgentList.defaultProps = {

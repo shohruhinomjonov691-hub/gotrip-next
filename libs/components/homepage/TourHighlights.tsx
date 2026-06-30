@@ -32,8 +32,7 @@ const TourHighlights = ({ title, sort, direction = Direction.DESC, limit = 3 }: 
 	const input: ToursInquiry = { page: 1, limit, sort, direction, search: {} };
 	const [likeTargetTour] = useMutation(LIKE_TARGET_TOUR);
 	const [toggleWishlist] = useMutation(TOGGLE_WISHLIST);
-
-	const { loading, refetch } = useQuery(GET_TOURS, {
+	const { loading, error, refetch } = useQuery(GET_TOURS, {
 		fetchPolicy: 'cache-and-network',
 		variables: { input },
 		onCompleted: (data: T) => setTours(data?.getTours?.list ?? []),
@@ -70,22 +69,31 @@ const TourHighlights = ({ title, sort, direction = Direction.DESC, limit = 3 }: 
 			viewport={{ once: true, amount: 0.18 }}
 		>
 			<Stack className={'tour-highlight-container'} spacing={2.5}>
-				<Stack className={'tour-section-heading'} direction="row" alignItems="flex-end" justifyContent="space-between">
+				<Stack className={'tour-section-heading tour-section-heading-centered'} alignItems="center">
 					<Stack spacing={0.7}>
-						<Typography className={'eyebrow'}>Featured experiences</Typography>
+						<Typography className={'eyebrow'}>Elite experiences</Typography>
 						<Typography className={'section-title'}>{title}</Typography>
 						<Typography className={'section-copy'}>
-							Handpicked tours with trusted guides, flexible group sizes, and easy booking paths.
+							Immersive experiences designed for the extraordinary.
 						</Typography>
 					</Stack>
-					<Link href="/tour">
-						<Button className={'section-link'} endIcon={<ArrowForwardRoundedIcon />}>
-							View all
-						</Button>
-					</Link>
 				</Stack>
 				{loading && tours.length === 0 ? (
-					<Typography className={'tour-loading'}>Loading tours...</Typography>
+					<Stack className={'tour-skeleton-grid'}>
+						{[0, 1, 2, 3].slice(0, limit).map((item) => (
+							<div className={'tour-card-skeleton'} key={item} />
+						))}
+					</Stack>
+				) : error ? (
+					<Stack className={'homepage-data-state'} alignItems="center">
+						<Typography>Featured tours could not be loaded.</Typography>
+						<Button onClick={() => refetch({ input })}>Try again</Button>
+					</Stack>
+				) : tours.length === 0 ? (
+					<Stack className={'homepage-data-state'} alignItems="center">
+						<Typography>New curated tours will appear here soon.</Typography>
+						<Link href="/tour"><Button>Browse all tours</Button></Link>
+					</Stack>
 				) : (
 					<MotionDiv
 						className={'tour-card-grid'}

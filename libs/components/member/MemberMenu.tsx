@@ -39,7 +39,40 @@ const MemberMenu = (props: MemberMenuProps) => {
 	});
 
 	if (device === 'mobile') {
-		return <div>MEMBER MENU MOBILE</div>;
+		return (
+			<Stack className="mobile-my-menu">
+				{member?.memberType === 'AGENT' && (
+					<Link
+						href={{ pathname: '/member', query: { ...router.query, category: 'tours' } }}
+						scroll={false}
+						className={category === 'tours' ? 'active' : ''}
+					>
+						Tours
+					</Link>
+				)}
+				<Link
+					href={{ pathname: '/member', query: { ...router.query, category: 'followers' } }}
+					scroll={false}
+					className={category === 'followers' ? 'active' : ''}
+				>
+					Followers
+				</Link>
+				<Link
+					href={{ pathname: '/member', query: { ...router.query, category: 'followings' } }}
+					scroll={false}
+					className={category === 'followings' ? 'active' : ''}
+				>
+					Followings
+				</Link>
+				<Link
+					href={{ pathname: '/member', query: { ...router.query, category: 'articles' } }}
+					scroll={false}
+					className={category === 'articles' ? 'active' : ''}
+				>
+					Articles
+				</Link>
+			</Stack>
+		);
 	} else {
 		return (
 			<Stack width={'100%'} padding={'30px 24px'}>
@@ -88,26 +121,26 @@ const MemberMenu = (props: MemberMenuProps) => {
 						</Typography>
 						<List className={'sub-section'}>
 							{member?.memberType === 'AGENT' && (
-								<ListItem className={category === 'properties' ? 'focus' : ''}>
+								<ListItem className={category === 'tours' ? 'focus' : ''}>
 									<Link
 										href={{
 											pathname: '/member',
-											query: { ...router.query, category: 'properties' },
+											query: { ...router.query, category: 'tours' },
 										}}
 										scroll={false}
 										style={{ width: '100%' }}
 									>
 										<div className={'flex-box'}>
-											{category === 'properties' ? (
-												<img className={'com-icon'} src={'/img/icons/homeWhite.svg'} alt={'com-icon'} />
+											{category === 'tours' ? (
+												<img className={'com-icon'} src={'/img/icons/reviewWhite.svg'} alt={'com-icon'} />
 											) : (
-												<img className={'com-icon'} src={'/img/icons/home.svg'} alt={'com-icon'} />
+												<img className={'com-icon'} src={'/img/icons/review.svg'} alt={'com-icon'} />
 											)}
 											<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-												Properties
+												Tours
 											</Typography>
 											<Typography className="count-title" variant="subtitle1">
-												{member?.memberProperties}
+												{member?.memberTours}
 											</Typography>
 										</div>
 									</Link>

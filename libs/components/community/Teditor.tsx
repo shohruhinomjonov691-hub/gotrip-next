@@ -116,9 +116,9 @@ const TuiEditor = () => {
 	};
 
 	return (
-		<Stack>
-			<Stack direction="row" style={{ margin: '40px' }} justifyContent="space-evenly">
-				<Box component={'div'} className={'form_row'} style={{ width: '300px' }}>
+		<Stack className="article-editor-shell">
+			<Stack className="article-editor-fields" direction="row" style={{ margin: '40px' }} justifyContent="space-evenly">
+				<Box component={'div'} className={'form_row article-editor-field'} style={{ width: '300px' }}>
 					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
 						Category
 					</Typography>
@@ -138,7 +138,7 @@ const TuiEditor = () => {
 						</Select>
 					</FormControl>
 				</Box>
-				<Box component={'div'} style={{ width: '300px', flexDirection: 'column' }}>
+				<Box component={'div'} className="article-editor-field" style={{ width: '300px', flexDirection: 'column' }}>
 					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
 						Title
 					</Typography>
@@ -151,32 +151,34 @@ const TuiEditor = () => {
 				</Box>
 			</Stack>
 
-			<Editor
-				initialValue={'Type here'}
-				placeholder={'Type here'}
-				previewStyle={'vertical'}
-				height={'640px'}
-				// @ts-ignore
-				initialEditType={'WYSIWYG'}
-				toolbarItems={[
-					['heading', 'bold', 'italic', 'strike'],
-					['image', 'table', 'link'],
-					['ul', 'ol', 'task'],
-				]}
-				ref={editorRef}
-				hooks={{
-					addImageBlobHook: async (image: any, callback: any) => {
-						const uploadedImageURL = await uploadImage(image);
-						callback(uploadedImageURL);
-						return false;
-					},
-				}}
-				events={{
-					load: function (param: any) {},
-				}}
-			/>
+				<div className="article-editor-canvas">
+				<Editor
+					initialValue={'Type here'}
+					placeholder={'Type here'}
+					previewStyle={'vertical'}
+					height={'640px'}
+					// @ts-ignore
+					initialEditType={'WYSIWYG'}
+					toolbarItems={[
+						['heading', 'bold', 'italic', 'strike'],
+						['image', 'table', 'link'],
+						['ul', 'ol', 'task'],
+					]}
+					ref={editorRef}
+					hooks={{
+						addImageBlobHook: async (image: any, callback: any) => {
+							const uploadedImageURL = await uploadImage(image);
+							callback(uploadedImageURL);
+							return false;
+						},
+					}}
+					events={{
+						load: function (param: any) {},
+					}}
+				/>
+				</div>
 
-			<Stack direction="row" justifyContent="center">
+			<Stack className="article-editor-submit" direction="row" justifyContent="center">
 				<Button
 					variant="contained"
 					color="primary"

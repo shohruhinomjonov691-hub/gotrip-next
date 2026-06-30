@@ -21,6 +21,7 @@ const withLayoutBasic = (Component: any) => {
 		const device = useDeviceDetect();
 		const [authHeader, setAuthHeader] = useState<boolean>(false);
 		const user = useReactiveVar(userVar);
+		const isTourRoute = router.pathname === '/tour';
 
 		const memoizedValues = useMemo(() => {
 			let title = '',
@@ -31,17 +32,27 @@ const withLayoutBasic = (Component: any) => {
 				case '/tour':
 					title = 'Tour Search';
 					desc = 'Find guided trips and travel experiences.';
-					bgImage = '/img/banner/properties.png';
+					bgImage = '/img/banner/cities/JEJU.webp';
 					break;
 				case '/property':
 					title = 'Tour Search';
 					desc = 'Find guided trips and travel experiences.';
-					bgImage = '/img/banner/properties.png';
+					bgImage = '/img/banner/cities/JEJU.webp';
 					break;
 				case '/agent':
 					title = 'Guides';
 					desc = 'Meet local guides and tour operators.';
 					bgImage = '/img/banner/agents.webp';
+					break;
+				case '/destination':
+					title = 'Destinations';
+					desc = 'Explore places and continue into curated tours.';
+					bgImage = '/img/banner/header3.svg';
+					break;
+				case '/destination/detail':
+					title = 'Destination';
+					desc = 'Tours, local context, and traveler activity.';
+					bgImage = '/img/banner/header3.svg';
 					break;
 				case '/agent/detail':
 					title = 'Guide Page';
@@ -129,16 +140,24 @@ const withLayoutBasic = (Component: any) => {
 						</Stack>
 
 						<Stack
-							className={`header-basic ${authHeader && 'auth'}`}
+							className={`header-basic ${authHeader ? 'auth' : ''} ${isTourRoute ? 'tour-basic-hero' : ''}`}
 							style={{
-								backgroundImage: `url(${memoizedValues.bgImage})`,
+								backgroundImage: isTourRoute ? undefined : `url(${memoizedValues.bgImage})`,
 								backgroundSize: 'cover',
-								boxShadow: 'inset 10px 40px 150px 40px rgb(24 22 36)',
+								boxShadow: isTourRoute ? undefined : 'inset 10px 40px 150px 40px rgb(24 22 36)',
 							}}
 						>
 							<Stack className={'container'}>
+								{isTourRoute && <span className="tour-hero-kicker">Premium tour discovery</span>}
 								<strong>{t(memoizedValues.title)}</strong>
 								<span>{t(memoizedValues.desc)}</span>
+								{isTourRoute && (
+									<div className="tour-hero-accents" aria-hidden="true">
+										<small>Jeju coast</small>
+										<small>Local guides</small>
+										<small>Curated routes</small>
+									</div>
+								)}
 							</Stack>
 						</Stack>
 

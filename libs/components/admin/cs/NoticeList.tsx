@@ -1,246 +1,164 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import {
-	TableCell,
-	TableHead,
-	TableBody,
-	TableRow,
-	Table,
-	TableContainer,
-	Button,
-	Menu,
-	Fade,
-	MenuItem,
-	Box,
-	Checkbox,
-	Toolbar,
-} from '@mui/material';
-import Avatar from '@mui/material/Avatar';
-import { IconButton, Tooltip } from '@mui/material';
-import Typography from '@mui/material/Typography';
-import { Stack } from '@mui/material';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { NotePencil } from 'phosphor-react';
+import React from 'react';
+import Moment from 'react-moment';
+import { Button, IconButton, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip } from '@mui/material';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Notice } from '../../../types/notice/notice';
+import { NoticeStatus } from '../../../enums/notice.enum';
 
-type Order = 'asc' | 'desc';
-
-interface Data {
-	category: string;
-	title: string;
-	id: string;
-	writer: string;
-	date: string;
-	view: number;
-	action: string;
-}
-interface HeadCell {
-	disablePadding: boolean;
-	id: keyof Data;
-	label: string;
-	numeric: boolean;
+interface NoticeListProps {
+	notices: Notice[];
+	anchorEl: Record<string, HTMLElement | null>;
+	menuIconClickHandler: (event: React.MouseEvent<HTMLElement>, key: string) => void;
+	menuIconCloseHandler: () => void;
+	editNoticeHandler: (notice: Notice) => void;
+	updateNoticeHandler: (noticeId: string, noticeStatus: NoticeStatus) => void;
+	deleteNoticeHandler: (noticeId: string) => void;
+	loading?: boolean;
 }
 
-const headCells: readonly HeadCell[] = [
-	{
-		id: 'category',
-		numeric: true,
-		disablePadding: false,
-		label: 'Category',
-	},
-	{
-		id: 'title',
-		numeric: true,
-		disablePadding: false,
-		label: 'TITLE',
-	},
-	{
-		id: 'id',
-		numeric: true,
-		disablePadding: false,
-		label: 'ID',
-	},
-	{
-		id: 'writer',
-		numeric: true,
-		disablePadding: false,
-		label: 'WRITER',
-	},
-	{
-		id: 'date',
-		numeric: true,
-		disablePadding: false,
-		label: 'DATE',
-	},
-	{
-		id: 'view',
-		numeric: true,
-		disablePadding: false,
-		label: 'VIEW',
-	},
-	{
-		id: 'action',
-		numeric: false,
-		disablePadding: false,
-		label: 'ACTION',
-	},
-];
+const SKELETON_ROWS: readonly number[] = [0, 1, 2, 3, 4, 5];
+const CHANGEABLE_STATUSES: readonly NoticeStatus[] = [NoticeStatus.ACTIVE, NoticeStatus.HOLD];
+const noticeStatusClass = (status?: string) => `admin-status admin-status--${(status ?? 'hold').toLowerCase()}`;
 
-interface EnhancedTableProps {
-	numSelected: number;
-	onRequestSort: (event: React.MouseEvent<unknown>, property: keyof Data) => void;
-	onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	order: Order;
-	orderBy: string;
-	rowCount: number;
-}
+export const NoticeList = ({
+	notices,
+	anchorEl,
+	menuIconClickHandler,
+	menuIconCloseHandler,
+	editNoticeHandler,
+	updateNoticeHandler,
+	deleteNoticeHandler,
+	loading = false,
+}: NoticeListProps): React.ReactElement => {
+	const reduceMotion = Boolean(useReducedMotion());
+	const fadeDuration = reduceMotion ? 0 : 0.2;
 
-interface EnhancedTableToolbarProps {
-	numSelected: number;
-	onRequestSort: (event: React.MouseEvent<unknown>, property: keyof Data) => void;
-	onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	order: Order;
-	orderBy: string;
-	rowCount: number;
-}
-
-const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
-	const [select, setSelect] = useState('');
-	const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
-
-	return (
-		<>
-			{numSelected > 0 ? (
-				<>
-					<Toolbar>
-						<Box component={'div'}>
-							<Box component={'div'} className="flex_box">
-								<Checkbox
-									color="primary"
-									indeterminate={numSelected > 0 && numSelected < rowCount}
-									checked={rowCount > 0 && numSelected === rowCount}
-									onChange={onSelectAllClick}
-									inputProps={{
-										'aria-label': 'select all',
-									}}
-								/>
-								<Typography sx={{ flex: '1 1 100%' }} color="inherit" variant="h6" component="div">
-									{numSelected} selected
-								</Typography>
-							</Box>
-							<Button variant={'text'} size={'large'}>
-								Delete
-							</Button>
-						</Box>
-					</Toolbar>
-				</>
-			) : (
-				<TableHead>
-					<TableRow>
-						<TableCell padding="checkbox">
-							<Checkbox
-								color="primary"
-								indeterminate={numSelected > 0 && numSelected < rowCount}
-								checked={rowCount > 0 && numSelected === rowCount}
-								onChange={onSelectAllClick}
-								inputProps={{
-									'aria-label': 'select all',
-								}}
-							/>
-						</TableCell>
-						{headCells.map((headCell) => (
-							<TableCell
-								key={headCell.id}
-								align={headCell.numeric ? 'left' : 'right'}
-								padding={headCell.disablePadding ? 'none' : 'normal'}
-							>
-								{headCell.label}
-							</TableCell>
-						))}
-					</TableRow>
-				</TableHead>
-			)}
-			{numSelected > 0 ? null : null}
-		</>
+	const renderLoadingState = (): React.ReactElement => (
+		<div className="admin-table-skeleton" role="status" aria-label="Loading notices">
+			{SKELETON_ROWS.map((index) => <span key={index} />)}
+		</div>
 	);
-};
 
-interface NoticeListType {
-	dense?: boolean;
-	membersData?: any;
-	searchMembers?: any;
-	anchorEl?: any;
-	handleMenuIconClick?: any;
-	handleMenuIconClose?: any;
-	generateMentorTypeHandle?: any;
-}
+	const renderEmptyState = (): React.ReactElement => (
+		<div className="admin-state admin-state--empty">No notices match these controls.</div>
+	);
 
-export const NoticeList = (props: NoticeListType) => {
-	const {
-		dense,
-		membersData,
-		searchMembers,
-		anchorEl,
-		handleMenuIconClick,
-		handleMenuIconClose,
-		generateMentorTypeHandle,
-	} = props;
-	const router = useRouter();
+	const renderStatusControl = (notice: Notice, statusKey: string): React.ReactElement => {
+		if (notice.noticeStatus === NoticeStatus.DELETE) {
+			return <span className={noticeStatusClass(notice.noticeStatus)}>{notice.noticeStatus}</span>;
+		}
 
-	/** APOLLO REQUESTS **/
-	/** LIFECYCLES **/
-	/** HANDLERS **/
+		const statusOptions: NoticeStatus[] = CHANGEABLE_STATUSES.filter((status) => status !== notice.noticeStatus);
+		return (
+			<>
+				<Button className={noticeStatusClass(notice.noticeStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>
+					{notice.noticeStatus}
+				</Button>
+				<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>
+					{statusOptions.map((status) => (
+						<MenuItem key={status} onClick={() => updateNoticeHandler(notice._id, status)}>
+							{status}
+						</MenuItem>
+					))}
+				</Menu>
+			</>
+		);
+	};
+
+	const renderDeleteControl = (notice: Notice): React.ReactElement | null => {
+		if (notice.noticeStatus === NoticeStatus.DELETE) return null;
+		return (
+			<Tooltip title="Delete notice">
+				<IconButton className="admin-icon-action admin-icon-action--danger" aria-label="Delete notice" onClick={() => deleteNoticeHandler(notice._id)}>
+					<DeleteOutlineRoundedIcon />
+				</IconButton>
+			</Tooltip>
+		);
+	};
+
+	const renderEditControl = (notice: Notice): React.ReactElement => (
+		<Tooltip title="Edit notice">
+			<IconButton className="admin-icon-action" aria-label="Edit notice" onClick={() => editNoticeHandler(notice)}>
+				<EditRoundedIcon />
+			</IconButton>
+		</Tooltip>
+	);
+
+	const renderDesktopRow = (notice: Notice): React.ReactElement => {
+		const statusKey = `${notice._id}-status`;
+		return (
+			<TableRow key={notice._id}>
+				<TableCell>
+					<div className="admin-notice-cell">
+						<strong>{notice.noticeTitle}</strong>
+						<span>{notice.noticeContent}</span>
+					</div>
+				</TableCell>
+				<TableCell>{notice.noticeCategory}</TableCell>
+				<TableCell><Moment format="DD MMM YYYY">{notice.createdAt}</Moment></TableCell>
+				<TableCell>{renderStatusControl(notice, statusKey)}</TableCell>
+				<TableCell align="right">
+					<div className="admin-notice-actions">
+						{renderEditControl(notice)}
+						{renderDeleteControl(notice)}
+					</div>
+				</TableCell>
+			</TableRow>
+		);
+	};
+
+	const renderMobileCard = (notice: Notice): React.ReactElement => {
+		const statusKey = `${notice._id}-mobile-status`;
+		return (
+			<article className="admin-mobile-card" key={notice._id}>
+				<div className="admin-mobile-card__title">
+					<strong>{notice.noticeTitle}</strong>
+					<span className={noticeStatusClass(notice.noticeStatus)}>{notice.noticeStatus}</span>
+				</div>
+				<p>{notice.noticeCategory} · <Moment format="DD MMM YYYY">{notice.createdAt}</Moment></p>
+				<div className="admin-mobile-card__copy"><span>{notice.noticeContent}</span></div>
+				<div className="admin-mobile-card__actions">
+					<Button className="admin-action-button" onClick={() => editNoticeHandler(notice)}>
+						Edit
+					</Button>
+					{notice.noticeStatus !== NoticeStatus.DELETE && (
+						<>
+						{renderStatusControl(notice, statusKey)}
+						<Button className="admin-action-button admin-action-button--danger" onClick={() => deleteNoticeHandler(notice._id)}>
+							Delete
+						</Button>
+						</>
+					)}
+				</div>
+			</article>
+		);
+	};
+
+	if (loading) return renderLoadingState();
+	if (!notices.length) return renderEmptyState();
+
+	const desktopRows: React.ReactElement[] = notices.map(renderDesktopRow);
+	const mobileCards: React.ReactElement[] = notices.map(renderMobileCard);
 
 	return (
-		<Stack>
-			<TableContainer>
-				<Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={dense ? 'small' : 'medium'}>
-					{/*@ts-ignore*/}
-					<EnhancedTableToolbar />
-					<TableBody>
-						{[1, 2, 3, 4, 5].map((ele: any, index: number) => {
-							const member_image = '/img/profile/defaultUser.svg';
-
-							return (
-								<TableRow hover key={'member._id'} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-									<TableCell padding="checkbox">
-										<Checkbox color="primary" />
-									</TableCell>
-									<TableCell align="left">mb id</TableCell>
-									<TableCell align="left">member.mb_full_name</TableCell>
-									<TableCell align="left">member.mb_phone</TableCell>
-									<TableCell align="left" className={'name'}>
-										<Stack direction={'row'}>
-											<Link href={`/_admin/users/detail?mb_id=$'{member._id'}`}>
-												<div>
-													<Avatar alt="Remy Sharp" src={member_image} sx={{ ml: '2px', mr: '10px' }} />
-												</div>
-											</Link>
-											<Link href={`/_admin/users/detail?mb_id=${'member._id'}`}>
-												<div>member.mb_nick</div>
-											</Link>
-										</Stack>
-									</TableCell>
-									<TableCell align="left">member.mb_phone</TableCell>
-									<TableCell align="left">member.mb_phone</TableCell>
-									<TableCell align="right">
-										<Tooltip title={'delete'}>
-											<IconButton>
-												<DeleteRoundedIcon />
-											</IconButton>
-										</Tooltip>
-										<Tooltip title="edit">
-											<IconButton onClick={() => router.push(`/_admin/cs/notice_create?id=notice._id`)}>
-												<NotePencil size={24} weight="fill" />
-											</IconButton>
-										</Tooltip>
-									</TableCell>
-								</TableRow>
-							);
-						})}
-					</TableBody>
+		<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: fadeDuration }}>
+			<TableContainer className="admin-data-table">
+				<Table aria-label="Platform notices">
+					<TableHead>
+						<TableRow>
+							<TableCell>Notice</TableCell>
+							<TableCell>Category</TableCell>
+							<TableCell>Published</TableCell>
+							<TableCell>Status</TableCell>
+							<TableCell align="right">Actions</TableCell>
+						</TableRow>
+					</TableHead>
+					<TableBody>{desktopRows}</TableBody>
 				</Table>
 			</TableContainer>
-		</Stack>
+			<div className="admin-mobile-cards">{mobileCards}</div>
+		</motion.div>
 	);
 };

@@ -157,6 +157,18 @@ export const CANCEL_BOOKING = gql`
 	}
 `;
 
+export const UPDATE_AGENT_BOOKING_STATUS = gql`
+	mutation UpdateAgentBookingStatus($bookingId: String!, $bookingStatus: BookingStatus!) {
+		updateAgentBookingStatus(bookingId: $bookingId, bookingStatus: $bookingStatus) {
+			_id
+			bookingStatus
+			cancelReason
+			cancelledAt
+			updatedAt
+		}
+	}
+`;
+
 export const CREATE_PAYMENT = gql`
 	mutation CreatePayment($input: PaymentInput!) {
 		createPayment(input: $input) {
@@ -308,97 +320,6 @@ export const LIKE_TARGET_MEMBER = gql`
 			createdAt
 			updatedAt
 			accessToken
-		}
-	}
-`;
-
-/**************************
- *        PROPERTY        *
- *************************/
-
-export const CREATE_PROPERTY = gql`
-	mutation CreateProperty($input: PropertyInput!) {
-		createProperty(input: $input) {
-			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const UPDATE_PROPERTY = gql`
-	mutation UpdateProperty($input: PropertyUpdate!) {
-		updateProperty(input: $input) {
-			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const LIKE_TARGET_PROPERTY = gql`
-	mutation LikeTargetProperty($input: String!) {
-		likeTargetProperty(propertyId: $input) {
-			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
-			updatedAt
 		}
 	}
 `;

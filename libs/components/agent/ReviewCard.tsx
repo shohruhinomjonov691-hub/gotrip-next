@@ -1,5 +1,4 @@
 import React from 'react';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Stack, Box, Typography } from '@mui/material';
 import { Comment } from '../../types/comment/comment';
 import Moment from 'react-moment';
@@ -11,15 +10,11 @@ interface ReviewCardProps {
 }
 const ReviewCard = (props: ReviewCardProps) => {
 	const { fromMyPage, comment } = props;
-	const device = useDeviceDetect();
 	const imagePath: string = comment?.memberData?.memberImage
 		? `${REACT_APP_API_URL}/${comment?.memberData?.memberImage}`
 		: '/img/profile/defaultUser.svg';
 
-	if (device === 'mobile') {
-		return <div>REVIEW CARD</div>;
-	} else {
-		return (
+	return (
 			<Box component={'div'} className={'review-card'}>
 				<div className={'info'}>
 					<div className={'left'}>
@@ -53,7 +48,6 @@ const ReviewCard = (props: ReviewCardProps) => {
 				)}
 			</Box>
 		);
-	}
 };
 
 export default ReviewCard;

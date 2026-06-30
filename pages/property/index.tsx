@@ -11,7 +11,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
-const PropertyCompatibilityPage: NextPage = () => {
+const TourRedirectCompatibilityPage: NextPage = () => {
 	const router = useRouter();
 
 	useEffect(() => {
@@ -25,4 +25,4 @@ const PropertyCompatibilityPage: NextPage = () => {
 	);
 };
 
-export default withLayoutBasic(PropertyCompatibilityPage);
+export default withLayoutBasic(TourRedirectCompatibilityPage);
