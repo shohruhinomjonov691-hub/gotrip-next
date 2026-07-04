@@ -25,7 +25,7 @@ const MotionSpan = motion.span;
 const MotionP = motion.p;
 const MotionDiv = motion.div;
 
-/** SamandTour signature easing — mirrors --gt-ease in scss/gotrip-theme.scss */
+/** SamandTour signature easing — mirrors --gt-ease in scss/foundation/_tokens.scss */
 const gtEase = [0.22, 0.61, 0.36, 1] as const;
 
 const heroUp = (delay: number) => ({

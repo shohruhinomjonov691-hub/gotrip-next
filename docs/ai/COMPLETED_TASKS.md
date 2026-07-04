@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## 2026-07-04 - Redesign Phase 1: Global UI Foundation (`scss/foundation/`)
+
+Built the reusable design foundation mandated by `docs/ai/DESIGN_SYSTEM2.md` (§13 token contract), `UX_ARCHITECTURE.md` (Part 4/6), and `UI_INVENTORY.md` (Phase 0). **Foundation only — no business page was redesigned.** All GraphQL/Apollo/auth/routing/i18n logic untouched.
+
+### New layer: `scss/foundation/` (imported by `scss/app.scss`)
+
+| File | Contents |
+| --- | --- |
+| `_tokens.scss` | The full token contract, light + dark: **accent** = deep confident blue (`#1a56db`; dark-calibrated `#3766db` fills + `#93b4ff` interactive identity), **warm amber** reserved for earned things, slightly-cool neutral ramp (canvas/surface/surface-2/elevated + text/text-2/text-3 + border/border-strong), four semantic ramps (+ new `--gt-info`), closed 10-step spacing scale (4→128px) with section/gutter/card aliases, six named type sizes (display→micro) + leading + weights + label tracking, **three radii** (control 12 / surface 24 / pill), **two shadow recipes** (raised/floating; retired in dark — dark elevates by lightening surfaces), motion tokens (instant/fast/standard/spatial + ease-out/in/inout + stagger + named transition sets), z-index contract (content<sticky<nav<overlay<toast, aligned with MUI), containers (reading 720 / content 1120 / wide 1320), icon sizes, opacity roles, scrim/overlay/skeleton/focus tokens. |
+| `_base.scss` | Global element behavior: body typography, display-voice headings, `::selection`, designed focus ring (2px accent, both themes) on all interactives, quiet pill scrollbars (WebKit + Firefox), `scroll-padding-top` for the sticky nav, native checkbox/radio `accent-color`, tabular numerals on number inputs, dark-mode MUI floating-surface correction, and the global `prefers-reduced-motion` collapse. |
+| `_components.scss` | One system each for: **buttons** (`.gt-btn` primary/secondary/ghost/danger/icon + sm/lg + width-locked `is-loading` spinner + press acknowledgment), **fields** (`.gt-field` label→control→hint/error; `.gt-input/.gt-textarea/.gt-select` with hover/focus/error/disabled states), **checkbox/radio/switch** (custom-drawn, keyboard-first), **badges** (semantic success/warning/danger/info/accent + `--earned` amber + `--pulse` for PENDING), **chips** (selectable + removable), **avatars** (sm→xl), **card/panel** (one silhouette; flat by default, `--interactive` hover lift; dark mode lightens instead of shadowing), **media** (`.gt-media` cover-fit + quiet `--zoom` + text scrim), **skeleton** (shimmer → fade under reduced motion), **empty/error states** (T15/T16 renderers), **toast/modal/drawer/bottom-sheet/tooltip** (entry motion, scrim, z-contract), plus canonical homes for the legacy helpers (`.gt-page/.gt-shell/.gt-glass/.gt-heading/.gt-muted/.gt-pill/.gt-primary-button`). |
+| `_utilities.scss` | Containers (reading/content/wide, fluid), section rhythm + kicker→heading→subtext grammar (`.gt-section*`, `.gt-kicker`), 12-col grid + card grids (4→2→1) + compact grid + stacks, the six type-size utilities + `.gt-label/.gt-mono/.gt-tabular/.gt-prose/.gt-clamp-2`, a11y utilities (`.gt-visually-hidden`, `.gt-skip-link`), and the motion kit: `gt-fade/rise/scale-in/slide-up/slide-left/spin/shimmer/pulse` keyframes, `.gt-anim-*` entry utilities, `.gt-delay-1..6` stagger, `.gt-reveal` scroll reveal, `.gt-hover-lift`. |
+
+### Changed files
+
+| File | Change |
+| --- | --- |
+| `scss/app.scss` | New import order: variables → foundation/tokens → reset → foundation/base → components → utilities → legacy `gotrip-theme`. Focus ring, scrollbars, dark MUI paper rules moved into the foundation; kept legacy globals pages still rely on (`a` nowrap, `span/p` line-height 1.2, `button.outline/.contain`, `#pc-wrap .container`). `MuiPopover-paper` now carries the floating shadow (elevation system) instead of `none`. |
+| `scss/gotrip-theme.scss` | Reduced to legacy page-scoped styles only (tour-detail seam page + dark-mode page overrides). Its `:root`/dark token blocks, font import, base element styles, gt-* helpers, and reduced-motion block moved into the foundation. |
+| `pages/_document.tsx` | Fonts now load via `<link>` + preconnect (Fraunces / Manrope / Noto Sans KR / **new IBM Plex Mono** for the "travel document" voice). The previous CSS `@import` landed mid-bundle after `animate.css` module CSS — an invalid position browsers may ignore (pre-existing fragility, now fixed). |
+| `scss/MaterialTheme/index.ts` | Palette mirrors the tokens (mode-aware accent `#1a56db`/`#3766db`, amber secondary, cool neutrals for background/text/divider/action). Buttons: pill radius, weight 600, token-driven transitions, scale-press. Inputs: stronger `--gt-input-border` outline. Checkbox → `--gt-accent`. Added `MuiTooltip` override matching `.gt-tooltip`. |
+| `scss/MaterialTheme/typography.ts` | `fontFamily: var(--gt-font-body)`; button text semibold (DESIGN_SYSTEM2 §5.5). |
+| `libs/hooks/useScrollReveal.ts` (new) | IntersectionObserver companion for `.gt-reveal`; adds `is-inview` once; applies immediately under reduced motion or when IO is unavailable (content never hidden). |
+| `package.json` | Added `"typecheck": "tsc --noEmit"`. |
+
+### Token migration notes (same keep-name/re-point pattern as the 2026-06-30 pass)
+
+- **Accent shift coral → deep blue** per DESIGN_SYSTEM2 §4.1: `--gt-primary/--gt-blue/--gt-teal/--gt-coral` → `var(--gt-accent)`; `--gt-coral-2` → `accent-2`; `--gt-gold/--gt-sunset` → `var(--gt-warm)` (amber, earned-only). **No token deleted**; audited every `var(--gt-*)` usage in the repo against definitions — zero unresolved (also fixed two tokens that were used but never defined: `--gt-line`, `--gt-inverse-primary`).
+- Radius aliases collapsed into the three-value language: `sm/r` → control (12px); `md/lg/xl/glass` → surface (24px).
+- `--gt-shadow`/`--gt-shadow-soft` → floating/raised recipes; `--gt-ease` → `--gt-ease-out`.
+- Neutral ramp moved warm-paper → slightly-cool (`#f7f8fb` canvas, `#17223b` text); dark theme deep cool navy (`#0c1424` canvas, `#141f36` surface, `#1b2942` elevated).
+
+Validation (clean state, `tsconfig.tsbuildinfo` deleted first):
+- `yarn typecheck`: passed.
+- `yarn build`: passed; all routes compile (shared CSS bundle 85.8 kB).
+- Token audit script: every `var(--gt-*)` reference in scss/libs/pages resolves to a definition.
+
+Recommendations before Phase 2 (Navbar): wire `.gt-skip-link` into the layouts; migrate `Top.tsx` chrome from legacy coral-era classes to `.gt-btn`/`.gt-badge`; the legacy heavy font-weights (750–950) across pc/mobile main.scss should be normalized to the weight tokens as pages are touched.
+
 ## 2026-06-27 - Frontend Visual/UX Token Pass
 
 Completed a presentation-only GoTrip frontend visual pass while preserving the existing Next.js pages architecture and Apollo/GraphQL wiring.

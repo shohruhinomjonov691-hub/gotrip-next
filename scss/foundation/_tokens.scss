@@ -1,0 +1,336 @@
+/* ============================================================================
+ * GoTrip Foundation — Design Tokens
+ * Source of truth: docs/ai/DESIGN_SYSTEM2.md §13 (token contract)
+ *
+ * Rules encoded here:
+ *  - One accent (deep confident blue) for primary actions + interactive identity.
+ *  - One warm accent (amber) reserved for earned things (ranks, milestones).
+ *  - One slightly-cool neutral ramp; every step has a named role.
+ *  - Four semantic hues with exclusive meanings (success/warning/danger/info).
+ *  - Three radii (control / surface / pill). Three elevations (flat/raised/floating).
+ *  - Closed 10-step spacing scale on an 8pt base with a 4pt half-step.
+ *  - Motion: duration steps + easing vocabulary; z-index layering contract.
+ *  - Every token exists in both themes. Legacy --gt-* names are kept as aliases
+ *    (re-pointed, never deleted) so no existing reference breaks.
+ * ========================================================================== */
+
+:root {
+	/* ------------------------------------------------------------------ */
+	/* TYPOGRAPHY — families, six named sizes, weights, tracking (§5)      */
+	/* ------------------------------------------------------------------ */
+	--gt-font-display: 'Fraunces', Georgia, serif;
+	--gt-font-body: 'Manrope', 'Noto Sans KR', system-ui, sans-serif;
+	--gt-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--gt-font-heading: var(--gt-font-display);
+
+	--gt-text-display: clamp(2.5rem, 1.7rem + 2.6vw, 4rem); /* marketing only */
+	--gt-text-title: clamp(1.75rem, 1.45rem + 1vw, 2.375rem);
+	--gt-text-heading: 1.375rem; /* 22px */
+	--gt-text-body: 1rem; /* 16px */
+	--gt-text-caption: 0.8125rem; /* 13px */
+	--gt-text-micro: 0.6875rem; /* 11px */
+
+	--gt-leading-display: 1.08;
+	--gt-leading-title: 1.15;
+	--gt-leading-heading: 1.25;
+	--gt-leading-body: 1.6;
+	--gt-leading-caption: 1.45;
+
+	--gt-weight-regular: 500; /* Manrope reads light; 500 is the body baseline */
+	--gt-weight-semibold: 600;
+	--gt-weight-bold: 700;
+	--gt-weight-display: 600;
+
+	--gt-tracking-label: 0.08em; /* letterspaced labels / kickers only */
+
+	/* ------------------------------------------------------------------ */
+	/* ACCENT — deep confident blue (§4.1). Two jobs only:                 */
+	/* the primary action and interactive identity.                        */
+	/* ------------------------------------------------------------------ */
+	--gt-accent: #1a56db;
+	--gt-accent-strong: #1445af; /* hover / pressed */
+	--gt-accent-2: #4d7ef2; /* lighter companion (icons over ink, gradients) */
+	--gt-accent-soft: #e8eefc; /* selected fills, soft chips */
+	--gt-accent-contrast: #ffffff; /* text on accent fills */
+
+	/* WARM accent — earned things only (§4.2): rank badges, milestones. */
+	--gt-warm: #b45309; /* text-safe amber */
+	--gt-warm-fill: #f2b64d; /* badge fill (dark text on top) */
+	--gt-warm-soft: #fdf3df;
+
+	/* ------------------------------------------------------------------ */
+	/* NEUTRAL RAMP — slightly cool (§4.3) + surface hierarchy (§4.5)      */
+	/* ------------------------------------------------------------------ */
+	--gt-bg: #f7f8fb; /* canvas */
+	--gt-surface: #ffffff; /* raised */
+	--gt-surface-2: #eef1f6; /* sunken / secondary fills */
+	--gt-elevated: #ffffff; /* overlay surfaces (popover, dialog) */
+	--gt-panel: rgba(255, 255, 255, 0.86);
+
+	--gt-text: #17223b; /* text primary */
+	--gt-text-2: #576076; /* text secondary (AA on canvas + surface) */
+	--gt-text-3: #6d7689; /* text tertiary / placeholders (AA) */
+	--gt-inverse-text: #ffffff;
+	--gt-inverse-primary: #ffffff; /* active text on ink/glass chrome */
+
+	--gt-border: rgba(23, 34, 59, 0.1); /* quiet separator */
+	--gt-border-strong: rgba(23, 34, 59, 0.2); /* inputs invite action (§4.6) */
+
+	/* Ink family — deep navy chrome (heroes, footer, dark bands) */
+	--gt-ink: #0b1526;
+	--gt-ink-2: #101d33;
+	--gt-navy: #1e3357;
+	--gt-navy-2: #16294a;
+	--gt-navy-3: #24406b;
+	--gt-deep-ocean: #0b1526;
+
+	/* ------------------------------------------------------------------ */
+	/* SEMANTIC — exclusive meanings (§4.4); color+icon+text, never alone  */
+	/* ------------------------------------------------------------------ */
+	--gt-success: #15803d;
+	--gt-success-soft: #e5f6ec;
+	--gt-warning: #a16207;
+	--gt-warning-soft: #faf0d8;
+	--gt-error: #d92d20;
+	--gt-error-soft: #fde7e5;
+	--gt-info: #48627f; /* blue-neutral, never mistakable for the accent */
+	--gt-info-soft: #eaf0f7;
+
+	/* ------------------------------------------------------------------ */
+	/* INPUTS                                                              */
+	/* ------------------------------------------------------------------ */
+	--gt-input-bg: #ffffff;
+	--gt-input-text: var(--gt-text);
+	--gt-input-placeholder: var(--gt-text-3);
+	--gt-input-border: var(--gt-border-strong);
+
+	/* Glass — sanctioned only for nav over hero imagery (§8.5) */
+	--gt-glass-surface: rgba(255, 255, 255, 0.72);
+	--gt-glass: rgba(255, 255, 255, 0.72);
+	--gt-glass-border: rgba(255, 255, 255, 0.78);
+
+	/* ------------------------------------------------------------------ */
+	/* SPACING — closed scale, 8pt base + 4pt half-step (§6.1)             */
+	/* ------------------------------------------------------------------ */
+	--gt-space-1: 4px;
+	--gt-space-2: 8px;
+	--gt-space-3: 12px;
+	--gt-space-4: 16px;
+	--gt-space-5: 24px;
+	--gt-space-6: 32px;
+	--gt-space-7: 48px;
+	--gt-space-8: 64px;
+	--gt-space-9: 96px;
+	--gt-space-10: 128px;
+
+	/* Aliases with named jobs (§6.2–6.5) */
+	--gt-section-gap: var(--gt-space-8); /* product sections */
+	--gt-section-gap-marketing: var(--gt-space-9); /* marketing sections */
+	--gt-gutter: var(--gt-space-5); /* desktop grid gutter */
+	--gt-gutter-mobile: var(--gt-space-4);
+	--gt-card-pad: var(--gt-space-5); /* editorial/catalog card padding */
+	--gt-card-pad-compact: var(--gt-space-4); /* operational rows */
+
+	/* ------------------------------------------------------------------ */
+	/* CONTAINERS (§6.6)                                                   */
+	/* ------------------------------------------------------------------ */
+	--gt-container-reading: 720px;
+	--gt-container-content: 1120px;
+	--gt-container-wide: 1320px;
+	--gt-container: 1280px; /* legacy shell width — keep stable */
+
+	/* ------------------------------------------------------------------ */
+	/* RADIUS — exactly three (§8.1)                                       */
+	/* ------------------------------------------------------------------ */
+	--gt-radius-control: 12px; /* inputs, buttons, small cards */
+	--gt-radius-surface: 24px; /* cards, panels, dialogs */
+	--gt-radius-pill: 999px; /* chips, badges, pill CTAs */
+
+	/* Legacy radius aliases → the three-value language */
+	--gt-radius-sm: var(--gt-radius-control);
+	--gt-radius-md: var(--gt-radius-surface);
+	--gt-radius-lg: var(--gt-radius-surface);
+	--gt-radius-xl: var(--gt-radius-surface);
+	--gt-radius-glass: var(--gt-radius-surface);
+	--gt-r: var(--gt-radius-control);
+
+	/* ------------------------------------------------------------------ */
+	/* ELEVATION — flat / raised / floating (§8.2–8.3)                     */
+	/* ------------------------------------------------------------------ */
+	--gt-shadow-raised: 0 1px 2px rgba(16, 25, 47, 0.04), 0 10px 24px -14px rgba(16, 25, 47, 0.16);
+	--gt-shadow-floating: 0 4px 12px rgba(16, 25, 47, 0.07), 0 24px 48px -12px rgba(16, 25, 47, 0.22);
+
+	/* ------------------------------------------------------------------ */
+	/* MOTION — duration steps, easing vocabulary, stagger (§10)           */
+	/* ------------------------------------------------------------------ */
+	--gt-duration-instant: 90ms; /* micro feedback (press, tick) */
+	--gt-duration-fast: 160ms; /* standard hover/state transitions */
+	--gt-duration-standard: 240ms; /* content transitions, fades */
+	--gt-duration-spatial: 360ms; /* drawers, sheets, dialogs */
+	--gt-ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* things arriving */
+	--gt-ease-in: cubic-bezier(0.55, 0.06, 0.68, 0.19); /* things leaving */
+	--gt-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+	--gt-stagger: 45ms;
+
+	/* Named transition sets */
+	--gt-transition-color: color var(--gt-duration-fast) var(--gt-ease-out),
+		background-color var(--gt-duration-fast) var(--gt-ease-out),
+		border-color var(--gt-duration-fast) var(--gt-ease-out);
+	--gt-transition-transform: transform var(--gt-duration-fast) var(--gt-ease-out),
+		box-shadow var(--gt-duration-fast) var(--gt-ease-out);
+
+	/* ------------------------------------------------------------------ */
+	/* Z-INDEX — layering contract (§8.4): content < sticky < nav <        */
+	/* overlay < toast. Overlay/toast align with MUI's modal/snackbar.     */
+	/* ------------------------------------------------------------------ */
+	--gt-z-content: 1;
+	--gt-z-sticky: 100;
+	--gt-z-nav: 1100;
+	--gt-z-overlay: 1300;
+	--gt-z-toast: 1400;
+
+	/* ------------------------------------------------------------------ */
+	/* ICON SIZES (§9) + OPACITY ROLES                                     */
+	/* ------------------------------------------------------------------ */
+	--gt-icon-sm: 16px;
+	--gt-icon-md: 20px;
+	--gt-icon-lg: 24px;
+
+	--gt-opacity-disabled: 0.45;
+	--gt-opacity-hover: 0.08;
+
+	/* ------------------------------------------------------------------ */
+	/* OVERLAYS / SCRIMS / FOCUS / SKELETON                                */
+	/* ------------------------------------------------------------------ */
+	--gt-scrim: rgba(11, 21, 38, 0.52);
+	--gt-overlay-strong: rgba(11, 21, 38, 0.78);
+	--gt-overlay-soft: rgba(11, 21, 38, 0.14);
+
+	--gt-focus-ring: #1a56db;
+
+	--gt-skeleton-base: #e9edf4;
+	--gt-skeleton-shine: #f6f8fb;
+
+	/* ------------------------------------------------------------------ */
+	/* LEGACY ALIASES — kept so every existing --gt-* reference resolves.  */
+	/* All re-point into the system above; none carry new meaning.         */
+	/* ------------------------------------------------------------------ */
+	--gt-primary: var(--gt-accent);
+	--gt-blue: var(--gt-accent);
+	--gt-teal: var(--gt-accent);
+	--gt-coral: var(--gt-accent);
+	--gt-coral-2: var(--gt-accent-2);
+	--gt-blue-soft: var(--gt-accent-soft);
+	--gt-gold: var(--gt-warm);
+	--gt-sunset: var(--gt-warm);
+	--gt-gold-soft: var(--gt-warm-soft);
+	--gt-coral-glow: 0 14px 30px -12px rgba(26, 86, 219, 0.45);
+	--gt-ring-coral: rgba(26, 86, 219, 0.16);
+
+	--gt-page: var(--gt-bg);
+	--gt-bg-soft: var(--gt-surface-2);
+	--gt-paper: var(--gt-bg);
+	--gt-paper-2: var(--gt-surface-2);
+	--gt-card: var(--gt-surface);
+
+	--gt-on-background: var(--gt-text);
+	--gt-heading: var(--gt-text);
+	--gt-body: var(--gt-text);
+	--gt-muted: var(--gt-text-2);
+	--gt-slate-text: var(--gt-text-2);
+	--gt-muted-light: rgba(255, 255, 255, 0.68);
+
+	--gt-divider: var(--gt-border);
+	--gt-line: var(--gt-border);
+	--gt-line-dark: var(--gt-border);
+	--gt-line-light: rgba(255, 255, 255, 0.16);
+
+	--gt-shadow: var(--gt-shadow-floating);
+	--gt-shadow-soft: var(--gt-shadow-raised);
+	--gt-ease: var(--gt-ease-out);
+
+	color-scheme: light;
+}
+
+/* Korean locale: display font falls back to a family with Hangul coverage. */
+html[lang='ko'] {
+	--gt-font-display: 'Noto Sans KR', 'Fraunces', serif;
+}
+
+/* ============================================================================
+ * DARK THEME — first-class, not an inversion (§4.7).
+ * Deep, slightly cool surfaces; elevation via lighter surfaces, not shadows;
+ * dark-calibrated accent + semantics; photography untouched.
+ * ========================================================================== */
+[data-theme='dark'] {
+	/* Accent — dark-calibrated: bright enough for contrast, no glow */
+	--gt-accent: #3766db; /* fills (white text ≥ AA large / bold) */
+	--gt-accent-strong: #4d7ef2;
+	--gt-accent-2: #93b4ff; /* interactive identity: links, active states */
+	--gt-accent-soft: rgba(77, 126, 242, 0.18);
+	--gt-accent-contrast: #ffffff;
+
+	--gt-warm: #f0c268;
+	--gt-warm-fill: #f0c268;
+	--gt-warm-soft: rgba(240, 194, 104, 0.16);
+
+	/* Neutral ramp — deep, slightly cool; never pure black */
+	--gt-bg: #0c1424;
+	--gt-surface: #141f36;
+	--gt-surface-2: #101a2e;
+	--gt-elevated: #1b2942; /* elevation = lighter surface, not shadow */
+	--gt-panel: rgba(20, 31, 54, 0.85);
+
+	--gt-text: #e8edf8; /* off-white, never pure white */
+	--gt-text-2: rgba(232, 237, 248, 0.66);
+	--gt-text-3: rgba(232, 237, 248, 0.5);
+
+	--gt-border: rgba(255, 255, 255, 0.12);
+	--gt-border-strong: rgba(255, 255, 255, 0.22);
+
+	/* Semantics — brighter, slightly desaturated */
+	--gt-success: #7ee2a8;
+	--gt-success-soft: rgba(126, 226, 168, 0.14);
+	--gt-warning: #f4d56d;
+	--gt-warning-soft: rgba(244, 213, 109, 0.14);
+	--gt-error: #ffb4ab;
+	--gt-error-soft: rgba(255, 180, 171, 0.14);
+	--gt-info: #9db8d8;
+	--gt-info-soft: rgba(157, 184, 216, 0.14);
+
+	--gt-input-bg: rgba(255, 255, 255, 0.06);
+	--gt-input-text: var(--gt-text);
+	--gt-input-placeholder: var(--gt-text-3);
+	--gt-input-border: var(--gt-border-strong);
+
+	--gt-glass-surface: rgba(13, 22, 40, 0.72);
+	--gt-glass: rgba(13, 22, 40, 0.72);
+	--gt-glass-border: rgba(255, 255, 255, 0.14);
+
+	/* Shadows retire in dark mode; keep a faint depth cue only (§8.3) */
+	--gt-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.28);
+	--gt-shadow-floating: 0 18px 44px -16px rgba(0, 0, 0, 0.5);
+
+	--gt-scrim: rgba(2, 8, 20, 0.64);
+	--gt-overlay-strong: rgba(2, 8, 20, 0.84);
+	--gt-overlay-soft: rgba(255, 255, 255, 0.1);
+
+	--gt-focus-ring: #93b4ff;
+
+	--gt-skeleton-base: #16233c;
+	--gt-skeleton-shine: #1f3054;
+
+	/* Legacy aliases that need dark-specific values */
+	--gt-coral-glow: 0 14px 30px -12px rgba(77, 126, 242, 0.4);
+	--gt-ring-coral: rgba(147, 180, 255, 0.2);
+	--gt-page: var(--gt-bg);
+	--gt-bg-soft: var(--gt-surface-2);
+	--gt-paper: var(--gt-bg);
+	--gt-paper-2: var(--gt-surface-2);
+	--gt-card: var(--gt-surface);
+	--gt-heading: #f4f7ff;
+	--gt-muted-light: rgba(232, 237, 248, 0.66);
+	--gt-line-dark: var(--gt-border);
+
+	color-scheme: dark;
+}

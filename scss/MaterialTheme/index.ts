@@ -99,13 +99,15 @@ const components = (mode: PaletteMode) => ({
 				minWidth: 'auto',
 				lineHeight: '1.2',
 				boxShadow: 'none',
-				borderRadius: 'var(--gt-radius-sm)',
-				transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease',
+				fontWeight: 600,
+				borderRadius: 'var(--gt-radius-pill)',
+				transition:
+					'background-color var(--gt-duration-fast) var(--gt-ease-out), border-color var(--gt-duration-fast) var(--gt-ease-out), color var(--gt-duration-fast) var(--gt-ease-out), box-shadow var(--gt-duration-fast) var(--gt-ease-out), transform var(--gt-duration-instant) var(--gt-ease-out)',
 				ButtonText: {
 					color: 'var(--gt-text)',
 				},
 				'&:active': {
-					transform: 'translateY(1px)',
+					transform: 'scale(0.98)',
 				},
 			},
 		},
@@ -183,7 +185,7 @@ const components = (mode: PaletteMode) => ({
 			notchedOutline: {
 				padding: '8px',
 				top: '-9px',
-				border: '1px solid var(--gt-border)',
+				border: '1px solid var(--gt-input-border)',
 			},
 		},
 	},
@@ -244,8 +246,20 @@ const components = (mode: PaletteMode) => ({
 		styleOverrides: {
 			root: {
 				'&.Mui-checked': {
-					color: 'var(--gt-blue)',
+					color: 'var(--gt-accent)',
 				},
+			},
+		},
+	},
+	MuiTooltip: {
+		styleOverrides: {
+			tooltip: {
+				padding: '6px 10px',
+				borderRadius: '8px',
+				background: 'var(--gt-ink)',
+				fontSize: 'var(--gt-text-micro)',
+				fontWeight: 600,
+				lineHeight: 1.35,
 			},
 		},
 	},
@@ -298,31 +312,33 @@ const components = (mode: PaletteMode) => ({
 	},
 }) as ThemeOptions['components'];
 
+/* Palette mirrors scss/foundation/_tokens.scss — one accent (deep blue),
+ * warm amber reserved for earned things, slightly-cool neutral ramp. */
 export const createMaterialTheme = (mode: PaletteMode = 'light'): ThemeOptions => ({
 	palette: {
 		mode,
 		background: {
-			default: mode === 'dark' ? '#00132e' : '#f4f7ff',
-			paper: mode === 'dark' ? '#021f43' : '#ffffff',
+			default: mode === 'dark' ? '#0c1424' : '#f7f8fb',
+			paper: mode === 'dark' ? '#141f36' : '#ffffff',
 		},
 		primary: {
 			contrastText: '#ffffff',
-			main: '#0049e3',
+			main: mode === 'dark' ? '#3766db' : '#1a56db',
 		},
 		secondary: {
-			main: '#d4af37',
+			main: mode === 'dark' ? '#f0c268' : '#b45309',
 		},
-		divider: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 41, 77, 0.1)',
+		divider: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(23, 34, 59, 0.1)',
 		text: {
-			primary: mode === 'dark' ? '#d6e3ff' : '#001b3d',
-			secondary: mode === 'dark' ? '#b7c3d6' : '#455873',
+			primary: mode === 'dark' ? '#e8edf8' : '#17223b',
+			secondary: mode === 'dark' ? 'rgba(232, 237, 248, 0.66)' : '#576076',
 		},
 		action: {
-			active: mode === 'dark' ? '#d6e3ff' : '#001b3d',
-			hover: mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(50, 100, 255, 0.08)',
-			selected: mode === 'dark' ? 'rgba(50, 100, 255, 0.18)' : 'rgba(50, 100, 255, 0.08)',
-			disabled: mode === 'dark' ? 'rgba(214, 227, 255, 0.36)' : 'rgba(0, 0, 0, 0.26)',
-			disabledBackground: mode === 'dark' ? 'rgba(214, 227, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+			active: mode === 'dark' ? '#e8edf8' : '#17223b',
+			hover: mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(26, 86, 219, 0.08)',
+			selected: mode === 'dark' ? 'rgba(77, 126, 242, 0.18)' : 'rgba(26, 86, 219, 0.08)',
+			disabled: mode === 'dark' ? 'rgba(232, 237, 248, 0.36)' : 'rgba(0, 0, 0, 0.26)',
+			disabledBackground: mode === 'dark' ? 'rgba(232, 237, 248, 0.12)' : 'rgba(0, 0, 0, 0.12)',
 		},
 	},
 	components: components(mode),

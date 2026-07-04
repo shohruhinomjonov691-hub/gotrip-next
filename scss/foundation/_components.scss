@@ -1,0 +1,892 @@
+/* ============================================================================
+ * GoTrip Foundation — Reusable Components
+ * One button system, one input system, one badge system, one card silhouette.
+ * Contracts: UX_ARCHITECTURE.md Part 4 + Part 6 (interaction matrix).
+ * All values come from tokens — no raw value a token could express.
+ * ========================================================================== */
+
+/* ------------------------------------------------------------------------ */
+/* BUTTONS (§4.2) — Primary · Secondary · Ghost · Danger · Icon              */
+/* ------------------------------------------------------------------------ */
+.gt-btn {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--gt-space-2);
+	min-height: 44px;
+	padding: 0 var(--gt-space-5);
+	border: 1px solid transparent;
+	border-radius: var(--gt-radius-pill);
+	background: transparent;
+	color: var(--gt-text);
+	font-family: var(--gt-font-body);
+	font-size: var(--gt-text-body);
+	font-weight: var(--gt-weight-semibold);
+	line-height: 1.2;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+	transition: var(--gt-transition-color), var(--gt-transition-transform);
+
+	svg {
+		width: var(--gt-icon-md);
+		height: var(--gt-icon-md);
+		flex: 0 0 auto;
+	}
+
+	/* Pressed acknowledgment before any network truth (Part 6) */
+	&:active:not(:disabled) {
+		transform: scale(0.98);
+	}
+
+	&:disabled,
+	&.is-disabled {
+		opacity: var(--gt-opacity-disabled);
+		pointer-events: none;
+	}
+
+	/* Loading: spinner replaces label, width stays locked (§4.2) */
+	&.is-loading {
+		color: transparent !important;
+		pointer-events: none;
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			margin: auto;
+			width: 18px;
+			height: 18px;
+			border: 2px solid currentColor;
+			border-color: var(--gt-text-3) var(--gt-text-3) var(--gt-text-3) transparent;
+			border-radius: 50%;
+			animation: gt-spin 0.7s linear infinite;
+		}
+	}
+}
+
+.gt-btn--primary {
+	background: var(--gt-accent);
+	color: var(--gt-accent-contrast);
+
+	&:hover:not(:disabled) {
+		background: var(--gt-accent-strong);
+		box-shadow: var(--gt-shadow-raised);
+	}
+
+	&.is-loading::after {
+		border-color: var(--gt-accent-contrast) var(--gt-accent-contrast) var(--gt-accent-contrast) transparent;
+	}
+}
+
+.gt-btn--secondary {
+	border-color: var(--gt-border-strong);
+	background: var(--gt-surface);
+	color: var(--gt-text);
+
+	&:hover:not(:disabled) {
+		border-color: var(--gt-text-3);
+		background: var(--gt-surface-2);
+	}
+}
+
+.gt-btn--ghost {
+	color: var(--gt-text-2);
+
+	&:hover:not(:disabled) {
+		background: var(--gt-overlay-soft);
+		color: var(--gt-text);
+	}
+}
+
+/* Destructive — only ever the primary inside its own confirm context */
+.gt-btn--danger {
+	background: var(--gt-error);
+	color: #ffffff;
+
+	&:hover:not(:disabled) {
+		filter: brightness(0.92);
+	}
+}
+
+[data-theme='dark'] .gt-btn--danger {
+	color: #35100c;
+}
+
+.gt-btn--sm {
+	min-height: 36px;
+	padding: 0 var(--gt-space-4);
+	font-size: var(--gt-text-caption);
+}
+
+.gt-btn--lg {
+	min-height: 52px;
+	padding: 0 var(--gt-space-6);
+}
+
+/* Icon-only — requires aria-label (§9) */
+.gt-btn--icon {
+	width: 44px;
+	min-width: 44px;
+	padding: 0;
+
+	&.gt-btn--sm {
+		width: 36px;
+		min-width: 36px;
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* FIELDS (§4.10) — label → control → hint/error                             */
+/* ------------------------------------------------------------------------ */
+.gt-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gt-space-2);
+	width: 100%;
+}
+
+.gt-field__label {
+	color: var(--gt-text);
+	font-size: var(--gt-text-caption);
+	font-weight: var(--gt-weight-semibold);
+
+	.gt-field__required {
+		color: var(--gt-error);
+	}
+}
+
+.gt-field__hint {
+	color: var(--gt-text-2);
+	font-size: var(--gt-text-caption);
+	line-height: var(--gt-leading-caption);
+}
+
+.gt-field__error {
+	display: flex;
+	align-items: center;
+	gap: var(--gt-space-1);
+	color: var(--gt-error);
+	font-size: var(--gt-text-caption);
+	font-weight: var(--gt-weight-semibold);
+	line-height: var(--gt-leading-caption);
+}
+
+.gt-input,
+.gt-textarea,
+.gt-select {
+	width: 100%;
+	min-height: 48px;
+	padding: 0 var(--gt-space-4);
+	border: 1px solid var(--gt-input-border);
+	border-radius: var(--gt-radius-control);
+	background: var(--gt-input-bg);
+	color: var(--gt-input-text);
+	font-family: var(--gt-font-body);
+	font-size: var(--gt-text-body);
+	transition: var(--gt-transition-color);
+
+	&:hover:not(:disabled) {
+		border-color: var(--gt-text-3);
+	}
+
+	&:focus,
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: -1px;
+		border-color: var(--gt-accent);
+	}
+
+	&:disabled {
+		opacity: var(--gt-opacity-disabled);
+		cursor: not-allowed;
+	}
+
+	&.is-error,
+	&[aria-invalid='true'] {
+		border-color: var(--gt-error);
+
+		&:focus,
+		&:focus-visible {
+			outline-color: var(--gt-error);
+		}
+	}
+}
+
+.gt-textarea {
+	min-height: 120px;
+	padding: var(--gt-space-3) var(--gt-space-4);
+	line-height: var(--gt-leading-body);
+	resize: vertical;
+}
+
+.gt-select {
+	appearance: none;
+	padding-right: var(--gt-space-7);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236d7689' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right var(--gt-space-4) center;
+	cursor: pointer;
+}
+
+/* ------------------------------------------------------------------------ */
+/* CHECKBOX & RADIO — custom-drawn, keyboard-first                           */
+/* ------------------------------------------------------------------------ */
+.gt-checkbox,
+.gt-radio {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: var(--gt-space-3);
+	cursor: pointer;
+	color: var(--gt-text);
+	font-size: var(--gt-text-body);
+	line-height: 1.4;
+
+	input {
+		appearance: none;
+		flex: 0 0 auto;
+		width: 20px;
+		height: 20px;
+		margin: 1px 0 0;
+		border: 1.5px solid var(--gt-input-border);
+		background: var(--gt-input-bg);
+		cursor: pointer;
+		transition: var(--gt-transition-color);
+		background-position: center;
+		background-repeat: no-repeat;
+
+		&:hover:not(:disabled) {
+			border-color: var(--gt-accent);
+		}
+
+		&:disabled {
+			opacity: var(--gt-opacity-disabled);
+			cursor: not-allowed;
+		}
+	}
+
+	input:disabled ~ * {
+		opacity: var(--gt-opacity-disabled);
+	}
+}
+
+.gt-checkbox input {
+	border-radius: 6px;
+
+	&:checked {
+		border-color: var(--gt-accent);
+		background-color: var(--gt-accent);
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+	}
+}
+
+.gt-radio input {
+	border-radius: 50%;
+
+	&:checked {
+		border-color: var(--gt-accent);
+		background-color: var(--gt-accent);
+		box-shadow: inset 0 0 0 4px var(--gt-surface);
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* SWITCH — state snaps (§10.5)                                              */
+/* ------------------------------------------------------------------------ */
+.gt-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--gt-space-3);
+	cursor: pointer;
+	color: var(--gt-text);
+
+	input {
+		appearance: none;
+		position: relative;
+		flex: 0 0 auto;
+		width: 44px;
+		height: 26px;
+		border: 0;
+		border-radius: var(--gt-radius-pill);
+		background: var(--gt-border-strong);
+		cursor: pointer;
+		transition: background-color var(--gt-duration-fast) var(--gt-ease-out);
+
+		&::after {
+			content: '';
+			position: absolute;
+			top: 3px;
+			left: 3px;
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: #ffffff;
+			box-shadow: 0 1px 3px rgba(11, 21, 38, 0.3);
+			transition: transform var(--gt-duration-fast) var(--gt-ease-out);
+		}
+
+		&:checked {
+			background: var(--gt-accent);
+
+			&::after {
+				transform: translateX(18px);
+			}
+		}
+
+		&:disabled {
+			opacity: var(--gt-opacity-disabled);
+			cursor: not-allowed;
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* BADGE — status vocabulary: color + icon + text, never color alone (§4.4)  */
+/* ------------------------------------------------------------------------ */
+.gt-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	border-radius: var(--gt-radius-pill);
+	background: var(--gt-surface-2);
+	color: var(--gt-text-2);
+	font-size: var(--gt-text-caption);
+	font-weight: var(--gt-weight-semibold);
+	line-height: 1.3;
+	white-space: nowrap;
+
+	svg {
+		width: var(--gt-icon-sm);
+		height: var(--gt-icon-sm);
+	}
+}
+
+.gt-badge--success {
+	background: var(--gt-success-soft);
+	color: var(--gt-success);
+}
+
+.gt-badge--warning {
+	background: var(--gt-warning-soft);
+	color: var(--gt-warning);
+}
+
+.gt-badge--danger {
+	background: var(--gt-error-soft);
+	color: var(--gt-error);
+}
+
+.gt-badge--info {
+	background: var(--gt-info-soft);
+	color: var(--gt-info);
+}
+
+.gt-badge--accent {
+	background: var(--gt-accent-soft);
+	color: var(--gt-accent);
+}
+
+/* Earned things only: rank badges, milestones (§4.2) */
+.gt-badge--earned {
+	background: var(--gt-warm-soft);
+	color: var(--gt-warm);
+}
+
+[data-theme='dark'] .gt-badge--accent {
+	color: var(--gt-accent-2);
+}
+
+/* Subtle pulse for PENDING states (Part 6) */
+.gt-badge--pulse {
+	animation: gt-pulse 2.4s var(--gt-ease-inout) infinite;
+}
+
+/* ------------------------------------------------------------------------ */
+/* CHIP — filters, categories; removable; selectable                         */
+/* ------------------------------------------------------------------------ */
+.gt-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--gt-space-2);
+	min-height: 34px;
+	padding: 0 var(--gt-space-3);
+	border: 1px solid var(--gt-border);
+	border-radius: var(--gt-radius-pill);
+	background: var(--gt-surface);
+	color: var(--gt-text-2);
+	font-size: var(--gt-text-caption);
+	font-weight: var(--gt-weight-semibold);
+	line-height: 1.2;
+	cursor: pointer;
+	transition: var(--gt-transition-color);
+
+	&:hover {
+		border-color: var(--gt-text-3);
+		color: var(--gt-text);
+	}
+
+	&.is-selected,
+	&[aria-pressed='true'],
+	&[aria-selected='true'] {
+		border-color: var(--gt-accent);
+		background: var(--gt-accent-soft);
+		color: var(--gt-accent);
+	}
+
+	.gt-chip__remove {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		margin-right: -4px;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+
+		&:hover {
+			background: var(--gt-overlay-soft);
+		}
+
+		svg {
+			width: 12px;
+			height: 12px;
+		}
+	}
+}
+
+[data-theme='dark'] .gt-chip.is-selected,
+[data-theme='dark'] .gt-chip[aria-pressed='true'],
+[data-theme='dark'] .gt-chip[aria-selected='true'] {
+	color: var(--gt-accent-2);
+}
+
+/* ------------------------------------------------------------------------ */
+/* AVATAR — people are the content (§2)                                      */
+/* ------------------------------------------------------------------------ */
+.gt-avatar {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--gt-surface-2);
+	color: var(--gt-text-2);
+	font-weight: var(--gt-weight-bold);
+	overflow: hidden;
+
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+}
+
+.gt-avatar--sm {
+	width: 28px;
+	height: 28px;
+	font-size: var(--gt-text-micro);
+}
+
+.gt-avatar--lg {
+	width: 64px;
+	height: 64px;
+	font-size: var(--gt-text-heading);
+}
+
+.gt-avatar--xl {
+	width: 96px;
+	height: 96px;
+	font-size: var(--gt-text-title);
+}
+
+/* ------------------------------------------------------------------------ */
+/* CARD & PANEL — one silhouette (§3.7); flat by default, raised on hover    */
+/* ------------------------------------------------------------------------ */
+.gt-card {
+	background: var(--gt-surface);
+	border: 1px solid var(--gt-border);
+	border-radius: var(--gt-radius-surface);
+	box-shadow: var(--gt-shadow-raised);
+}
+
+.gt-card--flat {
+	box-shadow: none;
+}
+
+/* Interactive cards lift a whisper on hover (§8.2); dark mode lightens */
+.gt-card--interactive {
+	cursor: pointer;
+	transition: var(--gt-transition-transform), var(--gt-transition-color);
+
+	&:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--gt-shadow-floating);
+	}
+
+	&:active {
+		transform: translateY(-1px);
+	}
+}
+
+[data-theme='dark'] .gt-card--interactive:hover {
+	background: var(--gt-elevated);
+}
+
+.gt-panel {
+	padding: var(--gt-card-pad);
+	background: var(--gt-surface);
+	border: 1px solid var(--gt-border);
+	border-radius: var(--gt-radius-surface);
+}
+
+.gt-divider {
+	border: 0;
+	border-top: 1px solid var(--gt-divider);
+	margin: var(--gt-space-5) 0;
+}
+
+/* Glass — the single sanctioned location is nav over hero imagery (§8.5) */
+.gt-glass {
+	background: var(--gt-glass);
+	border: 1px solid var(--gt-glass-border);
+	box-shadow: var(--gt-shadow-raised);
+	backdrop-filter: blur(20px) saturate(140%);
+	-webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* ------------------------------------------------------------------------ */
+/* MEDIA — image discipline (§1.6): cover-fit, quiet zoom on card hover      */
+/* ------------------------------------------------------------------------ */
+.gt-media {
+	position: relative;
+	overflow: hidden;
+	background: var(--gt-surface-2);
+
+	img {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+	}
+}
+
+.gt-media--zoom img {
+	transition: transform var(--gt-duration-spatial) var(--gt-ease-out);
+}
+
+.gt-media--zoom:hover img,
+.gt-card--interactive:hover .gt-media--zoom img {
+	transform: scale(1.05);
+}
+
+/* Imperceptible scrim so text stays legible over photos (§14.1) */
+.gt-media__scrim {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(11, 21, 38, 0.02), rgba(11, 21, 38, 0.38));
+	pointer-events: none;
+}
+
+/* ------------------------------------------------------------------------ */
+/* SKELETON — shaped waits (§10.4); shimmer → fade under reduced motion      */
+/* ------------------------------------------------------------------------ */
+.gt-skeleton {
+	position: relative;
+	overflow: hidden;
+	border-radius: var(--gt-radius-control);
+	background: var(--gt-skeleton-base);
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, transparent, var(--gt-skeleton-shine), transparent);
+		background-size: 200% 100%;
+		animation: gt-shimmer 1.4s var(--gt-ease-inout) infinite;
+	}
+}
+
+.gt-skeleton--text {
+	height: 14px;
+	border-radius: 7px;
+}
+
+.gt-skeleton--title {
+	height: 24px;
+	border-radius: 8px;
+	max-width: 60%;
+}
+
+.gt-skeleton--circle {
+	border-radius: 50%;
+}
+
+.gt-skeleton--card {
+	border-radius: var(--gt-radius-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.gt-skeleton::after {
+		animation: gt-skeleton-fade 1.6s ease-in-out infinite;
+		background: var(--gt-skeleton-shine);
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* EMPTY & ERROR STATES (T15/T16) — teach, point, reassure; never dead-end   */
+/* ------------------------------------------------------------------------ */
+.gt-empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--gt-space-3);
+	padding: var(--gt-space-7) var(--gt-space-5);
+	border: 1px dashed var(--gt-border-strong);
+	border-radius: var(--gt-radius-surface);
+	background: var(--gt-surface-2);
+	text-align: center;
+	color: var(--gt-text-2);
+
+	svg {
+		width: 40px;
+		height: 40px;
+		color: var(--gt-text-3);
+	}
+
+	.gt-empty-state__title {
+		color: var(--gt-text);
+		font-family: var(--gt-font-heading);
+		font-size: var(--gt-text-heading);
+		font-weight: var(--gt-weight-display);
+	}
+
+	.gt-empty-state__copy {
+		max-width: 44ch;
+		font-size: var(--gt-text-caption);
+		line-height: var(--gt-leading-caption);
+	}
+
+	.gt-btn {
+		margin-top: var(--gt-space-2);
+	}
+}
+
+.gt-error-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--gt-space-3);
+	padding: var(--gt-space-6) var(--gt-space-5);
+	border: 1px solid var(--gt-error-soft);
+	border-radius: var(--gt-radius-surface);
+	background: var(--gt-error-soft);
+	text-align: center;
+	color: var(--gt-error);
+
+	.gt-error-state__title {
+		font-weight: var(--gt-weight-bold);
+	}
+
+	.gt-error-state__copy {
+		color: var(--gt-text-2);
+		font-size: var(--gt-text-caption);
+		line-height: var(--gt-leading-caption);
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* TOAST — outcome feedback (§4.32); one corner, never covers the primary    */
+/* ------------------------------------------------------------------------ */
+.gt-toast {
+	display: flex;
+	align-items: center;
+	gap: var(--gt-space-3);
+	min-width: 260px;
+	max-width: 420px;
+	padding: var(--gt-space-3) var(--gt-space-4);
+	border: 1px solid var(--gt-border);
+	border-left: 3px solid var(--gt-text-3);
+	border-radius: var(--gt-radius-control);
+	background: var(--gt-elevated);
+	color: var(--gt-text);
+	box-shadow: var(--gt-shadow-floating);
+	font-size: var(--gt-text-caption);
+	font-weight: var(--gt-weight-semibold);
+	z-index: var(--gt-z-toast);
+	animation: gt-rise var(--gt-duration-fast) var(--gt-ease-out) both;
+
+	&.gt-toast--success {
+		border-left-color: var(--gt-success);
+	}
+
+	&.gt-toast--error {
+		border-left-color: var(--gt-error);
+	}
+
+	&.gt-toast--info {
+		border-left-color: var(--gt-info);
+	}
+
+	.gt-toast__action {
+		margin-left: auto;
+		color: var(--gt-accent);
+		font-weight: var(--gt-weight-bold);
+		background: none;
+		border: 0;
+		cursor: pointer;
+	}
+}
+
+[data-theme='dark'] .gt-toast__action {
+	color: var(--gt-accent-2);
+}
+
+/* ------------------------------------------------------------------------ */
+/* MODAL & DRAWER (§4.29–4.31) — floating level; arrive decelerating         */
+/* ------------------------------------------------------------------------ */
+.gt-scrim {
+	position: fixed;
+	inset: 0;
+	background: var(--gt-scrim);
+	z-index: var(--gt-z-overlay);
+	animation: gt-fade var(--gt-duration-standard) var(--gt-ease-out) both;
+}
+
+.gt-modal {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: var(--gt-space-5);
+	z-index: var(--gt-z-overlay);
+}
+
+.gt-modal__panel {
+	width: min(560px, 100%);
+	max-height: min(84vh, 720px);
+	overflow: auto;
+	padding: var(--gt-space-6);
+	background: var(--gt-elevated);
+	border: 1px solid var(--gt-border);
+	border-radius: var(--gt-radius-surface);
+	box-shadow: var(--gt-shadow-floating);
+	animation: gt-scale-in var(--gt-duration-spatial) var(--gt-ease-out) both;
+}
+
+.gt-drawer {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: min(420px, 92vw);
+	overflow: auto;
+	padding: var(--gt-space-6);
+	background: var(--gt-elevated);
+	border-left: 1px solid var(--gt-border);
+	box-shadow: var(--gt-shadow-floating);
+	z-index: var(--gt-z-overlay);
+	animation: gt-slide-left var(--gt-duration-spatial) var(--gt-ease-out) both;
+}
+
+/* Bottom sheet — the mobile counterpart */
+.gt-drawer--bottom {
+	top: auto;
+	left: 0;
+	right: 0;
+	width: 100%;
+	max-height: 86vh;
+	border-left: 0;
+	border-top: 1px solid var(--gt-border);
+	border-radius: var(--gt-radius-surface) var(--gt-radius-surface) 0 0;
+	animation: gt-slide-up var(--gt-duration-spatial) var(--gt-ease-out) both;
+
+	&::before {
+		content: '';
+		display: block;
+		width: 40px;
+		height: 4px;
+		margin: 0 auto var(--gt-space-4);
+		border-radius: var(--gt-radius-pill);
+		background: var(--gt-border-strong);
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* TOOLTIP (§4.33) — supplementary only, never sole carrier of critical info */
+/* ------------------------------------------------------------------------ */
+.gt-tooltip {
+	padding: 6px 10px;
+	border-radius: 8px;
+	background: var(--gt-ink);
+	color: #ffffff;
+	font-size: var(--gt-text-micro);
+	font-weight: var(--gt-weight-semibold);
+	line-height: 1.35;
+	max-width: 260px;
+	box-shadow: var(--gt-shadow-raised);
+	z-index: var(--gt-z-toast);
+	animation: gt-fade var(--gt-duration-fast) var(--gt-ease-out) both;
+}
+
+[data-theme='dark'] .gt-tooltip {
+	background: var(--gt-elevated);
+	border: 1px solid var(--gt-border);
+	color: var(--gt-text);
+}
+
+/* ------------------------------------------------------------------------ */
+/* LEGACY HELPERS — canonical homes for classes already used across pages    */
+/* ------------------------------------------------------------------------ */
+.gt-page {
+	background: var(--gt-bg);
+	color: var(--gt-text);
+}
+
+.gt-shell {
+	width: min(var(--gt-container), calc(100% - 40px));
+	margin: 0 auto;
+}
+
+.gt-heading {
+	font-family: var(--gt-font-heading);
+	letter-spacing: 0;
+	color: var(--gt-heading);
+}
+
+.gt-muted {
+	color: var(--gt-text-2);
+}
+
+.gt-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--gt-space-2);
+	border-radius: var(--gt-radius-pill);
+	border: 1px solid var(--gt-border);
+	background: color-mix(in srgb, var(--gt-surface) 78%, transparent);
+	color: var(--gt-text-2);
+}
+
+.gt-primary-button.MuiButton-root {
+	min-height: 46px;
+	border-radius: var(--gt-radius-pill);
+	background: var(--gt-accent);
+	color: var(--gt-accent-contrast);
+	font-weight: var(--gt-weight-bold);
+	box-shadow: var(--gt-shadow-raised);
+	text-transform: none;
+
+	&:hover {
+		background: var(--gt-accent-strong);
+		box-shadow: var(--gt-shadow-floating);
+	}
+}

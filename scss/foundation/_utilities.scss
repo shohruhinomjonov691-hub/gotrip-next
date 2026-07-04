@@ -1,0 +1,391 @@
+/* ============================================================================
+ * GoTrip Foundation — Utilities
+ * Containers, section rhythm, grids, typography utilities, motion utilities.
+ * ========================================================================== */
+
+/* ------------------------------------------------------------------------ */
+/* CONTAINERS (§6.6) — reading / content / wide; fluid between breakpoints   */
+/* ------------------------------------------------------------------------ */
+.gt-container {
+	width: min(var(--gt-container-content), calc(100% - 2 * var(--gt-gutter)));
+	margin-inline: auto;
+}
+
+.gt-container--reading {
+	width: min(var(--gt-container-reading), calc(100% - 2 * var(--gt-gutter)));
+}
+
+.gt-container--wide {
+	width: min(var(--gt-container-wide), calc(100% - 2 * var(--gt-gutter)));
+}
+
+@media (max-width: 768px) {
+	.gt-container,
+	.gt-container--reading,
+	.gt-container--wide {
+		width: calc(100% - 2 * var(--gt-gutter-mobile));
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* SECTION RHYTHM (§3.4, §6.2) — kicker → heading → subtext grammar          */
+/* ------------------------------------------------------------------------ */
+.gt-section {
+	padding-block: calc(var(--gt-section-gap) / 2);
+}
+
+.gt-section--marketing {
+	padding-block: calc(var(--gt-section-gap-marketing) / 2);
+}
+
+.gt-section-head {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gt-space-2);
+	margin-bottom: var(--gt-space-6);
+}
+
+.gt-kicker {
+	color: var(--gt-accent);
+	font-size: var(--gt-text-micro);
+	font-weight: var(--gt-weight-bold);
+	letter-spacing: var(--gt-tracking-label);
+	text-transform: uppercase;
+}
+
+[data-theme='dark'] .gt-kicker {
+	color: var(--gt-accent-2);
+}
+
+.gt-section-title {
+	font-family: var(--gt-font-heading);
+	font-size: var(--gt-text-title);
+	font-weight: var(--gt-weight-display);
+	line-height: var(--gt-leading-title);
+	color: var(--gt-heading);
+}
+
+.gt-section-sub {
+	max-width: 60ch;
+	color: var(--gt-text-2);
+	font-size: var(--gt-text-body);
+	line-height: var(--gt-leading-body);
+}
+
+/* ------------------------------------------------------------------------ */
+/* GRIDS (§7) — 12-col base + catalog card grids (4 → 2 → 1)                 */
+/* ------------------------------------------------------------------------ */
+.gt-grid {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: var(--gt-gutter);
+}
+
+.gt-grid--cards {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--gt-gutter);
+}
+
+.gt-grid--cards-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Compact grids (Saved / Favorites / Recently viewed) */
+.gt-grid--cards-compact {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: var(--gt-gutter);
+}
+
+@media (max-width: 1024px) {
+	.gt-grid--cards,
+	.gt-grid--cards-3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.gt-grid,
+	.gt-grid--cards,
+	.gt-grid--cards-3 {
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--gt-gutter-mobile);
+	}
+
+	.gt-grid--cards-compact {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--gt-gutter-mobile);
+	}
+}
+
+/* Stacks — parents own the gaps between children (§6.3) */
+.gt-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gt-space-4);
+}
+
+.gt-stack--tight {
+	gap: var(--gt-space-2);
+}
+
+.gt-stack--loose {
+	gap: var(--gt-space-6);
+}
+
+.gt-row {
+	display: flex;
+	align-items: center;
+	gap: var(--gt-space-3);
+}
+
+/* ------------------------------------------------------------------------ */
+/* TYPOGRAPHY UTILITIES — the six named sizes (§5.2)                         */
+/* ------------------------------------------------------------------------ */
+.gt-display {
+	font-family: var(--gt-font-heading);
+	font-size: var(--gt-text-display);
+	font-weight: var(--gt-weight-display);
+	line-height: var(--gt-leading-display);
+	color: var(--gt-heading);
+}
+
+.gt-title {
+	font-family: var(--gt-font-heading);
+	font-size: var(--gt-text-title);
+	font-weight: var(--gt-weight-display);
+	line-height: var(--gt-leading-title);
+	color: var(--gt-heading);
+}
+
+.gt-body {
+	font-size: var(--gt-text-body);
+	line-height: var(--gt-leading-body);
+	color: var(--gt-text);
+}
+
+.gt-caption {
+	font-size: var(--gt-text-caption);
+	line-height: var(--gt-leading-caption);
+	color: var(--gt-text-2);
+}
+
+.gt-micro {
+	font-size: var(--gt-text-micro);
+	line-height: var(--gt-leading-caption);
+	color: var(--gt-text-2);
+}
+
+/* Letterspaced labels (form labels, table headers, kickers) — §5.4 */
+.gt-label {
+	font-size: var(--gt-text-micro);
+	font-weight: var(--gt-weight-bold);
+	letter-spacing: var(--gt-tracking-label);
+	text-transform: uppercase;
+	color: var(--gt-text-2);
+}
+
+/* The travel-document voice: IDs, prices, seats, countdowns (§5.1, §5.6) */
+.gt-mono {
+	font-family: var(--gt-font-mono);
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0;
+}
+
+.gt-tabular {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Reading measure — no text block spans a full container (§5.7) */
+.gt-prose {
+	max-width: 68ch;
+	font-size: var(--gt-text-body);
+	line-height: var(--gt-leading-body);
+
+	p + p {
+		margin-top: var(--gt-space-4);
+	}
+}
+
+.gt-clamp-2 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* ------------------------------------------------------------------------ */
+/* ACCESSIBILITY UTILITIES (§12)                                             */
+/* ------------------------------------------------------------------------ */
+.gt-visually-hidden {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+/* Skip link — hidden until focused, then floats above the nav */
+.gt-skip-link {
+	position: fixed;
+	top: var(--gt-space-3);
+	left: var(--gt-space-3);
+	padding: var(--gt-space-3) var(--gt-space-4);
+	border-radius: var(--gt-radius-control);
+	background: var(--gt-elevated);
+	color: var(--gt-text);
+	font-weight: var(--gt-weight-bold);
+	box-shadow: var(--gt-shadow-floating);
+	transform: translateY(-200%);
+	z-index: calc(var(--gt-z-toast) + 1);
+	transition: transform var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:focus-visible {
+		transform: translateY(0);
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* MOTION UTILITIES (§10) — every animation narrates a state change          */
+/* ------------------------------------------------------------------------ */
+@keyframes gt-fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes gt-rise {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes gt-scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes gt-slide-up {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes gt-slide-left {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes gt-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes gt-shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+@keyframes gt-skeleton-fade {
+	0%,
+	100% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 0.6;
+	}
+}
+
+@keyframes gt-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.65;
+	}
+}
+
+/* Entry utilities — content arrived (skeleton swap, section mount) */
+.gt-anim-fade {
+	animation: gt-fade var(--gt-duration-standard) var(--gt-ease-out) both;
+}
+
+.gt-anim-rise {
+	animation: gt-rise var(--gt-duration-standard) var(--gt-ease-out) both;
+}
+
+.gt-anim-scale {
+	animation: gt-scale-in var(--gt-duration-standard) var(--gt-ease-out) both;
+}
+
+/* Stagger helpers — pair with the stagger token */
+.gt-delay-1 { animation-delay: calc(var(--gt-stagger) * 1); }
+.gt-delay-2 { animation-delay: calc(var(--gt-stagger) * 2); }
+.gt-delay-3 { animation-delay: calc(var(--gt-stagger) * 3); }
+.gt-delay-4 { animation-delay: calc(var(--gt-stagger) * 4); }
+.gt-delay-5 { animation-delay: calc(var(--gt-stagger) * 5); }
+.gt-delay-6 { animation-delay: calc(var(--gt-stagger) * 6); }
+
+/* Scroll reveal — pair with useScrollReveal(); reduced motion sees content
+ * immediately (opacity-only fallback handled by the global RM kill-switch). */
+.gt-reveal {
+	opacity: 0;
+	transform: translateY(16px);
+	transition: opacity var(--gt-duration-spatial) var(--gt-ease-out),
+		transform var(--gt-duration-spatial) var(--gt-ease-out);
+
+	&.is-inview {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.gt-reveal {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Hover lift for any interactive surface that is not a .gt-card */
+.gt-hover-lift {
+	transition: var(--gt-transition-transform);
+
+	&:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--gt-shadow-raised);
+	}
+}

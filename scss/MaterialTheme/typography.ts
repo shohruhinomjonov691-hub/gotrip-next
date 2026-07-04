@@ -1,4 +1,5 @@
 export default {
+	fontFamily: 'var(--gt-font-body)',
 	h1: {
 		fontSize: 36,
 		fontWeight: 700,
@@ -63,10 +64,10 @@ export default {
 		fontSize: 12,
 		fontWeight: 400,
 	},
-	// BUTTON
+	// BUTTON — body-sized, semibold, sentence case (DESIGN_SYSTEM2 §5.5)
 	button: {
 		fontSize: 14,
-		fontWeight: 400,
+		fontWeight: 600,
 		textTransform: 'none',
 	},
 };

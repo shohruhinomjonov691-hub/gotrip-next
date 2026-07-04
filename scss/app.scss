@@ -1,8 +1,16 @@
-/** IMPORTS **/
-@import 'variables.scss';
-@import 'gotrip-theme.scss';
-@import 'reset.scss';
+/** FONTS are loaded via <link> in pages/_document.tsx (a CSS @import here
+ ** lands mid-bundle after other module CSS, where browsers ignore it). **/
 
+/** IMPORTS — tokens → reset → foundation (base/components/utilities) → legacy **/
+@import 'variables.scss';
+@import 'foundation/tokens';
+@import 'reset.scss';
+@import 'foundation/base';
+@import 'foundation/components';
+@import 'foundation/utilities';
+@import 'gotrip-theme.scss';
+
+/** LEGACY GLOBALS — behavior existing pages still rely on **/
 a {
 	white-space: nowrap;
 	text-decoration: none;
@@ -13,76 +21,26 @@ a {
 	color: inherit;
 }
 
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible,
-[role='button']:focus-visible,
-.MuiButtonBase-root:focus-visible {
-	outline: 3px solid var(--gt-focus-ring);
-	outline-offset: 3px;
-}
-
-[data-theme='dark'] {
-	color-scheme: dark;
-}
-
-[data-theme='dark'] .MuiDialog-paper,
-[data-theme='dark'] .MuiPopover-paper,
-[data-theme='dark'] .MuiMenu-paper {
-	background: var(--gt-paper);
-	color: var(--gt-text);
-	border: 1px solid var(--gt-border);
-}
-
-[data-theme='dark'] .MuiInputBase-input::placeholder {
-	color: var(--gt-input-placeholder);
-	opacity: 1;
-}
-
 [data-theme='dark'] button.outline {
 	border-color: var(--gt-border);
 	color: var(--gt-text);
 }
-button {
-	text-transform: none;
-	box-shadow: none;
-	padding: 0;
-}
+
 button.outline {
 	border: 1px solid var(--gt-border);
 }
+
 button.contain {
 	color: var(--gt-inverse-text);
 }
+
 span,
 p {
 	line-height: 1.2;
 }
-body {
-	font-family: $font;
-	&::-webkit-scrollbar {
-		width: 9px;
-	}
-	&::-webkit-scrollbar-thumb {
-		height: 30%;
-		background: var(--gt-muted);
-		border-radius: var(--gt-radius-sm);
-	}
-	&::-webkit-scrollbar-track {
-		background: var(--gt-surface-2);
-	}
 
-	.MuiPopover-paper {
-		box-shadow: none;
-	}
-}
-hr {
-	border-width: 0;
-	border-bottom-width: thin;
-	border-color: var(--gt-divider);
-	margin: auto;
+body .MuiPopover-paper {
+	box-shadow: var(--gt-shadow-floating);
 }
 
 /** VERSION: PC **/
