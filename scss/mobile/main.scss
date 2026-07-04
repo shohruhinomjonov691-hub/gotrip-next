@@ -45,7 +45,7 @@
       }
       &.active {
         color: #ffffff;
-        background: rgba(29, 78, 216, 0.42);
+        background: rgba(255, 106, 77, 0.28);
       }
     }
   }
@@ -1383,9 +1383,9 @@
 
 #mobile-wrap .mobile-bottom-nav div.active,
 #mobile-wrap .mobile-bottom-nav .mobile-theme-toggle.active {
-	background: var(--gt-blue);
+	background: var(--gt-coral);
 	color: #ffffff;
-	box-shadow: 0 12px 24px rgba(50, 100, 255, 0.24);
+	box-shadow: 0 12px 24px rgba(255, 106, 77, 0.28);
 }
 
 #mobile-wrap #footer {
@@ -1681,20 +1681,21 @@
 	margin-top: 18px;
 }
 
+/* Hero booking strip — SamandTour glass over the dark hero sky (light + dark mode) */
 #mobile-wrap .stitch-search-panel {
-	padding: 8px;
-	border-radius: 22px;
-	background: rgba(255, 255, 255, 0.78);
-	border: 1px solid rgba(255, 255, 255, 0.68);
-	box-shadow: 0 24px 68px rgba(0, 10, 28, 0.28);
-	backdrop-filter: blur(22px) saturate(145%);
-	-webkit-backdrop-filter: blur(22px) saturate(145%);
+	padding: 10px;
+	border-radius: var(--gt-radius-glass);
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid var(--gt-line-light);
+	box-shadow: var(--gt-shadow);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
 }
 
 #mobile-wrap .stitch-search-grid {
 	display: grid !important;
 	grid-template-columns: 1fr;
-	gap: 8px;
+	gap: 6px;
 }
 
 #mobile-wrap .stitch-search-field {
@@ -1702,29 +1703,39 @@
 	display: grid;
 	align-content: center;
 	gap: 4px;
-	padding: 10px 13px;
-	border-radius: 15px;
-	background: rgba(255, 255, 255, 0.88);
-	border: 1px solid rgba(255, 255, 255, 0.62);
+	padding: 10px 14px;
+	border-radius: 14px;
+	background: transparent;
+	border: 1px solid transparent;
 	text-align: left;
+	transition: background 0.3s var(--gt-ease), border-color 0.3s var(--gt-ease);
+}
+
+#mobile-wrap .stitch-search-field:focus-within {
+	background: rgba(255, 255, 255, 0.08);
+	border-color: var(--gt-line-light);
 }
 
 #mobile-wrap .stitch-search-field span {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	color: rgba(15, 41, 77, 0.62);
-	font-size: 10px;
-	font-weight: 900;
-	letter-spacing: 0.05em;
+	color: var(--gt-muted-light);
+	font-family: var(--gt-font-body);
+	font-size: 0.66rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
 	text-transform: uppercase;
 }
 
 #mobile-wrap .stitch-search-field svg {
-	color: var(--gt-primary);
-	font-size: 16px;
+	color: var(--gt-coral-2);
+	font-size: 15px;
 }
 
+/* !important on background/color/placeholder: the mobile token-audit layer forces
+   var(--gt-input-bg)/var(--gt-input-text) !important on input/select — cream boxes
+   with dark text in light mode, which breaks the glass strip on the dark hero sky. */
 #mobile-wrap .stitch-search-field input,
 #mobile-wrap .stitch-search-field select {
 	width: 100%;
@@ -1733,20 +1744,38 @@
 	border: 0;
 	outline: 0;
 	padding: 0;
-	background: transparent;
-	color: var(--gt-deep-ocean);
-	font-family: var(--gt-font-heading);
-	font-size: 14px;
-	font-weight: 900;
+	background: transparent !important;
+	color: #ffffff !important;
+	font-family: var(--gt-font-body);
+	font-size: 15px;
+	font-weight: 700;
+}
+
+#mobile-wrap .stitch-search-field select option {
+	color: var(--gt-text);
+	background: #ffffff;
+}
+
+#mobile-wrap .stitch-search-field input::placeholder {
+	color: rgba(255, 255, 255, 0.45) !important;
 }
 
 #mobile-wrap .stitch-search-panel .search-submit.MuiButton-root {
 	min-height: 52px;
-	border-radius: 15px;
-	background: var(--gt-primary);
+	border-radius: 14px;
+	background: var(--gt-coral);
 	color: #ffffff;
+	box-shadow: var(--gt-coral-glow);
 	text-transform: none;
-	font-weight: 900;
+	font-family: var(--gt-font-body);
+	font-weight: 700;
+}
+
+#mobile-wrap .stitch-search-panel .hero-search-feedback {
+	margin-top: 8px;
+	gap: 8px;
+	color: var(--gt-muted-light);
+	font-size: 12px;
 }
 
 #mobile-wrap .header-main.gotrip-split-hero .hero-visual {
@@ -1869,44 +1898,9 @@
 	font-size: 14px;
 }
 
-#mobile-wrap .home-page {
-	margin-top: -74px;
-	padding-top: 74px;
-	background: linear-gradient(180deg, rgba(249, 249, 255, 0) 0%, #f9f9ff 48px, #eef4ff 50%, #ffffff 100%);
-}
-
 #mobile-wrap .destination-highlight-section {
 	margin-top: 0;
 	padding-top: 58px;
-}
-
-[data-theme='dark'] #mobile-wrap .header-main.gotrip-split-hero::after {
-	background:
-		linear-gradient(180deg, rgba(0, 10, 28, 0.9) 0%, rgba(0, 10, 28, 0.66) 42%, rgba(0, 10, 28, 0.38) 70%, var(--gt-bg) 100%),
-		radial-gradient(circle at 52% 22%, rgba(212, 175, 55, 0.12), transparent 34%);
-}
-
-[data-theme='dark'] #mobile-wrap .stitch-search-panel,
-[data-theme='dark'] #mobile-wrap .stitch-search-field,
-[data-theme='dark'] #mobile-wrap .hero-floating-card {
-	background: rgba(7, 26, 53, 0.82);
-	border-color: rgba(255, 255, 255, 0.13);
-	color: var(--gt-heading);
-}
-
-[data-theme='dark'] #mobile-wrap .stitch-search-field input,
-[data-theme='dark'] #mobile-wrap .stitch-search-field select {
-	color: var(--gt-heading);
-}
-
-[data-theme='dark'] #mobile-wrap .stitch-search-field span,
-[data-theme='dark'] #mobile-wrap .hero-floating-card p,
-[data-theme='dark'] #mobile-wrap .hero-floating-card small {
-	color: var(--gt-muted);
-}
-
-[data-theme='dark'] #mobile-wrap .home-page {
-	background: linear-gradient(180deg, rgba(0, 19, 46, 0) 0%, var(--gt-bg) 48px, #061d3c 50%, var(--gt-bg) 100%);
 }
 
 @media (max-width: 420px) {
@@ -1933,163 +1927,11 @@
 }
 
 /* Stitch-accurate Home mobile layer. */
+/* (The home hero itself lives in the gotrip-sunrise-hero block at the end of this file.) */
 #mobile-wrap {
-  .header-main {
-    min-height: 690px;
-    padding: 0;
-    overflow: visible;
-    background:
-      linear-gradient(180deg, rgba(2, 13, 31, 0.22) 0%, rgba(2, 13, 31, 0.18) 42%, rgba(249, 249, 255, 0.04) 70%, #f9f9ff 100%),
-      url('/img/banner/header2.svg') center top / cover no-repeat;
-
-    &::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 220px;
-      background: linear-gradient(180deg, rgba(249, 249, 255, 0), #f9f9ff 76%);
-      pointer-events: none;
-    }
-
-    .hero-container {
-      position: relative;
-      z-index: 1;
-      width: min(100% - 32px, 640px);
-      min-height: 690px;
-      margin: 0 auto;
-      padding: 112px 0 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      text-align: center;
-    }
-
-    .hero-copy {
-      align-items: center;
-      color: #ffffff;
-
-      .hero-kicker {
-        display: none;
-      }
-
-      h1 {
-        margin: 0;
-        color: #ffffff;
-        font-family: var(--gt-font-heading);
-        font-size: 36px;
-        font-weight: 900;
-        line-height: 1.08;
-        letter-spacing: -0.01em;
-
-        span {
-          color: var(--gt-gold);
-          font-style: italic;
-        }
-      }
-
-      p {
-        width: min(100%, 360px);
-        margin: 10px auto 0;
-        color: rgba(255, 255, 255, 0.92);
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.55;
-      }
-    }
-
-    .hero-actions {
-      width: 100%;
-      margin-top: 18px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-
-      .MuiButton-root {
-        min-height: 44px;
-        border-radius: 12px;
-        text-transform: none;
-        font-size: 13px;
-        font-weight: 900;
-      }
-
-      .hero-primary {
-        background: var(--gt-primary);
-        color: #ffffff;
-      }
-
-      .hero-secondary {
-        background: rgba(255, 255, 255, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.42);
-        color: #ffffff;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-      }
-    }
-
-    .hero-trending {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      color: rgba(255, 255, 255, 0.84);
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .hero-trend-tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 30px;
-      padding: 0 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: #ffffff;
-    }
-
-    .hero-search-wrap {
-      width: 100%;
-      margin-top: 4px;
-    }
-  }
-
-  .tour-search-panel {
-    padding: 10px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(255, 255, 255, 0.76);
-    box-shadow: 0 22px 58px rgba(15, 41, 77, 0.2);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    .search-grid {
-      display: grid !important;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .MuiOutlinedInput-root {
-      min-height: 54px;
-      border-radius: 15px !important;
-      background: rgba(255, 255, 255, 0.92) !important;
-    }
-
-    .search-submit.MuiButton-root {
-      min-height: 52px;
-      border-radius: 15px;
-      background: var(--gt-primary);
-      color: #ffffff;
-      text-transform: none;
-      font-weight: 900;
-    }
-  }
-
   .home-page {
-    background: linear-gradient(180deg, #f9f9ff 0%, #eef4ff 46%, #ffffff 100%);
+    position: relative;
+    background: var(--gt-paper);
   }
 
   .destination-highlight-section,
@@ -2109,8 +1951,8 @@
   }
 
   .destination-highlight-section {
-    margin-top: -58px;
-    padding-top: 94px;
+    margin-top: 0;
+    padding-top: 58px;
   }
 
   .destination-stitch-heading,
@@ -2960,211 +2802,29 @@
   }
 }
 
+/* (Hero + search-strip styling moved to the gotrip-sunrise-hero block at the end of this file.) */
 #mobile-wrap {
-  background: #f9f9ff;
-  color: #0f294d;
+  background: var(--gt-paper);
+  color: var(--gt-text);
 
+  /* Keeps the nav container out of flow on every page; all visuals live on the nav itself */
   #top {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 60;
-    background: rgba(15, 41, 77, 0.3);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-  }
-
-  .header-main {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    min-height: 760px;
-    background: #071426;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: -6%;
-      z-index: -3;
-      background: url('/img/fiber/img8.jpg') center top / cover no-repeat;
-      opacity: 0.9;
-      animation: stitchMobileHeroDrift 32s ease-in-out infinite;
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -2;
-      background:
-        linear-gradient(180deg, rgba(2, 9, 20, 0.7) 0%, rgba(7, 20, 38, 0.42) 52%, #f9f9ff 100%),
-        radial-gradient(circle at 50% 28%, rgba(212, 175, 55, 0.14), transparent 34%);
-    }
-
-    .hero-container {
-      width: calc(100% - 28px);
-      min-height: 760px;
-      margin: 0 auto;
-      padding: 118px 0 38px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hero-copy {
-      align-items: center;
-      text-align: center;
-    }
-
-    .hero-kicker {
-      margin-bottom: 12px;
-      color: #d4af37;
-      font-family: var(--gt-font-heading);
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-    }
-
-    .hero-copy h1 {
-      max-width: 360px;
-      margin: 0;
-      color: #ffffff;
-      font-family: var(--gt-font-heading);
-      font-size: 42px;
-      font-weight: 900;
-      line-height: 1.03;
-      text-shadow: 0 18px 54px rgba(0, 0, 0, 0.38);
-
-      span {
-        color: #d4af37;
-        font-family: Georgia, 'Times New Roman', serif;
-        font-style: italic;
-        font-weight: 500;
-      }
-    }
-
-    .hero-copy p {
-      max-width: 340px;
-      margin-top: 18px;
-      color: rgba(255, 255, 255, 0.86);
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.6;
-    }
-
-    .hero-trending {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 24px;
-      color: rgba(255, 255, 255, 0.82);
-
-      strong {
-        width: 100%;
-        font-size: 11px;
-        font-weight: 900;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-    }
-
-    .hero-trend-tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 34px;
-      padding: 0 13px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: 850;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      animation: stitchMobileFloatTag 3.4s ease-in-out infinite;
-    }
-
-    .hero-search-wrap {
-      width: 100%;
-      margin-top: 28px;
-    }
-  }
-
-  .tour-search-panel {
-    width: 100%;
-    padding: 8px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.76);
-    border: 1px solid rgba(255, 255, 255, 0.82);
-    box-shadow: 0 22px 70px rgba(7, 20, 38, 0.22);
-    backdrop-filter: blur(22px) saturate(145%);
-    -webkit-backdrop-filter: blur(22px) saturate(145%);
-
-    .search-grid {
-      display: grid !important;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .MuiFormControl-root {
-      background: rgba(255, 255, 255, 0.78);
-      border-radius: 17px;
-    }
-
-    .MuiOutlinedInput-root {
-      min-height: 58px;
-      border-radius: 17px !important;
-      background: rgba(255, 255, 255, 0.92) !important;
-    }
-
-    .MuiInputBase-input {
-      color: #0f294d;
-      font-weight: 800;
-    }
-
-    .MuiInputLabel-root {
-      color: rgba(15, 41, 77, 0.68);
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .search-submit.MuiButton-root {
-      min-height: 56px;
-      border-radius: 17px;
-      background: #3264ff;
-      color: #ffffff;
-      font-family: var(--gt-font-heading);
-      font-weight: 900;
-      text-transform: none;
-      box-shadow: 0 16px 34px rgba(50, 100, 255, 0.28);
-    }
   }
 
   #main,
   .home-page {
-    background: #f9f9ff;
+    background: var(--gt-paper);
   }
 
   .destination-highlight-section {
     position: relative;
     padding: 54px 14px 76px;
-    background: #f9f9ff;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: -70px;
-      left: 0;
-      right: 0;
-      height: 120px;
-      background: linear-gradient(180deg, rgba(249, 249, 255, 0), #f9f9ff 72%);
-    }
+    background: var(--gt-paper);
 
     .destination-highlight-container {
       width: 100%;
@@ -5964,5 +5624,228 @@
         font-weight: 900;
       }
     }
+  }
+}
+
+/* ===== SamandTour sunrise home hero — mobile (see docs/ai/DESIGN_SYSTEM.md §5/§7/§9) =====
+   Non-token hex values below are the reference's hero sky/skyline art values. */
+#mobile-wrap .header-main.gotrip-sunrise-hero {
+  position: relative;
+  min-height: auto;
+  margin: 0;
+  padding: 108px 0 52px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  color: #ffffff;
+  background: var(--gt-ink);
+}
+
+#mobile-wrap .header-main.gotrip-sunrise-hero::before,
+#mobile-wrap .header-main.gotrip-sunrise-hero::after {
+  content: none;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-sky {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(120% 90% at 78% 8%, #34507e 0%, transparent 55%),
+    radial-gradient(90% 70% at 12% 18%, #2a3f6b 0%, transparent 50%),
+    linear-gradient(180deg, var(--gt-ink) 0%, #13223f 48%, #27395f 100%);
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-sky::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46%;
+  background: radial-gradient(70% 120% at 50% 130%, rgba(255, 138, 92, 0.55), rgba(255, 106, 77, 0.12) 45%, transparent 70%);
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-stars {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-stars i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0.12;
+  animation: sunriseTwinkleMobile 4s infinite;
+}
+
+@keyframes sunriseTwinkleMobile {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  width: 100%;
+  height: auto;
+  opacity: 0.9;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-inner {
+  position: relative;
+  z-index: 2;
+  width: calc(100% - 36px);
+  margin: 0 auto;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-copy {
+  align-items: flex-start;
+  gap: 0;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--gt-font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gt-coral-2);
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-eyebrow::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: var(--gt-coral-2);
+}
+
+#mobile-wrap .gotrip-sunrise-hero h1 {
+  margin: 0.4em 0 0.55em;
+  font-family: var(--gt-font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 8.6vw, 2.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  /* !important: the mobile token-audit layer forces h1 to var(--gt-heading) !important,
+     which is dark ink in light mode — unreadable on the hero sky. */
+  color: #ffffff !important;
+}
+
+#mobile-wrap .gotrip-sunrise-hero h1 .line {
+  display: block;
+  overflow: hidden;
+}
+
+#mobile-wrap .gotrip-sunrise-hero h1 .line > span {
+  display: block;
+}
+
+#mobile-wrap .gotrip-sunrise-hero h1 em {
+  font-style: italic;
+  color: var(--gt-coral-2);
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-sub {
+  margin: 0;
+  font-family: var(--gt-font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  /* !important: the mobile token-audit layer forces p to var(--gt-muted) !important (dark in light mode) */
+  color: var(--gt-muted-light) !important;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-trending {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-trending strong {
+  width: 100%;
+  font-family: var(--gt-font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gt-muted-light);
+}
+
+#mobile-wrap .gotrip-sunrise-hero .hero-trend-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-family: var(--gt-font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  padding: 0 14px;
+  border-radius: var(--gt-radius-pill);
+  border: 1px solid var(--gt-line-light);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-search {
+  width: 100%;
+  margin-top: 20px;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin-top: 24px;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-stat b {
+  font-family: var(--gt-font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+#mobile-wrap .gotrip-sunrise-hero .sunrise-hero-stat span {
+  font-family: var(--gt-font-body);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gt-muted-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mobile-wrap .gotrip-sunrise-hero .sunrise-stars i {
+    animation: none;
   }
 }

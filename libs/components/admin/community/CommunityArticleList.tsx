@@ -106,7 +106,7 @@ const CommunityArticleStatusActions = ({
 
 	return (
 		<>
-			<Button className={articleStatusClass(article.articleStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>
+			<Button className={articleStatusClass(article.articleStatus)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, statusKey)}>
 				{article.articleStatus}
 			</Button>
 			{mobile && (

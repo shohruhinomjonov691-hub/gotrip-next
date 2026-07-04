@@ -34,11 +34,6 @@ const withLayoutBasic = (Component: any) => {
 					desc = 'Find guided trips and travel experiences.';
 					bgImage = '/img/banner/cities/JEJU.webp';
 					break;
-				case '/property':
-					title = 'Tour Search';
-					desc = 'Find guided trips and travel experiences.';
-					bgImage = '/img/banner/cities/JEJU.webp';
-					break;
 				case '/agent':
 					title = 'Guides';
 					desc = 'Meet local guides and tour operators.';

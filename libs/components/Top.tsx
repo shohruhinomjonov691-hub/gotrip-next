@@ -82,12 +82,14 @@ const Top = () => {
 	const [colorChange, setColorChange] = useState(false);
 	const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
 	const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
-	const [logoFailed, setLogoFailed] = useState(false);
 	const drop = Boolean(anchorEl2);
 	const logoutOpen = Boolean(logoutAnchor);
 	const notificationsOpen = Boolean(notificationAnchor);
 	const isDarkMode = mode === 'dark';
 	const themeToggleLabel = isDarkMode ? 'Switch to light mode' : 'Switch to dark mode';
+	// LayoutHome (withLayoutMain) is used only by the home page, so `/` is the
+	// "full-bleed hero behind the nav" signal → transparent nav; all other pages stay solid.
+	const isHome = router.pathname === '/';
 
 	const notificationInput = useMemo(
 		() => ({
@@ -125,7 +127,7 @@ const Top = () => {
 
 	useEffect(() => {
 		if (typeof window === 'undefined') return;
-		const changeNavbarColor = () => setColorChange(window.scrollY >= 50);
+		const changeNavbarColor = () => setColorChange(window.scrollY >= 70);
 		changeNavbarColor();
 		window.addEventListener('scroll', changeNavbarColor, { passive: true });
 		return () => window.removeEventListener('scroll', changeNavbarColor);
@@ -159,7 +161,7 @@ const Top = () => {
 
 	const navItems = [
 		{ href: '/', label: t('Home'), active: router.pathname === '/' },
-		{ href: '/tour', label: t('Tours') || 'Tours', active: router.pathname === '/tour' || router.pathname === '/property' },
+		{ href: '/tour', label: t('Tours') || 'Tours', active: router.pathname === '/tour' },
 		{
 			href: '/destination',
 			label: t('Destinations') || 'Destinations',
@@ -228,20 +230,18 @@ const Top = () => {
 
 	return (
 		<Stack className={'navbar'}>
-			<Stack className={`navbar-main gotrip-nav ${colorChange ? 'transparent' : ''}`}>
+			<Stack className={`navbar-main gotrip-nav ${isHome ? 'nav-over-hero' : 'nav-solid'}${colorChange ? ' nav-scrolled' : ''}`}>
 				<Stack className={'container'}>
 					<Box component={'div'} className={'logo-box'}>
 						<Link href={'/'} className="brand-link" aria-label="GoTrip home">
-							{logoFailed ? (
-								<span className="brand-fallback">
-									<span className="brand-mark" aria-hidden="true">
-										G
-									</span>
-									<span>GoTrip</span>
-								</span>
-							) : (
-								<img src="/img/logo/logoText.svg" alt="GoTrip" onError={() => setLogoFailed(true)} />
-							)}
+							<span className="brand-mark" aria-hidden="true">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M3.5 14.5l17-9-4 18-4.5-6.5L3.5 14.5z" fill="currentColor" />
+								</svg>
+							</span>
+							<span className="brand-word">
+								Go<b>Trip</b>
+							</span>
 						</Link>
 					</Box>
 
@@ -343,7 +343,7 @@ const Top = () => {
 							</>
 						) : (
 							<Link href={'/account/join'}>
-								<MotionDiv className={'join-box'} whileHover={{ scale: 1.025, y: -1 }} whileTap={tapPress}>
+								<MotionDiv className={'join-box'} whileHover={{ y: -3 }} whileTap={tapPress}>
 									<AccountCircleOutlinedIcon />
 									<span>
 										{t('Login')} / {t('Register')}
@@ -356,7 +356,7 @@ const Top = () => {
 							<Button
 								disableRipple
 								className="btn-lang"
-								onClick={(event) => setAnchorEl2(event.currentTarget)}
+								onClick={(event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl2(event.currentTarget)}
 								endIcon={<CaretDown size={14} color="#d6e3ff" weight="fill" />}
 							>
 								<Box component={'div'} className={'flag'}>

@@ -72,7 +72,7 @@ export const MemberPanelList = ({
 									</TableCell>
 									<TableCell>{member.memberPhone}</TableCell>
 									<TableCell>
-										<Button className={toStatusClass(member.memberType)} onClick={(event) => menuIconClickHandler(event, roleKey)}>
+										<Button className={toStatusClass(member.memberType)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, roleKey)}>
 											{member.memberType}
 										</Button>
 										<Menu anchorEl={anchorEl[roleKey]} open={Boolean(anchorEl[roleKey])} onClose={menuIconCloseHandler}>
@@ -84,7 +84,7 @@ export const MemberPanelList = ({
 									<TableCell align="center">{member.memberWarnings}</TableCell>
 									<TableCell align="center">{member.memberBlocks}</TableCell>
 									<TableCell>
-										<Button className={toStatusClass(member.memberStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>
+										<Button className={toStatusClass(member.memberStatus)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, statusKey)}>
 											{member.memberStatus}
 										</Button>
 										<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>
@@ -118,8 +118,8 @@ export const MemberPanelList = ({
 							</Stack>
 							<Box className="admin-mobile-card__meta"><span>Warnings {member.memberWarnings}</span><span>Blocks {member.memberBlocks}</span></Box>
 							<Box className="admin-mobile-card__actions">
-								<Button className={toStatusClass(member.memberType)} onClick={(event) => menuIconClickHandler(event, roleKey)}>{member.memberType}</Button>
-								<Button className={toStatusClass(member.memberStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>{member.memberStatus}</Button>
+								<Button className={toStatusClass(member.memberType)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, roleKey)}>{member.memberType}</Button>
+								<Button className={toStatusClass(member.memberStatus)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, statusKey)}>{member.memberStatus}</Button>
 							</Box>
 							<Menu anchorEl={anchorEl[roleKey]} open={Boolean(anchorEl[roleKey])} onClose={menuIconCloseHandler}>{Object.values(MemberType).filter((type) => type !== member.memberType).map((type) => <MenuItem key={type} onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}>{type}</MenuItem>)}</Menu>
 							<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>{Object.values(MemberStatus).filter((status) => status !== member.memberStatus).map((status) => <MenuItem key={status} onClick={() => updateMemberHandler({ _id: member._id, memberStatus: status })}>{status}</MenuItem>)}</Menu>

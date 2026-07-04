@@ -3,15 +3,14 @@ import Link from 'next/link';
 import { useQuery } from '@apollo/client';
 import { Button, Stack, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import { motion } from 'framer-motion';
 import { GET_DESTINATIONS } from '../../../apollo/user/query';
 import { Destination } from '../../types/destination/destination';
 import { Direction } from '../../enums/common.enum';
 import { REACT_APP_API_URL } from '../../config';
 import { T } from '../../types/common';
-import { fadeUp, hoverLift, staggerContainer, tapPress } from './motion';
-import { getFallbackImage } from './homepageFallbacks';
+import { fadeUp, staggerContainer } from './motion';
+import DestinationCard from '../common/DestinationCard';
 
 const MotionSection = motion.section;
 const MotionDiv = motion.div;
@@ -75,32 +74,16 @@ const DestinationHighlights = () => {
 				) : (
 					<MotionDiv className="destination-stitch-grid" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }}>
 						{featuredDestinations.map((destination, index) => (
-						<Link href={destination.href} key={destination.key}>
-							<MotionDiv
-								className={index === 1 ? 'destination-feature-card destination-feature-card-offset' : 'destination-feature-card'}
-								variants={fadeUp}
-								whileHover={hoverLift}
-								whileTap={tapPress}
-							>
-								<img
-									src={destination.image}
-									alt={destination.title}
-									loading={index > 1 ? 'lazy' : 'eager'}
-									onError={(event) => {
-										event.currentTarget.src = getFallbackImage(destination.title);
-									}}
-								/>
-								<div className="destination-feature-overlay" />
-								<div className="destination-feature-copy">
-									<span>
-										<PlaceOutlinedIcon fontSize="small" />
-										{destination.location}
-									</span>
-									<strong>{destination.title}</strong>
-									<p>{destination.count}</p>
-								</div>
-							</MotionDiv>
-						</Link>
+							<DestinationCard
+								key={destination.key}
+								title={destination.title}
+								location={destination.location}
+								caption={destination.count}
+								href={destination.href}
+								image={destination.image}
+								offset={index === 1}
+								eager={index <= 1}
+							/>
 						))}
 					</MotionDiv>
 				)}

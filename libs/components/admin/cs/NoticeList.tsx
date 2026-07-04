@@ -53,7 +53,7 @@ export const NoticeList = ({
 		const statusOptions: NoticeStatus[] = CHANGEABLE_STATUSES.filter((status) => status !== notice.noticeStatus);
 		return (
 			<>
-				<Button className={noticeStatusClass(notice.noticeStatus)} onClick={(event) => menuIconClickHandler(event, statusKey)}>
+				<Button className={noticeStatusClass(notice.noticeStatus)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, statusKey)}>
 					{notice.noticeStatus}
 				</Button>
 				<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>

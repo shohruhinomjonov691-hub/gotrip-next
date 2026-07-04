@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /Users/shokhrukhbekinomjonov/Desktop && echo \"===siblings===\"; ls -d */ 2>/dev/null | head -40; echo \"===gotrip/docs/ai===\"; ls -la gotrip/docs/ai 2>/dev/null || echo \"NOT FOUND at Desktop/gotrip/docs/ai\")",
+      "Read(//Users/shokhrukhbekinomjonov/Desktop/**)"
+    ]
+  }
+}

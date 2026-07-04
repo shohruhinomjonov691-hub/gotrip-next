@@ -1003,88 +1003,114 @@ body::-webkit-scrollbar {
 }
 
 /* Stitch navbar/footer alignment layer. Keep this last for the global shell. */
-#pc-wrap #top .navbar .gotrip-nav.navbar-main,
-#pc-wrap #top .navbar .gotrip-nav.navbar-main.transparent {
-	height: 76px;
-	padding: 8px 0;
-	background: rgba(255, 255, 255, 0.9);
-	border: 1px solid rgba(255, 255, 255, 0.78);
-	border-left: 0;
-	border-right: 0;
-	box-shadow: 0 18px 48px rgba(15, 41, 77, 0.12);
-	backdrop-filter: blur(24px) saturate(155%);
-	-webkit-backdrop-filter: blur(24px) saturate(155%);
+/* ===== SamandTour navigation (see docs/ai/DESIGN_SYSTEM.md) ===== */
+#pc-wrap #top .navbar {
+	position: relative;
+	z-index: 1000;
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main {
+	position: sticky;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 1000;
+	height: 72px;
+	padding: 12px 0;
+	margin: 0;
+	border: 0;
+	border-bottom: 1px solid transparent;
+	background: var(--gt-ink);
+	box-shadow: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	transition: background 400ms var(--gt-ease), backdrop-filter 400ms var(--gt-ease),
+		border-color 400ms var(--gt-ease), padding 400ms var(--gt-ease), height 400ms var(--gt-ease);
+}
+
+/* Solid state — non-home default, or home once scrolled: ink glass + hairline */
+#pc-wrap #top .navbar .gotrip-nav.navbar-main.nav-solid,
+#pc-wrap #top .navbar .gotrip-nav.navbar-main.nav-scrolled {
+	background: rgba(11, 23, 48, 0.72);
+	border-bottom: 1px solid var(--gt-line-light);
+	backdrop-filter: blur(16px) saturate(140%);
+	-webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Over-hero — home, at the top of the page: fixed + transparent */
+#pc-wrap #top .navbar .gotrip-nav.navbar-main.nav-over-hero {
+	position: fixed;
+	height: 84px;
+	background: transparent;
+	border-bottom-color: transparent;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main.nav-over-hero.nav-scrolled {
+	position: fixed;
+	height: 72px;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container {
-	width: min(1280px, calc(100% - 64px));
+	width: min(1180px, calc(100% - 64px));
 	height: 100%;
 	display: grid;
-	grid-template-columns: minmax(170px, 230px) minmax(0, 1fr) minmax(210px, auto);
+	grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) minmax(200px, auto);
 	align-items: center;
 	gap: 18px;
 }
 
+/* Brand — coral→gold gradient mark + Fraunces wordmark */
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .logo-box {
 	min-width: 0;
 }
 
-#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .logo-box .brand-link,
-#pc-wrap #footer .footer-container .footer-brand-link {
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .logo-box .brand-link {
 	display: inline-flex;
 	align-items: center;
+	gap: 10px;
 	width: fit-content;
 	text-decoration: none;
 }
 
-#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .logo-box img {
-	width: 148px;
-	height: 44px;
-	object-fit: contain;
-	display: block;
-}
-
-#pc-wrap #top .navbar .gotrip-nav.navbar-main .brand-fallback,
-#pc-wrap #footer .footer-container .footer-brand-fallback {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-	color: var(--gt-deep-ocean);
-	font-family: var(--gt-font-heading);
-	font-size: 22px;
-	font-weight: 900;
-	letter-spacing: 0;
-}
-
-#pc-wrap #top .navbar .gotrip-nav.navbar-main .brand-mark,
-#pc-wrap #footer .footer-container .footer-brand-mark {
-	width: 38px;
-	height: 38px;
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .brand-mark {
+	width: 36px;
+	height: 36px;
 	display: inline-grid;
 	place-items: center;
-	border-radius: 14px;
-	background: var(--gt-gold);
+	border-radius: 10px;
+	background: linear-gradient(135deg, var(--gt-coral), var(--gt-gold));
 	color: #ffffff;
-	font-size: 18px;
-	box-shadow: 0 10px 26px rgba(212, 175, 55, 0.26);
+	box-shadow: 0 8px 18px -8px rgba(255, 106, 77, 0.8);
 }
 
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .brand-word {
+	font-family: var(--gt-font-body);
+	font-weight: 800;
+	font-size: 1.18rem;
+	letter-spacing: -0.01em;
+	color: #ffffff;
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .brand-word b {
+	font-family: var(--gt-font-display);
+	font-weight: 600;
+}
+
+/* Nav links — Manrope, coral underline on hover/active */
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box {
 	justify-self: center;
-	width: auto;
-	min-width: 0;
-	min-height: 48px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 4px;
-	padding: 4px;
-	border-radius: 999px;
-	background: rgba(244, 247, 255, 0.78);
-	border: 1px solid rgba(15, 41, 77, 0.08);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
-	backdrop-filter: blur(18px);
-	-webkit-backdrop-filter: blur(18px);
+	gap: 30px;
+	padding: 0;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box a {
@@ -1092,76 +1118,109 @@ body::-webkit-scrollbar {
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div {
-	min-width: auto;
-	min-height: 40px;
+	position: relative;
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	padding: 0 15px;
-	border-radius: 999px;
-	color: #34445f;
+	padding: 6px 0;
+	color: var(--gt-muted-light);
 	font-family: var(--gt-font-body);
-	font-size: 14px;
-	font-weight: 800;
+	font-size: 0.95rem;
+	font-weight: 600;
 	line-height: 1;
-	transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+	background: transparent;
+	transition: color 300ms var(--gt-ease);
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: -4px;
+	height: 2px;
+	width: 0;
+	background: var(--gt-coral);
+	transition: width 350ms var(--gt-ease);
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div:hover {
+	color: #ffffff;
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div:hover::after {
+	width: 100%;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div.active {
-	background: #ffffff;
-	color: var(--gt-blue);
-	box-shadow: 0 10px 24px rgba(15, 41, 77, 0.12);
+	color: #ffffff;
+	background: transparent;
+	box-shadow: none;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div.active::after {
-	display: none;
+	display: block;
+	width: 100%;
 }
 
+/* User controls */
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box {
 	width: auto;
 	min-width: 0;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-	gap: 9px;
+	gap: 10px;
 }
 
-#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .notification-pill,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .theme-toggle,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .btn-lang {
-	min-width: 44px;
-	height: 44px;
+	min-width: 42px;
+	height: 42px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: 999px;
-	border: 1px solid rgba(15, 41, 77, 0.1);
-	background: rgba(255, 255, 255, 0.78);
-	color: var(--gt-blue);
-	box-shadow: 0 10px 26px rgba(15, 41, 77, 0.1);
-	backdrop-filter: blur(14px);
-	-webkit-backdrop-filter: blur(14px);
+	border: 1px solid var(--gt-line-light);
+	background: rgba(255, 255, 255, 0.08);
+	color: #ffffff;
+	box-shadow: none;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	transition: background 300ms var(--gt-ease), transform 300ms var(--gt-ease), border-color 300ms var(--gt-ease);
 }
 
+/* Primary CTA — coral pill with -3px hover lift */
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box {
 	width: auto;
-	min-width: 152px;
-	padding: 0 17px;
+	min-width: 0;
+	height: 42px;
+	padding: 0 20px;
 	gap: 8px;
-	color: var(--gt-deep-ocean);
-	font-weight: 900;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 999px;
+	border: 0;
+	background: var(--gt-coral);
+	color: #ffffff;
+	box-shadow: var(--gt-coral-glow);
+	transition: transform 350ms var(--gt-ease), box-shadow 350ms var(--gt-ease);
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box svg,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box span {
 	margin: 0;
-	color: var(--gt-deep-ocean);
+	color: #ffffff;
 	font-family: var(--gt-font-body);
-	font-size: 13px;
-	font-weight: 900;
+	font-size: 0.9rem;
+	font-weight: 700;
 	white-space: nowrap;
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 22px 40px -14px rgba(255, 106, 77, 0.8);
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user {
@@ -1170,8 +1229,8 @@ body::-webkit-scrollbar {
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user img {
-	width: 38px;
-	height: 38px;
+	width: 36px;
+	height: 36px;
 	border-radius: 999px;
 	object-fit: cover;
 }
@@ -1196,30 +1255,40 @@ body::-webkit-scrollbar {
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .flag img {
-	width: 24px;
-	height: 24px;
+	width: 22px;
+	height: 22px;
 	border-radius: 999px;
 	object-fit: cover;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .flag span {
-	color: var(--gt-blue);
+	color: #ffffff;
 	font-size: 11px;
-	font-weight: 900;
+	font-weight: 800;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .notification-icon,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .theme-toggle svg {
-	color: var(--gt-blue);
+	color: #ffffff;
 }
 
-#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box:hover,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .notification-pill:hover,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user:hover,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .theme-toggle:hover,
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .btn-lang:hover {
-	background: #ffffff;
-	box-shadow: 0 14px 34px rgba(15, 41, 77, 0.14);
+	background: rgba(255, 255, 255, 0.16);
+	border-color: var(--gt-coral);
+	transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main,
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div,
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div::after,
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .notification-pill,
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box {
+		transition: none;
+	}
 }
 
 #pc-wrap #footer {
@@ -1262,6 +1331,14 @@ body::-webkit-scrollbar {
 	gap: 22px;
 }
 
+#pc-wrap #footer .footer-container .footer-brand-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	width: fit-content;
+	text-decoration: none;
+}
+
 #pc-wrap #footer .footer-container .footer-brand-link .logo {
 	width: 148px;
 	height: 44px;
@@ -1270,7 +1347,26 @@ body::-webkit-scrollbar {
 }
 
 #pc-wrap #footer .footer-container .footer-brand-fallback {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
 	color: #ffffff;
+	font-family: var(--gt-font-body);
+	font-size: 1.18rem;
+	font-weight: 800;
+	letter-spacing: -0.01em;
+}
+
+#pc-wrap #footer .footer-container .footer-brand-mark {
+	width: 36px;
+	height: 36px;
+	display: inline-grid;
+	place-items: center;
+	border-radius: 10px;
+	background: linear-gradient(135deg, var(--gt-coral), var(--gt-gold));
+	color: #ffffff;
+	font-weight: 800;
+	box-shadow: 0 8px 18px -8px rgba(255, 106, 77, 0.8);
 }
 
 #pc-wrap #footer .footer-container .footer-brand-copy {
@@ -1386,13 +1482,12 @@ body::-webkit-scrollbar {
 		gap: 10px;
 	}
 
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .logo-box img {
-		width: 132px;
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box {
+		gap: 18px;
 	}
 
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div {
-		padding: 0 10px;
-		font-size: 13px;
+		font-size: 0.88rem;
 	}
 
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box {
@@ -1400,8 +1495,7 @@ body::-webkit-scrollbar {
 	}
 
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box {
-		min-width: 128px;
-		padding: 0 12px;
+		padding: 0 14px;
 	}
 
 	#pc-wrap #footer .footer-container .main,
@@ -1691,20 +1785,21 @@ body::-webkit-scrollbar {
 	font-weight: 900;
 }
 
+/* Hero booking strip — SamandTour glass over the dark hero sky (light + dark mode) */
 #pc-wrap .stitch-search-panel {
-	padding: 8px;
-	border-radius: 22px;
-	background: rgba(255, 255, 255, 0.72);
-	border: 1px solid rgba(255, 255, 255, 0.68);
-	box-shadow: 0 30px 88px rgba(0, 10, 28, 0.28);
-	backdrop-filter: blur(24px) saturate(145%);
-	-webkit-backdrop-filter: blur(24px) saturate(145%);
+	padding: 14px;
+	border-radius: var(--gt-radius-glass);
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid var(--gt-line-light);
+	box-shadow: var(--gt-shadow);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
 }
 
 #pc-wrap .stitch-search-grid {
 	display: grid;
-	grid-template-columns: 1.25fr 0.95fr 0.95fr 1.05fr 132px;
-	gap: 6px;
+	grid-template-columns: 1.25fr 0.95fr 0.95fr 1.05fr 140px;
+	gap: 8px;
 	align-items: stretch;
 }
 
@@ -1713,37 +1808,41 @@ body::-webkit-scrollbar {
 	min-height: 64px;
 	display: grid;
 	align-content: center;
-	gap: 5px;
-	padding: 10px 14px;
-	border-radius: 16px;
-	background: rgba(255, 255, 255, 0.82);
-	border: 1px solid rgba(255, 255, 255, 0.62);
-	transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+	gap: 4px;
+	padding: 10px 16px;
+	border-radius: 14px;
+	background: transparent;
+	border: 1px solid transparent;
+	cursor: pointer;
+	transition: background 0.3s var(--gt-ease), border-color 0.3s var(--gt-ease);
 }
 
 #pc-wrap .stitch-search-field:hover,
 #pc-wrap .stitch-search-field:focus-within {
-	background: rgba(255, 255, 255, 0.94);
-	box-shadow: 0 14px 30px rgba(15, 41, 77, 0.12);
-	transform: translateY(-1px);
+	background: rgba(255, 255, 255, 0.08);
+	border-color: var(--gt-line-light);
 }
 
 #pc-wrap .stitch-search-field span {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	color: rgba(15, 41, 77, 0.62);
-	font-size: 10px;
-	font-weight: 900;
-	letter-spacing: 0.05em;
+	color: var(--gt-muted-light);
+	font-family: var(--gt-font-body);
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
 	text-transform: uppercase;
 }
 
 #pc-wrap .stitch-search-field svg {
-	color: var(--gt-primary);
-	font-size: 16px;
+	color: var(--gt-coral-2);
+	font-size: 15px;
 }
 
+/* !important on background/color/placeholder: the global token-audit layer forces
+   var(--gt-input-bg)/var(--gt-input-text) !important on input/select — cream boxes
+   with dark text in light mode, which breaks the glass strip on the dark hero sky. */
 #pc-wrap .stitch-search-field input,
 #pc-wrap .stitch-search-field select {
 	width: 100%;
@@ -1752,39 +1851,46 @@ body::-webkit-scrollbar {
 	border: 0;
 	outline: 0;
 	padding: 0;
-	background: transparent;
-	color: var(--gt-deep-ocean);
-	font-family: var(--gt-font-heading);
-	font-size: 14px;
-	font-weight: 900;
+	background: transparent !important;
+	color: #ffffff !important;
+	font-family: var(--gt-font-body);
+	font-size: 15px;
+	font-weight: 700;
+}
+
+#pc-wrap .stitch-search-field select option {
+	color: var(--gt-text);
+	background: #ffffff;
 }
 
 #pc-wrap .stitch-search-field input::placeholder {
-	color: rgba(15, 41, 77, 0.42);
+	color: rgba(255, 255, 255, 0.45) !important;
 }
 
 #pc-wrap .stitch-search-panel .search-submit.MuiButton-root {
 	min-height: 64px;
-	border-radius: 16px;
-	background: var(--gt-primary);
+	border-radius: 14px;
+	padding: 0 22px;
+	background: var(--gt-coral);
 	color: #ffffff;
-	box-shadow: 0 18px 38px rgba(0, 73, 227, 0.32);
+	box-shadow: var(--gt-coral-glow);
 	text-transform: none;
-	font-weight: 900;
+	font-family: var(--gt-font-body);
+	font-weight: 700;
+	transition: transform 0.35s var(--gt-ease), box-shadow 0.35s var(--gt-ease);
+}
+
+#pc-wrap .stitch-search-panel .search-submit.MuiButton-root:hover {
+	background: var(--gt-coral);
+	transform: translateY(-3px);
+	box-shadow: 0 22px 40px -14px rgba(255, 106, 77, 0.8);
 }
 
 #pc-wrap .stitch-search-panel .hero-search-feedback {
 	margin-top: 8px;
 	gap: 8px;
-	color: #ffffff;
+	color: var(--gt-muted-light);
 	font-size: 12px;
-}
-
-#pc-wrap .home-page {
-	position: relative;
-	margin-top: -94px;
-	padding-top: 94px;
-	background: linear-gradient(180deg, rgba(249, 249, 255, 0) 0%, #f9f9ff 42px, #eef4ff 48%, #ffffff 100%);
 }
 
 #pc-wrap .destination-highlight-section {
@@ -1792,79 +1898,7 @@ body::-webkit-scrollbar {
 	padding-top: 78px;
 }
 
-[data-theme='dark'] #pc-wrap .header-main.gotrip-split-hero::after {
-	background:
-		linear-gradient(90deg, rgba(0, 10, 28, 0.9) 0%, rgba(0, 10, 28, 0.68) 46%, rgba(0, 10, 28, 0.38) 100%),
-		linear-gradient(180deg, rgba(0, 10, 28, 0.48) 0%, rgba(0, 10, 28, 0.18) 52%, var(--gt-bg) 100%);
-}
-
-[data-theme='dark'] #pc-wrap .hero-floating-card,
-[data-theme='dark'] #pc-wrap .stitch-search-panel,
-[data-theme='dark'] #pc-wrap .stitch-search-field {
-	background: rgba(7, 26, 53, 0.78);
-	border-color: rgba(255, 255, 255, 0.13);
-	color: var(--gt-heading);
-}
-
-[data-theme='dark'] #pc-wrap .stitch-search-field input,
-[data-theme='dark'] #pc-wrap .stitch-search-field select {
-	color: var(--gt-heading);
-}
-
-[data-theme='dark'] #pc-wrap .stitch-search-field span,
-[data-theme='dark'] #pc-wrap .hero-floating-card p,
-[data-theme='dark'] #pc-wrap .hero-floating-card small {
-	color: var(--gt-muted);
-}
-
-[data-theme='dark'] #pc-wrap .home-page {
-	background: linear-gradient(180deg, rgba(0, 19, 46, 0) 0%, var(--gt-bg) 42px, #061d3c 48%, var(--gt-bg) 100%);
-}
-
 @media (max-width: 1180px) {
-	#pc-wrap .header-main.gotrip-split-hero .hero-container {
-		width: min(100% - 48px, 1080px);
-		grid-template-columns: 1fr;
-		gap: 34px;
-		padding-top: 110px;
-		text-align: center;
-	}
-
-	#pc-wrap .header-main.gotrip-split-hero .hero-copy-panel {
-		align-items: center;
-	}
-
-	#pc-wrap .header-main.gotrip-split-hero .hero-copy-panel p,
-	#pc-wrap .header-main.gotrip-split-hero .hero-copy-panel h1 {
-		margin-left: auto;
-		margin-right: auto;
-	}
-
-	#pc-wrap .header-main.gotrip-split-hero .hero-trending,
-	#pc-wrap .header-main.gotrip-split-hero .hero-actions {
-		justify-content: center;
-	}
-
-	#pc-wrap .header-main.gotrip-split-hero .hero-visual {
-		width: min(680px, 100%);
-		height: 430px;
-		margin: 0 auto;
-		grid-template-columns: minmax(0, 1fr) 160px;
-	}
-
-	#pc-wrap .hero-collage-main {
-		height: 420px;
-	}
-
-	#pc-wrap .hero-collage-stack > div {
-		height: 202px;
-	}
-
-	#pc-wrap .hero-floating-card {
-		right: 72px;
-		bottom: 18px;
-	}
-
 	#pc-wrap .stitch-search-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
@@ -1874,231 +1908,12 @@ body::-webkit-scrollbar {
 	}
 }
 
-@media (max-width: 780px) {
-	#pc-wrap .header-main.gotrip-split-hero .hero-copy-panel h1 {
-		font-size: 42px;
-	}
-
-	#pc-wrap .header-main.gotrip-split-hero .hero-visual {
-		grid-template-columns: 1fr;
-		height: auto;
-	}
-
-	#pc-wrap .hero-collage-main {
-		height: 360px;
-	}
-
-	#pc-wrap .hero-collage-stack {
-		grid-template-columns: repeat(2, 1fr);
-	}
-
-	#pc-wrap .hero-collage-stack > div {
-		height: 170px;
-	}
-
-	#pc-wrap .hero-floating-card {
-		right: 18px;
-		bottom: 18px;
-		width: min(238px, calc(100% - 36px));
-	}
-}
-
-/* Stitch-accurate Home rebuild layer. Scoped to the Home layout only. */
+/* Stitch-accurate Home rebuild layer. Scoped to the Home layout only.
+   (The hero itself lives in the gotrip-sunrise-hero block at the end of this file.) */
 #pc-wrap {
-	.header-main {
-		position: relative;
-		min-height: 760px;
-		margin-top: 0;
-		display: flex;
-		align-items: flex-start;
-		overflow: visible;
-		background:
-			linear-gradient(180deg, rgba(2, 13, 31, 0.18) 0%, rgba(2, 13, 31, 0.18) 34%, rgba(249, 249, 255, 0.08) 72%, #f9f9ff 100%),
-			linear-gradient(90deg, rgba(15, 41, 77, 0.48), rgba(15, 41, 77, 0.12)),
-			url('/img/banner/header2.svg') center top / cover no-repeat;
-	}
-
-	.header-main::before,
-	.header-main::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-	}
-
-	.header-main::before {
-		background: radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.14), transparent 30%);
-	}
-
-	.header-main::after {
-		top: auto;
-		height: 260px;
-		background: linear-gradient(180deg, rgba(249, 249, 255, 0), #f9f9ff 72%);
-	}
-
-	.header-main .hero-container {
-		position: relative;
-		z-index: 2;
-		width: min(1280px, calc(100% - 128px));
-		min-height: 760px;
-		margin: 0 auto;
-		padding: 174px 0 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: flex-start;
-		gap: 22px;
-		text-align: center;
-	}
-
-	.header-main .hero-copy {
-		width: min(880px, 100%);
-		align-items: center;
-		color: #ffffff;
-		text-shadow: 0 14px 34px rgba(0, 10, 28, 0.42);
-	}
-
-	.header-main .hero-kicker {
-		display: none;
-	}
-
-	.header-main .hero-copy h1 {
-		margin: 0;
-		color: #ffffff;
-		font-family: var(--gt-font-heading);
-		font-size: 56px;
-		font-weight: 900;
-		line-height: 1.04;
-		letter-spacing: -0.02em;
-		text-wrap: balance;
-	}
-
-	.header-main .hero-copy h1 span {
-		color: var(--gt-gold);
-		font-style: italic;
-	}
-
-	.header-main .hero-copy p {
-		width: min(640px, 100%);
-		margin: 12px auto 0;
-		color: rgba(255, 255, 255, 0.92);
-		font-size: 16px;
-		font-weight: 600;
-		line-height: 1.6;
-	}
-
-	.header-main .hero-actions {
-		margin-top: 22px;
-		display: flex;
-		justify-content: center;
-		gap: 12px;
-	}
-
-	.header-main .hero-actions .MuiButton-root {
-		min-height: 44px;
-		border-radius: 12px;
-		padding: 0 20px;
-		text-transform: none;
-		font-family: var(--gt-font-body);
-		font-size: 13px;
-		font-weight: 900;
-	}
-
-	.header-main .hero-primary.MuiButton-root {
-		background: var(--gt-primary);
-		color: #ffffff;
-		box-shadow: 0 18px 38px rgba(0, 73, 227, 0.34);
-	}
-
-	.header-main .hero-secondary.MuiButton-root {
-		background: rgba(255, 255, 255, 0.18);
-		border: 1px solid rgba(255, 255, 255, 0.42);
-		color: #ffffff;
-		backdrop-filter: blur(14px);
-		-webkit-backdrop-filter: blur(14px);
-	}
-
-	.header-main .hero-trending {
-		margin-top: 16px;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 10px;
-		color: rgba(255, 255, 255, 0.82);
-		font-size: 11px;
-		font-weight: 800;
-	}
-
-	.header-main .hero-trend-tag {
-		display: inline-flex;
-		align-items: center;
-		min-height: 30px;
-		padding: 0 14px;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.18);
-		border: 1px solid rgba(255, 255, 255, 0.32);
-		color: #ffffff;
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		transition: transform 220ms ease, background 220ms ease;
-	}
-
-	.header-main .hero-trend-tag:hover {
-		transform: translateY(-2px);
-		background: rgba(255, 255, 255, 0.28);
-	}
-
-	.header-main .hero-search-wrap {
-		width: min(1040px, 100%);
-		margin-top: 8px;
-	}
-
-	.tour-search-panel {
-		padding: 10px;
-		border-radius: 24px;
-		background: rgba(255, 255, 255, 0.74);
-		border: 1px solid rgba(255, 255, 255, 0.72);
-		box-shadow: 0 28px 84px rgba(15, 41, 77, 0.22);
-		backdrop-filter: blur(22px) saturate(145%);
-		-webkit-backdrop-filter: blur(22px) saturate(145%);
-	}
-
-	.tour-search-panel .search-grid {
-		display: grid !important;
-		grid-template-columns: 1.25fr 1fr 1fr 1.1fr 150px;
-		gap: 8px;
-		align-items: stretch;
-	}
-
-	.tour-search-panel .MuiFormControl-root {
-		min-width: 0;
-	}
-
-	.tour-search-panel .MuiOutlinedInput-root {
-		min-height: 58px;
-		border-radius: 16px !important;
-		background: rgba(255, 255, 255, 0.86) !important;
-	}
-
-	.tour-search-panel .MuiInputLabel-root {
-		color: rgba(15, 41, 77, 0.72);
-		font-size: 12px;
-		font-weight: 900;
-	}
-
-	.tour-search-panel .search-submit.MuiButton-root {
-		height: 58px;
-		border-radius: 16px;
-		background: var(--gt-primary);
-		color: #ffffff;
-		box-shadow: 0 18px 36px rgba(0, 73, 227, 0.24);
-		text-transform: none;
-		font-weight: 900;
-	}
-
 	.home-page {
-		background: linear-gradient(180deg, #f9f9ff 0%, #f3f6ff 42%, #ffffff 74%);
+		position: relative;
+		background: var(--gt-paper);
 		color: var(--gt-on-background);
 	}
 
@@ -2126,11 +1941,6 @@ body::-webkit-scrollbar {
 	.premium-section-container {
 		width: min(1280px, calc(100% - 128px));
 		margin: 0 auto;
-	}
-
-	.destination-highlight-section {
-		margin-top: -70px;
-		padding-top: 126px;
 	}
 
 	.destination-stitch-heading {
@@ -7588,268 +7398,35 @@ body::-webkit-scrollbar {
 	}
 }
 
-/* Stitch source-of-truth homepage reconstruction. Keep this final. */
-@keyframes stitchHeroDrift {
-	0% {
-		transform: scale(1.04) translate3d(0, 0, 0);
-	}
-	50% {
-		transform: scale(1.09) translate3d(-1.4%, -1.2%, 0);
-	}
-	100% {
-		transform: scale(1.04) translate3d(0, 0, 0);
-	}
-}
-
-@keyframes stitchFloatTag {
-	0%,
-	100% {
-		transform: translateY(0);
-	}
-	50% {
-		transform: translateY(-8px);
-	}
-}
-
+/* Stitch source-of-truth homepage reconstruction. Keep this final.
+   (Hero + search-strip styling moved to the gotrip-sunrise-hero block at the end of this file.) */
 #pc-wrap {
-	background: #f9f9ff;
-	color: #0f294d;
+	background: var(--gt-paper);
+	color: var(--gt-text);
 	font-family: var(--gt-font-body);
 }
 
+/* Keeps the nav container out of flow on every page; all visuals live on .gotrip-nav */
 #pc-wrap #top {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	z-index: 60;
-	background: rgba(15, 41, 77, 0.28);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-	backdrop-filter: blur(22px) saturate(150%);
-	-webkit-backdrop-filter: blur(22px) saturate(150%);
-}
-
-#pc-wrap .header-main {
-	position: relative;
-	isolation: isolate;
-	overflow: hidden;
-	min-height: 720px;
-	height: 85vh;
-	background: #071426;
-}
-
-#pc-wrap .header-main::before {
-	content: '';
-	position: absolute;
-	inset: -5%;
-	z-index: -3;
-	background: url('/img/fiber/img8.jpg') center 42% / cover no-repeat;
-	opacity: 0.92;
-	animation: stitchHeroDrift 34s ease-in-out infinite;
-}
-
-#pc-wrap .header-main::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	z-index: -2;
-	background:
-		linear-gradient(180deg, rgba(2, 9, 20, 0.62) 0%, rgba(7, 20, 38, 0.28) 45%, #f9f9ff 100%),
-		radial-gradient(circle at 50% 28%, rgba(212, 175, 55, 0.14), transparent 34%),
-		rgba(0, 0, 0, 0.18);
-}
-
-#pc-wrap .header-main .hero-container {
-	width: min(1280px, calc(100% - 128px));
-	height: 100%;
-	margin: 0 auto;
-	padding: 132px 0 52px;
-	align-items: center;
-	justify-content: center;
-}
-
-#pc-wrap .header-main .hero-copy {
-	max-width: 1060px;
-	align-items: center;
-	text-align: center;
-}
-
-#pc-wrap .header-main .hero-kicker {
-	margin-bottom: 18px;
-	color: #d4af37;
-	font-family: var(--gt-font-heading);
-	font-size: 13px;
-	font-weight: 800;
-	letter-spacing: 0.16em;
-	text-transform: uppercase;
-}
-
-#pc-wrap .header-main .hero-copy h1 {
-	max-width: 1040px;
-	margin: 0;
-	color: #ffffff;
-	font-family: var(--gt-font-heading);
-	font-size: clamp(64px, 6.2vw, 104px);
-	font-weight: 900;
-	line-height: 0.98;
-	letter-spacing: 0;
-	text-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
-}
-
-#pc-wrap .header-main .hero-copy h1 span {
-	color: #d4af37;
-	font-style: italic;
-	font-family: Georgia, 'Times New Roman', serif;
-	font-weight: 500;
-}
-
-#pc-wrap .header-main .hero-copy p {
-	max-width: 760px;
-	margin: 26px 0 0;
-	color: rgba(255, 255, 255, 0.86);
-	font-size: 20px;
-	font-weight: 500;
-	line-height: 1.7;
-	text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-#pc-wrap .header-main .hero-trending {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
-	margin-top: 34px;
-	color: rgba(255, 255, 255, 0.82);
-}
-
-#pc-wrap .header-main .hero-trending strong {
-	font-size: 13px;
-	font-weight: 800;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-}
-
-#pc-wrap .header-main .hero-trend-tag {
-	display: inline-flex;
-	align-items: center;
-	min-height: 38px;
-	padding: 0 18px;
-	border-radius: 999px;
-	background: rgba(255, 255, 255, 0.16);
-	border: 1px solid rgba(255, 255, 255, 0.28);
-	color: #ffffff;
-	font-size: 13px;
-	font-weight: 800;
-	backdrop-filter: blur(18px);
-	-webkit-backdrop-filter: blur(18px);
-	animation: stitchFloatTag 3.4s ease-in-out infinite;
-	transition: transform 240ms ease, background 240ms ease, border-color 240ms ease;
-}
-
-#pc-wrap .header-main .hero-trend-tag:nth-child(3) {
-	animation-delay: 0.25s;
-}
-
-#pc-wrap .header-main .hero-trend-tag:nth-child(4) {
-	animation-delay: 0.5s;
-}
-
-#pc-wrap .header-main .hero-trend-tag:hover {
-	transform: translateY(-3px);
-	background: rgba(212, 175, 55, 0.26);
-	border-color: rgba(212, 175, 55, 0.52);
-}
-
-#pc-wrap .header-main .hero-search-wrap {
-	width: min(1024px, 100%);
-	margin-top: 42px;
-}
-
-#pc-wrap .tour-search-panel {
-	width: 100%;
-	padding: 8px;
-	border-radius: 24px;
-	background: rgba(255, 255, 255, 0.74);
-	border: 1px solid rgba(255, 255, 255, 0.82);
-	box-shadow: 0 28px 90px rgba(7, 20, 38, 0.24);
-	backdrop-filter: blur(24px) saturate(145%);
-	-webkit-backdrop-filter: blur(24px) saturate(145%);
-}
-
-#pc-wrap .tour-search-panel .search-grid {
-	display: grid !important;
-	grid-template-columns: minmax(280px, 1.35fr) minmax(160px, 0.75fr) minmax(160px, 0.75fr) minmax(180px, 0.95fr) 160px;
-	gap: 8px;
-	align-items: stretch;
-}
-
-#pc-wrap .tour-search-panel .MuiFormControl-root {
-	min-width: 0;
-	background: rgba(255, 255, 255, 0.76);
-	border-radius: 18px;
-}
-
-#pc-wrap .tour-search-panel .MuiOutlinedInput-root {
-	min-height: 64px;
-	border-radius: 18px !important;
-	background: rgba(255, 255, 255, 0.9) !important;
-}
-
-#pc-wrap .tour-search-panel .MuiInputBase-input {
-	color: #0f294d;
-	font-weight: 800;
-}
-
-#pc-wrap .tour-search-panel .MuiInputLabel-root {
-	color: rgba(15, 41, 77, 0.68);
-	font-size: 12px;
-	font-weight: 900;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
-}
-
-#pc-wrap .tour-search-panel .search-submit.MuiButton-root {
-	min-width: 0;
-	min-height: 64px;
-	border-radius: 18px;
-	background: #3264ff;
-	color: #ffffff;
-	font-family: var(--gt-font-heading);
-	font-size: 15px;
-	font-weight: 900;
-	text-transform: none;
-	box-shadow: 0 18px 42px rgba(50, 100, 255, 0.34);
-}
-
-#pc-wrap .tour-search-panel .search-submit.MuiButton-root:hover {
-	background: #214fe0;
-	transform: translateY(-1px);
 }
 
 #pc-wrap #main {
-	background: #f9f9ff;
+	background: var(--gt-paper);
 }
 
 #pc-wrap .home-page {
-	background: #f9f9ff;
+	background: var(--gt-paper);
 }
 
 #pc-wrap .destination-highlight-section {
 	position: relative;
 	padding: 72px 0 110px;
-	background: #f9f9ff;
-}
-
-#pc-wrap .destination-highlight-section::before {
-	content: '';
-	position: absolute;
-	top: -90px;
-	left: 0;
-	right: 0;
-	height: 140px;
-	background: linear-gradient(180deg, rgba(249, 249, 255, 0), #f9f9ff 72%);
-	pointer-events: none;
+	background: var(--gt-paper);
 }
 
 #pc-wrap .destination-highlight-container,
@@ -8999,4 +8576,436 @@ body::-webkit-scrollbar {
 #pc-wrap .MuiInputBase-root:focus-within {
 	outline: 3px solid var(--gt-blue);
 	outline-offset: 3px;
+}
+
+/* ===== SamandTour sunrise home hero (see docs/ai/DESIGN_SYSTEM.md §5/§7) =====
+   Non-token hex values below are the reference's hero sky/skyline art values. */
+#pc-wrap .header-main.gotrip-sunrise-hero {
+	position: relative;
+	min-height: 100svh;
+	margin: 0;
+	padding: 150px 0 60px;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	isolation: isolate;
+	color: #ffffff;
+	background: var(--gt-ink);
+}
+
+#pc-wrap .header-main.gotrip-sunrise-hero::before,
+#pc-wrap .header-main.gotrip-sunrise-hero::after {
+	content: none;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-sky {
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	background:
+		radial-gradient(120% 90% at 78% 8%, #34507e 0%, transparent 55%),
+		radial-gradient(90% 70% at 12% 18%, #2a3f6b 0%, transparent 50%),
+		linear-gradient(180deg, var(--gt-ink) 0%, #13223f 48%, #27395f 100%);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-sky::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 46%;
+	background: radial-gradient(70% 120% at 50% 130%, rgba(255, 138, 92, 0.55), rgba(255, 106, 77, 0.12) 45%, transparent 70%);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-stars {
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	overflow: hidden;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-stars i {
+	position: absolute;
+	width: 2px;
+	height: 2px;
+	border-radius: 50%;
+	background: #ffffff;
+	opacity: 0.12;
+	animation: sunriseTwinkle 4s infinite;
+}
+
+@keyframes sunriseTwinkle {
+	0%,
+	100% {
+		opacity: 0.12;
+	}
+	50% {
+		opacity: 0.9;
+	}
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-skyline {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: -1;
+	width: 100%;
+	height: auto;
+	opacity: 0.9;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-route {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-route .route-dashed {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.45);
+	stroke-width: 1.6;
+	stroke-dasharray: 6 9;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-route .route-glow {
+	fill: none;
+	stroke-width: 2.4;
+	stroke-linecap: round;
+	stroke-dasharray: 1600;
+	stroke-dashoffset: 1600;
+	animation: sunriseRouteDraw 3.4s var(--gt-ease) 0.2s forwards;
+}
+
+@keyframes sunriseRouteDraw {
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-route .route-dot {
+	fill: var(--gt-gold);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-inner {
+	position: relative;
+	z-index: 2;
+	width: min(1180px, calc(100% - 64px));
+	margin: 0 auto;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-grid {
+	display: grid;
+	grid-template-columns: 1.15fr 0.85fr;
+	gap: 40px;
+	align-items: center;
+	width: 100%;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-copy {
+	align-items: flex-start;
+	gap: 0;
+	min-width: 0;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-eyebrow {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6em;
+	font-family: var(--gt-font-body);
+	font-size: 0.74rem;
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--gt-coral-2);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-eyebrow::before {
+	content: '';
+	width: 26px;
+	height: 1px;
+	background: var(--gt-coral-2);
+}
+
+#pc-wrap .gotrip-sunrise-hero h1 {
+	margin: 0.35em 0 0.5em;
+	max-width: 14ch;
+	font-family: var(--gt-font-display);
+	font-weight: 500;
+	font-size: clamp(2.5rem, 5vw, 4.25rem);
+	line-height: 1.05;
+	letter-spacing: -0.01em;
+	/* !important: the global token-audit layer forces h1 to var(--gt-heading) !important,
+	   which is dark ink in light mode — unreadable on the hero sky. */
+	color: #ffffff !important;
+}
+
+#pc-wrap .gotrip-sunrise-hero h1 .line {
+	display: block;
+	overflow: hidden;
+}
+
+#pc-wrap .gotrip-sunrise-hero h1 .line > span {
+	display: block;
+}
+
+#pc-wrap .gotrip-sunrise-hero h1 em {
+	font-style: italic;
+	color: var(--gt-coral-2);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-sub {
+	margin: 0;
+	max-width: 46ch;
+	font-family: var(--gt-font-body);
+	font-size: 1.08rem;
+	line-height: 1.6;
+	color: var(--gt-muted-light);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-trending {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin-top: 24px;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-trending strong {
+	font-family: var(--gt-font-body);
+	font-size: 0.74rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--gt-muted-light);
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-trend-tag {
+	font-family: var(--gt-font-body);
+	font-size: 13px;
+	font-weight: 600;
+	color: #ffffff;
+	padding: 7px 16px;
+	border-radius: var(--gt-radius-pill);
+	border: 1px solid var(--gt-line-light);
+	background: rgba(255, 255, 255, 0.12);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	transition: background 0.3s var(--gt-ease), border-color 0.3s var(--gt-ease), transform 0.3s var(--gt-ease);
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-trend-tag:hover {
+	background: rgba(255, 106, 77, 0.18);
+	border-color: var(--gt-coral);
+	transform: translateY(-2px);
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-search {
+	width: 100%;
+	margin-top: 36px;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-stats {
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 44px;
+	margin-top: 30px;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-stat b {
+	font-family: var(--gt-font-display);
+	font-weight: 600;
+	font-size: 2rem;
+	line-height: 1.1;
+	color: #ffffff;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-stat span {
+	font-family: var(--gt-font-body);
+	font-size: 0.74rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--gt-muted-light);
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-chip {
+	position: absolute;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 16px;
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.12);
+	border: 1px solid var(--gt-line-light);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	box-shadow: var(--gt-shadow);
+	color: #ffffff;
+	font-family: var(--gt-font-body);
+	font-weight: 700;
+	font-size: 0.92rem;
+	opacity: 0;
+	animation-name: sunriseChipIn, sunriseChipBob;
+	animation-duration: 0.9s, 6s;
+	animation-timing-function: var(--gt-ease), ease-in-out;
+	animation-iteration-count: 1, infinite;
+	animation-fill-mode: forwards, none;
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-chip b {
+	display: block;
+	line-height: 1.25;
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-chip small {
+	display: block;
+	font-weight: 500;
+	font-size: 0.74rem;
+	color: var(--gt-muted-light);
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-chip .ic {
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	display: grid;
+	place-items: center;
+	background: rgba(255, 106, 77, 0.22);
+	color: var(--gt-coral-2);
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-chip.chip-1 {
+	top: 26%;
+	right: 5%;
+	animation-delay: 1.2s, 0s;
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-chip.chip-2 {
+	top: 44%;
+	right: 16%;
+	animation-delay: 1.45s, 0s;
+}
+
+@keyframes sunriseChipIn {
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes sunriseChipBob {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-12px);
+	}
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue {
+	position: absolute;
+	left: 50%;
+	bottom: 26px;
+	transform: translateX(-50%);
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	color: var(--gt-muted-light);
+	font-size: 0.72rem;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue .mouse {
+	position: relative;
+	width: 22px;
+	height: 36px;
+	border: 1.5px solid var(--gt-line-light);
+	border-radius: 14px;
+}
+
+#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue .mouse::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 7px;
+	width: 3px;
+	height: 7px;
+	border-radius: 3px;
+	background: #ffffff;
+	transform: translateX(-50%);
+	animation: sunriseScrollCue 1.8s infinite;
+}
+
+@keyframes sunriseScrollCue {
+	0% {
+		opacity: 1;
+		top: 7px;
+	}
+	70% {
+		opacity: 0;
+		top: 18px;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+@media (max-width: 1180px) {
+	#pc-wrap .gotrip-sunrise-hero .sunrise-hero-grid {
+		grid-template-columns: 1fr;
+	}
+
+	#pc-wrap .gotrip-sunrise-hero .sunrise-hero-side,
+	#pc-wrap .gotrip-sunrise-hero .hero-chip {
+		display: none;
+	}
+
+	#pc-wrap .gotrip-sunrise-hero h1 {
+		font-size: clamp(2.4rem, 6vw, 3.6rem);
+	}
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+	#pc-wrap .header-main.gotrip-sunrise-hero {
+		min-height: auto;
+		padding: 110px 0 48px;
+	}
+
+	#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#pc-wrap .gotrip-sunrise-hero .sunrise-stars i,
+	#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue .mouse::after,
+	#pc-wrap .gotrip-sunrise-hero .hero-chip {
+		animation: none;
+	}
+
+	#pc-wrap .gotrip-sunrise-hero .hero-chip {
+		opacity: 1;
+	}
+
+	#pc-wrap .gotrip-sunrise-hero .sunrise-route .route-glow {
+		animation: none;
+		stroke-dashoffset: 0;
+	}
 }

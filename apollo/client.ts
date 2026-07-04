@@ -11,9 +11,8 @@ import { socketVar } from './store';
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
 function getHeaders() {
-	const headers = {} as HeadersInit;
+	const headers: Record<string, string> = {};
 	const token = getJwtToken();
-	// @ts-ignore
 	if (token) headers['Authorization'] = `Bearer ${token}`;
 	return headers;
 }
@@ -22,9 +21,13 @@ const tokenRefreshLink = new TokenRefreshLink({
 	accessTokenField: 'accessToken',
 	isTokenValidOrUndefined: () => {
 		return true;
-	}, // @ts-ignore
+	},
+	// Intentional no-op: the GoTrip backend has no refresh-token endpoint by design, and
+	// isTokenValidOrUndefined always returns true, so this is never invoked at runtime.
+	// Genuine library type gap: FetchAccessToken is typed as () => Promise<Response>, which an
+	// honest no-op cannot satisfy without fabricating a Response — hence the suppression below.
+	// @ts-ignore
 	fetchAccessToken: () => {
-		// execute refresh token
 		return null;
 	},
 });
@@ -68,12 +71,10 @@ function createIsomorphicLink() {
 					...getHeaders(),
 				},
 			}));
-			console.warn('requesting.. ', operation);
 			return forward(operation);
 		});
 
-		// @ts-ignore
-		const link = new createUploadLink({
+		const link = createUploadLink({
 			uri: process.env.REACT_APP_API_GRAPHQL_URL,
 		});
 
@@ -81,7 +82,7 @@ function createIsomorphicLink() {
 		const wsLink = new WebSocketLink({
 			uri: process.env.REACT_APP_API_WS ?? 'ws://127.0.0.1:3007',
 			options: {
-				reconnect: false,
+				reconnect: true,
 				timeout: 30000,
 				connectionParams: () => {
 					return { headers: getHeaders() };
@@ -98,8 +99,13 @@ function createIsomorphicLink() {
 				});
 			}
 			if (networkError) console.log(`[Network error]: ${networkError}`);
-			// @ts-ignore
-			if (networkError?.statusCode === 401) {
+			if (networkError && 'statusCode' in networkError && networkError.statusCode === 401) {
+				// No refresh-token endpoint exists by design, so a 401 means the session is invalid:
+				// clear the stored token and send the user to the login page. Client-side only (SSR-safe).
+				if (typeof window !== 'undefined') {
+					localStorage.removeItem('accessToken');
+					window.location.href = '/account/join';
+				}
 			}
 		});
 
