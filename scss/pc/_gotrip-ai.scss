@@ -1,0 +1,913 @@
+/* ============================================================================
+ * GoTrip AI — premium floating assistant widget
+ *
+ * Built entirely on the existing global design tokens (scss/foundation/_tokens.scss)
+ * — accent blue, glass tokens, radii, shadows, motion vocabulary, typography —
+ * so this reads as GoTrip, not a bolted-on chat plugin. Dark mode is not an
+ * inversion: it leans on the same [data-theme='dark'] --gt-* overrides the rest
+ * of the app already uses, plus a few local-only additions (gradient, glow)
+ * scoped under .gt-ai-root so they never leak elsewhere.
+ *
+ * Replaces the legacy .chatting / "Online Chat" block that used to live here.
+ * ========================================================================== */
+
+.gt-ai-root {
+	/* Local tokens layered on top of the global --gt-* system. */
+	--gt-ai-gradient: linear-gradient(135deg, var(--gt-accent) 0%, var(--gt-accent-2) 100%);
+	--gt-ai-glow: 0 0 0 rgba(77, 126, 242, 0);
+	--gt-ai-launcher-size: 62px;
+	--gt-ai-z-launcher: var(--gt-z-nav);
+	--gt-ai-z-window: var(--gt-z-overlay);
+	/* Clears the Home hero's search bar, which sits close to the viewport
+	   bottom at common laptop heights (~720–800px) before any scroll. */
+	--gt-ai-safe-bottom: 96px;
+
+	font-family: var(--gt-font-body);
+}
+
+[data-theme='dark'] .gt-ai-root {
+	--gt-ai-gradient: linear-gradient(135deg, #2a6bf0 0%, #57d1ff 100%);
+	--gt-ai-glow: 0 0 24px rgba(87, 209, 255, 0.35);
+}
+
+/* ---------------------------------------------------------------------- */
+/* LAUNCHER                                                                */
+/* ---------------------------------------------------------------------- */
+.gt-ai-launcher {
+	position: fixed;
+	right: 28px;
+	bottom: var(--gt-ai-safe-bottom);
+	z-index: var(--gt-ai-z-launcher);
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	height: var(--gt-ai-launcher-size);
+	min-width: var(--gt-ai-launcher-size);
+	padding: 0 18px 0 0;
+	border: none;
+	border-radius: var(--gt-radius-pill);
+	background: var(--gt-ai-gradient);
+	color: var(--gt-inverse-text);
+	box-shadow: var(--gt-shadow-floating), var(--gt-ai-glow);
+	cursor: pointer;
+	transition: transform var(--gt-duration-fast) var(--gt-ease-out), box-shadow var(--gt-duration-fast) var(--gt-ease-out),
+		padding var(--gt-duration-standard) var(--gt-ease-out);
+
+	&:hover,
+	&:focus-visible {
+		transform: translateY(-3px) scale(1.03);
+		box-shadow: var(--gt-shadow-floating), 0 0 0 8px rgba(77, 126, 242, 0.14), var(--gt-ai-glow);
+	}
+	&:active {
+		transform: translateY(-1px) scale(0.99);
+	}
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: 3px;
+	}
+	&.is-open {
+		padding-right: 0;
+	}
+}
+
+.gt-ai-launcher-pulse {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--gt-ai-gradient);
+	opacity: 0.55;
+	animation: gt-ai-pulse 2.6s var(--gt-ease-out) infinite;
+	pointer-events: none;
+}
+
+.gt-ai-launcher-icon {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--gt-ai-launcher-size);
+	height: var(--gt-ai-launcher-size);
+	flex: 0 0 auto;
+	color: var(--gt-inverse-text);
+}
+
+/* Always visible — no hover-to-reveal. Discoverability shouldn't depend on
+   a hover state that touch devices don't even have. */
+.gt-ai-launcher-label {
+	position: relative;
+	font-family: var(--gt-font-body);
+	font-weight: var(--gt-weight-semibold);
+	font-size: var(--gt-text-caption);
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+}
+
+@keyframes gt-ai-pulse {
+	0% {
+		transform: scale(1);
+		opacity: 0.45;
+	}
+	70% {
+		transform: scale(1.55);
+		opacity: 0;
+	}
+	100% {
+		transform: scale(1.55);
+		opacity: 0;
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* AVATAR                                                                  */
+/* ---------------------------------------------------------------------- */
+.gt-ai-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	border-radius: 50%;
+	background: var(--gt-ai-gradient);
+	color: #ffffff;
+}
+
+.gt-ai-avatar--animated {
+	background-size: 180% 180%;
+	animation: gt-ai-shimmer 5s ease-in-out infinite;
+
+	svg {
+		animation: gt-ai-sparkle 3.2s ease-in-out infinite;
+		transform-origin: center;
+	}
+}
+
+@keyframes gt-ai-shimmer {
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+@keyframes gt-ai-sparkle {
+	0%,
+	100% {
+		transform: scale(1) rotate(0deg);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.14) rotate(8deg);
+		opacity: 0.85;
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* BACKDROP — mobile only (see the mobile media query below). Mounted      */
+/* unconditionally by GoTripAIWindow alongside the window itself so both   */
+/* fade in/out together under one AnimatePresence, but stays display:none  */
+/* here so it has zero effect above 599px — the desktop window keeps its   */
+/* existing non-modal, click-outside-to-close behavior untouched.          */
+/* ---------------------------------------------------------------------- */
+.gt-ai-backdrop {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: var(--gt-scrim);
+	z-index: calc(var(--gt-ai-z-window) - 1);
+}
+
+/* ---------------------------------------------------------------------- */
+/* WINDOW SHELL                                                            */
+/* ---------------------------------------------------------------------- */
+.gt-ai-window {
+	position: fixed;
+	right: 28px;
+	bottom: calc(var(--gt-ai-safe-bottom) + var(--gt-ai-launcher-size) + 16px);
+	z-index: var(--gt-ai-z-window);
+	display: flex;
+	flex-direction: column;
+	width: 400px;
+	max-width: calc(100vw - 32px);
+	/* Must never exceed the viewport: reserve the same bottom offset the
+	   window is anchored at, plus a top clearance, or short viewports push
+	   the top edge above y=0 (verified via a real 720px-tall browser). */
+	height: min(660px, calc(100vh - var(--gt-ai-safe-bottom) - var(--gt-ai-launcher-size) - 16px - 40px));
+	overflow: hidden;
+	border-radius: var(--gt-radius-surface);
+	background: var(--gt-glass-surface);
+	border: 1px solid var(--gt-glass-border);
+	box-shadow: var(--gt-shadow-floating), var(--gt-ai-glow);
+	backdrop-filter: blur(24px) saturate(160%);
+	-webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+.gt-ai-window::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(77, 126, 242, 0.08) 0%, rgba(77, 126, 242, 0) 34%);
+	pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* HEADER                                                                  */
+/* ---------------------------------------------------------------------- */
+.gt-ai-header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--gt-space-3);
+	padding: var(--gt-space-4) var(--gt-space-5);
+	border-bottom: 1px solid var(--gt-border);
+	flex: 0 0 auto;
+}
+
+.gt-ai-header-identity {
+	display: flex;
+	align-items: center;
+	gap: var(--gt-space-3);
+	min-width: 0;
+}
+
+.gt-ai-header-title {
+	margin: 0;
+	font-family: var(--gt-font-display);
+	font-size: var(--gt-text-heading);
+	font-weight: var(--gt-weight-display);
+	color: var(--gt-text);
+	line-height: var(--gt-leading-heading);
+}
+
+.gt-ai-header-subtitle {
+	margin: 2px 0 0;
+	font-size: var(--gt-text-caption);
+	color: var(--gt-text-2);
+	line-height: var(--gt-leading-caption);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gt-ai-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 auto;
+}
+
+.gt-ai-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border: none;
+	border-radius: var(--gt-radius-control);
+	background: transparent;
+	color: var(--gt-text-2);
+	cursor: pointer;
+	transition: var(--gt-transition-color), transform var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:hover {
+		background: var(--gt-accent-soft);
+		color: var(--gt-accent);
+	}
+	&:active {
+		transform: scale(0.94);
+	}
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: 2px;
+	}
+	&[aria-pressed='true'] {
+		background: var(--gt-accent-soft);
+		color: var(--gt-accent);
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* BODY / MESSAGES                                                         */
+/* ---------------------------------------------------------------------- */
+.gt-ai-body {
+	position: relative;
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding: var(--gt-space-4) var(--gt-space-4);
+	scrollbar-width: thin;
+	scrollbar-color: var(--gt-border-strong) transparent;
+
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: var(--gt-border-strong);
+		border-radius: var(--gt-radius-pill);
+	}
+}
+
+.gt-ai-welcome {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: var(--gt-space-2);
+	padding: var(--gt-space-6) var(--gt-space-2) var(--gt-space-2);
+
+	h3 {
+		margin: var(--gt-space-2) 0 0;
+		font-family: var(--gt-font-display);
+		font-size: 1.1rem;
+		font-weight: var(--gt-weight-display);
+		color: var(--gt-text);
+	}
+	p {
+		margin: 0 0 var(--gt-space-3);
+		font-size: var(--gt-text-caption);
+		color: var(--gt-text-2);
+	}
+}
+
+.gt-ai-suggestions {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+	width: 100%;
+}
+
+.gt-ai-suggestion-card {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 14px;
+	border: 1px solid var(--gt-border);
+	border-radius: var(--gt-radius-control);
+	background: var(--gt-surface);
+	color: var(--gt-text);
+	font-family: var(--gt-font-body);
+	font-size: 0.82rem;
+	font-weight: var(--gt-weight-semibold);
+	text-align: left;
+	cursor: pointer;
+	transition: var(--gt-transition-transform), border-color var(--gt-duration-fast) var(--gt-ease-out),
+		background var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:hover {
+		transform: translateY(-2px);
+		border-color: var(--gt-accent);
+		background: var(--gt-accent-soft);
+		box-shadow: var(--gt-shadow-raised);
+	}
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: 2px;
+	}
+}
+
+.gt-ai-suggestion-icon {
+	flex: 0 0 auto;
+	width: 18px;
+	height: 18px;
+	color: var(--gt-accent);
+}
+
+.gt-ai-messages {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gt-space-3);
+}
+
+.gt-ai-msg-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.gt-ai-msg-row--user {
+	flex-direction: row-reverse;
+}
+
+.gt-ai-msg-col {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-width: 78%;
+}
+
+.gt-ai-msg-row--user .gt-ai-msg-col {
+	align-items: flex-end;
+}
+
+.gt-ai-bubble {
+	padding: 10px 14px;
+	border-radius: var(--gt-radius-surface);
+	font-size: 0.9rem;
+	line-height: var(--gt-leading-body);
+	word-break: break-word;
+	white-space: pre-wrap;
+}
+
+.gt-ai-bubble--assistant {
+	background: var(--gt-surface);
+	border: 1px solid var(--gt-border);
+	color: var(--gt-text);
+	border-bottom-left-radius: 6px;
+}
+
+.gt-ai-bubble--user {
+	background: var(--gt-ai-gradient);
+	color: var(--gt-inverse-text);
+	border-bottom-right-radius: 6px;
+}
+
+/* Compact recommendation list under an assistant reply — same row treatment
+ * as .gt-ai-history-item/.gt-ai-history-select (conversation switcher), so
+ * this reuses the design language instead of inventing a second style. */
+.gt-ai-rec-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 6px 0 0;
+	padding: 0;
+	list-style: none;
+	max-width: 78%;
+}
+
+.gt-ai-rec-item {
+	border-radius: var(--gt-radius-control);
+	border: 1px solid var(--gt-border);
+	background: var(--gt-surface);
+	transition: background var(--gt-duration-fast) var(--gt-ease-out), border-color var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:hover {
+		background: var(--gt-surface-2);
+		border-color: var(--gt-accent);
+	}
+}
+
+.gt-ai-rec-link {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 10px;
+	color: var(--gt-text);
+	text-decoration: none;
+
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: -2px;
+		border-radius: var(--gt-radius-control);
+	}
+}
+
+.gt-ai-rec-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.gt-ai-rec-title {
+	font-size: 0.85rem;
+	font-weight: var(--gt-weight-semibold);
+	color: var(--gt-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gt-ai-rec-meta {
+	font-size: var(--gt-text-micro);
+	color: var(--gt-text-3);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gt-ai-rec-arrow {
+	flex: 0 0 auto;
+	width: 16px;
+	height: 16px;
+	stroke: var(--gt-text-3);
+	fill: none;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.gt-ai-cursor {
+	display: inline-block;
+	margin-left: 2px;
+	animation: gt-ai-blink 1s step-end infinite;
+}
+
+@keyframes gt-ai-blink {
+	50% {
+		opacity: 0;
+	}
+}
+
+.gt-ai-msg-time {
+	padding: 0 4px;
+	font-size: var(--gt-text-micro);
+	color: var(--gt-text-3);
+}
+
+.gt-ai-system-note {
+	align-self: center;
+	padding: 6px 14px;
+	border-radius: var(--gt-radius-pill);
+	background: var(--gt-surface-2);
+	color: var(--gt-text-2);
+	font-size: var(--gt-text-micro);
+	text-align: center;
+}
+
+/* Typing indicator */
+.gt-ai-typing {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 12px 14px;
+	border-radius: var(--gt-radius-surface);
+	border-bottom-left-radius: 6px;
+	background: var(--gt-surface);
+	border: 1px solid var(--gt-border);
+}
+
+.gt-ai-typing-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--gt-text-3);
+	animation: gt-ai-typing-bounce 1.2s ease-in-out infinite;
+
+	&:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+	&:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+}
+
+@keyframes gt-ai-typing-bounce {
+	0%,
+	60%,
+	100% {
+		transform: translateY(0);
+		opacity: 0.5;
+	}
+	30% {
+		transform: translateY(-4px);
+		opacity: 1;
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* INPUT BAR                                                               */
+/* ---------------------------------------------------------------------- */
+.gt-ai-input-bar {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+	padding: var(--gt-space-3) var(--gt-space-4);
+	border-top: 1px solid var(--gt-border);
+	flex: 0 0 auto;
+}
+
+.gt-ai-input {
+	flex: 1 1 auto;
+	resize: none;
+	max-height: 120px;
+	padding: 10px 14px;
+	border: 1px solid var(--gt-input-border);
+	border-radius: var(--gt-radius-control);
+	background: var(--gt-input-bg);
+	color: var(--gt-input-text);
+	font-family: var(--gt-font-body);
+	font-size: 0.88rem;
+	line-height: 1.4;
+	transition: border-color var(--gt-duration-fast) var(--gt-ease-out);
+
+	&::placeholder {
+		color: var(--gt-input-placeholder);
+	}
+	&:focus-visible {
+		outline: none;
+		border-color: var(--gt-accent);
+		box-shadow: 0 0 0 3px var(--gt-accent-soft);
+	}
+}
+
+.gt-ai-send-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	border: none;
+	border-radius: 50%;
+	background: var(--gt-ai-gradient);
+	color: #ffffff;
+	cursor: pointer;
+	transition: transform var(--gt-duration-fast) var(--gt-ease-out), opacity var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:hover:not(:disabled) {
+		transform: scale(1.06);
+	}
+	&:active:not(:disabled) {
+		transform: scale(0.95);
+	}
+	&:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: 2px;
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* HISTORY PANEL                                                           */
+/* ---------------------------------------------------------------------- */
+.gt-ai-history {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding: var(--gt-space-3) var(--gt-space-3) var(--gt-space-4);
+}
+
+.gt-ai-new-chat {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: var(--gt-space-2);
+	padding: 10px 14px;
+	border: 1px dashed var(--gt-border-strong);
+	border-radius: var(--gt-radius-control);
+	background: transparent;
+	color: var(--gt-accent);
+	font-family: var(--gt-font-body);
+	font-weight: var(--gt-weight-semibold);
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: background var(--gt-duration-fast) var(--gt-ease-out), border-color var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:hover {
+		background: var(--gt-accent-soft);
+		border-color: var(--gt-accent);
+	}
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: 2px;
+	}
+}
+
+.gt-ai-history-empty {
+	padding: var(--gt-space-5) var(--gt-space-2);
+	text-align: center;
+	color: var(--gt-text-3);
+	font-size: var(--gt-text-caption);
+}
+
+.gt-ai-history-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.gt-ai-history-item {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	border-radius: var(--gt-radius-control);
+	transition: background var(--gt-duration-fast) var(--gt-ease-out);
+
+	&:hover {
+		background: var(--gt-surface-2);
+	}
+	&.active {
+		background: var(--gt-accent-soft);
+	}
+
+	.gt-ai-history-actions {
+		opacity: 0;
+		transition: opacity var(--gt-duration-fast) var(--gt-ease-out);
+	}
+	&:hover .gt-ai-history-actions,
+	&:focus-within .gt-ai-history-actions {
+		opacity: 1;
+	}
+}
+
+.gt-ai-history-select {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 10px 8px;
+	border: none;
+	background: transparent;
+	color: var(--gt-text);
+	text-align: left;
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: 2px solid var(--gt-focus-ring);
+		outline-offset: -2px;
+		border-radius: var(--gt-radius-control);
+	}
+}
+
+.gt-ai-history-icon {
+	flex: 0 0 auto;
+	color: var(--gt-text-3);
+}
+
+.gt-ai-history-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.gt-ai-history-title {
+	font-size: 0.85rem;
+	font-weight: var(--gt-weight-semibold);
+	color: var(--gt-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gt-ai-history-preview {
+	font-size: var(--gt-text-micro);
+	color: var(--gt-text-3);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gt-ai-history-actions {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex: 0 0 auto;
+	padding-right: 6px;
+
+	button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border: none;
+		border-radius: var(--gt-radius-control);
+		background: transparent;
+		color: var(--gt-text-3);
+		cursor: pointer;
+
+		&:hover {
+			background: var(--gt-surface-2);
+			color: var(--gt-accent);
+		}
+		&:focus-visible {
+			outline: 2px solid var(--gt-focus-ring);
+			outline-offset: 1px;
+		}
+	}
+}
+
+.gt-ai-history-edit {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex: 1 1 auto;
+	padding: 6px 8px;
+
+	input {
+		flex: 1 1 auto;
+		min-width: 0;
+		padding: 6px 8px;
+		border: 1px solid var(--gt-accent);
+		border-radius: var(--gt-radius-control);
+		background: var(--gt-input-bg);
+		color: var(--gt-input-text);
+		font-size: 0.82rem;
+
+		&:focus-visible {
+			outline: 2px solid var(--gt-focus-ring);
+			outline-offset: 1px;
+		}
+	}
+	button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border: none;
+		border-radius: var(--gt-radius-control);
+		background: transparent;
+		color: var(--gt-text-2);
+		cursor: pointer;
+
+		&:hover {
+			background: var(--gt-surface-2);
+		}
+		&:focus-visible {
+			outline: 2px solid var(--gt-focus-ring);
+			outline-offset: 1px;
+		}
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* RESPONSIVE — tablet                                                     */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+	.gt-ai-window {
+		width: 380px;
+		right: 20px;
+		bottom: calc(var(--gt-ai-safe-bottom) + var(--gt-ai-launcher-size) + 14px);
+	}
+	.gt-ai-launcher {
+		right: 20px;
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* RESPONSIVE — mobile                                                    */
+/*                                                                          */
+/* Two things changed here from the previous mobile treatment:            */
+/*  1. The launcher used to hide .gt-ai-launcher-label below 599px,        */
+/*     leaving only a bare 54px circle — indistinguishable from any other */
+/*     floating action button and not recognisable as "GoTrip AI, an AI   */
+/*     assistant". The label (and the existing sparkle-avatar icon this   */
+/*     component already had) now stays, just sized down for mobile.      */
+/*  2. The window used to open with only a 10px margin on every side,     */
+/*     which reads as full-screen on a phone. It now opens as a floating  */
+/*     card with real margins and a backdrop (.gt-ai-backdrop, mounted    */
+/*     unconditionally by GoTripAIWindow but display:none outside this    */
+/*     media query, so desktop is untouched) — the same "floating panel   */
+/*     over a dimmed page" pattern the rest of the app's modals already   */
+/*     use (--gt-scrim, see scss/foundation/_components.scss), instead of */
+/*     a bespoke look. safe-area insets keep both clear of notches/home   */
+/*     indicators without needing JS.                                     */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 599px) {
+	.gt-ai-launcher {
+		right: 16px;
+		bottom: 96px; /* clears #mobile-wrap .mobile-bottom-nav (bottom:12px, ~70px tall) */
+		--gt-ai-launcher-size: 48px;
+		gap: 8px;
+		padding: 0 16px 0 0;
+	}
+	.gt-ai-launcher-label {
+		font-size: 0.76rem;
+	}
+
+	.gt-ai-backdrop {
+		display: block;
+	}
+
+	.gt-ai-window {
+		right: 16px;
+		left: 16px;
+		bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+		top: calc(56px + env(safe-area-inset-top, 0px));
+		width: auto;
+		max-width: none;
+		height: auto;
+		border-radius: var(--gt-radius-surface);
+	}
+
+	.gt-ai-suggestions {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+/* ACCESSIBILITY — reduced motion                                          */
+/* ---------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.gt-ai-launcher-pulse,
+	.gt-ai-avatar--animated,
+	.gt-ai-avatar--animated svg,
+	.gt-ai-cursor,
+	.gt-ai-typing-dot {
+		animation: none !important;
+	}
+	.gt-ai-launcher,
+	.gt-ai-suggestion-card,
+	.gt-ai-send-btn {
+		transition: none !important;
+	}
+}

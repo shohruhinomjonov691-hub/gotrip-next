@@ -1,0 +1,269 @@
+/* ============================================================================
+ * GoTrip Home (HTML reference) — scoped design tokens
+ *
+ * Everything here is namespaced under .gth-root so it never leaks into any
+ * other page or collides with the existing global --gt-* design system
+ * (scss/foundation/_tokens.scss). This lets the Home page match the HTML
+ * reference exactly without touching any other page's look.
+ *
+ * Dark mode reuses the app's existing convention ([data-theme='dark'] on
+ * <html>, set by ColorModeProvider) instead of the reference HTML's
+ * `body.dark` class toggle.
+ * ========================================================================== */
+
+/* The admin palette, extracted so it can be applied to BOTH the admin shell and
+   to MUI portals. Dialogs/menus render at <body> level, outside #pc-wrap, so any
+   token declared only on #pc-wrap.admin is undefined inside them — which is how
+   the Create Notice dialog ended up white-in-dark-mode. One definition, two
+   consumers. See scss/pc/admin/_gth-admin.scss for the derivation of --body and
+   --muted (darkened from .gth-root for AA at admin text sizes). */
+@mixin gt-admin-tokens-light {
+	--sky: #0c7d9b;
+	--sky-2: #0d8bad;
+	--sky-deep: #0a6980;
+	--sky-soft: #e5f3fa;
+	--sky-soft-2: #f2fafd;
+	--ink: #103b42;
+	--ink-2: #0c3238;
+	--gold: #f4b352;
+	--body: #3f4f52;
+	--muted: #5e6c6f;
+	--line: #dfeaec;
+	--paper: #ffffff;
+	--paper-soft: #f6fbfc;
+	--shadow: 0 26px 70px -28px rgba(16, 59, 66, 0.45);
+	--pop: 0 24px 60px -18px rgba(16, 59, 66, 0.28);
+	--shadow-sm: 0 1px 2px rgba(16, 59, 66, 0.06), 0 8px 24px -16px rgba(16, 59, 66, 0.28);
+}
+
+@mixin gt-admin-tokens-dark {
+	--sky: #22bce0;
+	--sky-2: #3fcbe9;
+	--sky-deep: #3fcbe9;
+	--sky-soft: #11262b;
+	--sky-soft-2: #0d1e22;
+	--ink: #eef7f9;
+	--ink-2: #d7e7ea;
+	--gold: #f7c169;
+	--body: #c3d5d8;
+	--muted: #9db3b7;
+	--line: #1e343a;
+	--paper: #0b1719;
+	--paper-soft: #0e1f22;
+	--shadow: 0 26px 70px -24px rgba(0, 0, 0, 0.65);
+	--pop: 0 24px 60px -16px rgba(0, 0, 0, 0.6);
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.6);
+}
+
+/* The "Most Popular Tours" backdrop, extracted so the admin shell can render the
+   identical treatment instead of inventing a second one. Defined here because
+   _tokens is imported first, making the mixin available to every later partial
+   (including scss/pc/admin/_gth-admin.scss). The section itself now @includes
+   this too, so there is exactly one definition of the artwork. */
+@mixin gt-doodle-backdrop {
+	background-image: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.9) 3px, transparent 3px),
+		radial-gradient(circle at 32% 66%, rgba(255, 255, 255, 0.75) 2.4px, transparent 2.4px),
+		radial-gradient(circle at 55% 28%, rgba(255, 255, 255, 0.85) 3px, transparent 3px),
+		radial-gradient(circle at 78% 72%, rgba(255, 255, 255, 0.8) 2.6px, transparent 2.6px),
+		radial-gradient(circle at 92% 16%, rgba(255, 255, 255, 0.9) 3px, transparent 3px),
+		repeating-radial-gradient(circle at 20% 50%, transparent 0 60px, rgba(255, 255, 255, 0.5) 60px 61px),
+		repeating-radial-gradient(circle at 80% 40%, transparent 0 70px, rgba(255, 255, 255, 0.42) 70px 71px);
+	background-size: 260px 200px, 260px 200px, 260px 200px, 260px 200px, 260px 200px, auto, auto;
+}
+
+.gth-root {
+	--sky: #16a3c8;
+	--sky-2: #0d8bad;
+	--sky-soft: #e5f3fa;
+	--sky-soft-2: #f2fafd;
+	--ink: #103b42;
+	--ink-2: #0c3238;
+	--gold: #f4b352;
+	--body: #5f6f72;
+	--muted: #8a979a;
+	--line: #dfeaec;
+	--paper: #ffffff;
+	--paper-soft: #f6fbfc;
+	--ink-solid: #103b42;
+	--ink-solid-2: #0c3238;
+	--shadow: 0 26px 70px -28px rgba(16, 59, 66, 0.45);
+	--pop: 0 24px 60px -18px rgba(16, 59, 66, 0.28);
+	--cw: 260px;
+	--mcw: 330px;
+	--mgap: 24px;
+	--ngap: 24px;
+	--tgap: 26px;
+	--tscw: 820px;
+	--tsgap: 28px;
+	--cgap: 26px;
+
+	font-family: 'DM Sans', system-ui, sans-serif;
+	color: var(--body);
+	background: var(--paper);
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+}
+
+[data-theme='dark'] .gth-root {
+	--sky: #22bce0;
+	--sky-2: #3fcbe9;
+	--gold: #f7c169;
+	--ink: #eef7f9;
+	--ink-2: #d7e7ea;
+	--body: #adc2c6;
+	--muted: #7f979c;
+	--line: #1e343a;
+	--paper: #0b1719;
+	--paper-soft: #0e1f22;
+	--sky-soft: #11262b;
+	--sky-soft-2: #0d1e22;
+	--shadow: 0 26px 70px -24px rgba(0, 0, 0, 0.65);
+	--pop: 0 24px 60px -16px rgba(0, 0, 0, 0.6);
+}
+
+.gth-root {
+	.header,
+	.searchbar,
+	.sel-menu,
+	.lang-menu,
+	.stats-sec,
+	.cats-sec,
+	.td-sec,
+	.plan-sec,
+	.mp-sec,
+	.nt-sec,
+	.mq-sec,
+	.tg-sec,
+	.art-sec,
+	.mp-card,
+	.tg-card,
+	.art-card,
+	.plan-badge,
+	.s-card,
+	.stat,
+	.ts-card,
+	.cat-ph,
+	.guide {
+		[data-theme='dark'] & {
+			box-shadow: 0 18px 46px -26px rgba(0, 0, 0, 0.7);
+		}
+	}
+
+	.td-sec .topo {
+		[data-theme='dark'] & {
+			background-image: repeating-radial-gradient(circle at 14% 26%, transparent 0 44px, rgba(255, 255, 255, 0.06) 44px 45px),
+				repeating-radial-gradient(circle at 78% 18%, transparent 0 52px, rgba(255, 255, 255, 0.05) 52px 53px),
+				repeating-radial-gradient(circle at 60% 88%, transparent 0 48px, rgba(255, 255, 255, 0.045) 48px 49px),
+				repeating-radial-gradient(circle at 4% 82%, transparent 0 40px, rgba(255, 255, 255, 0.05) 40px 41px);
+		}
+	}
+
+	[data-theme='dark'] & .ts-card {
+		background: rgba(15, 28, 32, 0.9);
+	}
+	[data-theme='dark'] & .header {
+		border-bottom-color: var(--line);
+	}
+	[data-theme='dark'] & .sf {
+		border-right-color: var(--line);
+	}
+	[data-theme='dark'] & .lang-btn,
+	[data-theme='dark'] & .link-btn,
+	[data-theme='dark'] & .bell,
+	[data-theme='dark'] & .mypage {
+		border-color: var(--line);
+	}
+	[data-theme='dark'] & .brand-badge {
+		filter: brightness(0.92);
+	}
+	[data-theme='dark'] & img {
+		filter: brightness(0.94) saturate(1.03);
+	}
+	[data-theme='dark'] & .mp-media img,
+	[data-theme='dark'] & .art-thumb img,
+	[data-theme='dark'] & .cat-ph img,
+	[data-theme='dark'] & .td-card img,
+	[data-theme='dark'] & .tg-cover img,
+	[data-theme='dark'] & .hero-bg img,
+	[data-theme='dark'] & .slide img {
+		filter: brightness(0.82) saturate(1.05);
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+	.wrap {
+		max-width: 1280px;
+		margin: 0 auto;
+		padding: 0 28px;
+	}
+	.ico {
+		width: 16px;
+		height: 16px;
+		stroke: currentColor;
+		fill: none;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	// !important is required here: a legacy global rule (#pc-wrap h1,h2,h3{color:var(--gt-heading)!important})
+	// in scss/pc/main.scss otherwise wins regardless of selector specificity.
+	h1,
+	h2,
+	h3 {
+		font-family: 'Sora', sans-serif;
+		color: var(--ink) !important;
+		line-height: 1.12;
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		font-weight: 600;
+		font-size: 0.95rem;
+		padding: 13px 26px;
+		border-radius: 999px;
+		border: 1.6px solid transparent;
+		transition: 0.25s;
+		white-space: nowrap;
+		cursor: pointer;
+
+		.ar {
+			display: inline-flex;
+			transition: transform 0.25s;
+		}
+		&:hover .ar {
+			transform: translateX(4px);
+		}
+	}
+	.btn-sky {
+		background: var(--sky);
+		color: #fff;
+		&:hover {
+			background: var(--sky-2);
+			box-shadow: 0 12px 26px -12px rgba(22, 163, 200, 0.8);
+		}
+	}
+	.btn-ghost {
+		background: transparent;
+		border-color: rgba(255, 255, 255, 0.6);
+		color: #fff;
+		&:hover {
+			background: rgba(255, 255, 255, 0.14);
+		}
+	}
+	.btn-outline {
+		background: transparent;
+		border-color: var(--line);
+		color: var(--ink);
+		&:hover {
+			background: var(--sky-soft);
+			border-color: var(--sky);
+			color: var(--sky);
+		}
+	}
+}

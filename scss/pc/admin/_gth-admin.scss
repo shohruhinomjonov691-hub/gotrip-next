@@ -1,0 +1,1341 @@
+/* ============================================================================
+ * Admin panel — GoTrip design layer
+ *
+ * The admin app keeps its existing markup, permissions, routing and GraphQL.
+ * This sheet re-skins that markup with the same tokens the public site uses
+ * (--sky / --paper / --line / --ink / Sora), so Platform Control reads as part
+ * of the same product. Loaded after admin.scss so it wins on equal specificity.
+ * ========================================================================== */
+
+/* The legacy sheet paints the admin in a navy/gold theme and marks several of
+   those surfaces !important, so the properties it locks are re-declared the
+   same way here. Everything else wins simply by being imported later. */
+#pc-wrap.admin {
+	--adm-radius: 16px;
+
+	/* ROOT CAUSE (measured in-browser, not assumed).
+	 *
+	 * Every token this sheet reads — --sky, --ink, --body, --muted, --line,
+	 * --paper, --paper-soft, --pop — is declared ONLY under `.gth-root`
+	 * (scss/pc/homepage-html/_tokens.scss). The admin shell renders as
+	 * `#pc-wrap.admin` and never carries `.gth-root`, so getComputedStyle
+	 * returned an empty string for all of them and this entire design layer was
+	 * silently inert.
+	 *
+	 * CSS makes that failure asymmetric, which is why it hid for so long:
+	 *   - `color: var(--ink)`      -> invalid at computed-value time -> `inherit`,
+	 *     so text still looked plausible and the bug stayed invisible.
+	 *   - `background: var(--sky)` -> invalid -> `transparent`, so every
+	 *     contained button rendered white-on-white (measured 1:1). The primary
+	 *     CTA on Categories/Destinations was unreadable.
+	 *
+	 * Declaring the palette on the admin scope (rather than adding `.gth-root`
+	 * to the shell, which would also drag in that class's font/background rules
+	 * and its large descendant block) fixes every rule in this file at once.
+	 *
+	 * Values mirror `.gth-root` except --body and --muted. Those two are
+	 * deliberately darker here: the marketing pages use them at 16-18px, but the
+	 * panel uses them for 13-14px table cells, counts and helper text. At
+	 * .gth-root values --muted measures 3.01:1 on --paper, which fails AA for
+	 * body-size text — so making this layer live would have introduced a new
+	 * contrast bug. Darkened to 5.4:1 (--muted) and 8.6:1 (--body), which also
+	 * restores real hierarchy against --ink headings. */
+	/* .gth-root's #16a3c8 measures 2.95:1 against white — and it fails in BOTH
+	   directions here, as the fill behind white button labels and as the colour
+	   of small sky-coloured text (kicker, brand). Deepening the one token to
+	   #0c7d9b puts both at 4.75:1. The soft tints below are separate tokens, so
+	   backgrounds and hovers keep the lighter GoTrip teal. */
+	@include gt-admin-tokens-light;
+
+	/* main.scss paints status pills through `[class*='status'][class*='active']
+	 * { color: var(--gt-success) !important }`. Out-specifying that selector
+	 * proved brittle, so the *token* is re-pointed for the admin subtree instead:
+	 * every rule that reads --gt-success inside the panel picks up an AA-safe
+	 * shade, and the public site is untouched. #15803d measured 4.47:1 on its own
+	 * soft tint — just under the 4.5 threshold. */
+	--gt-success: #116330;
+	--gt-error: #a8331c;
+	--gt-warning: #8a5a12;
+
+	/* The panel now sits on the same backdrop as the Home page's "Most Popular
+	   Tours" section: --sky-soft plus the shared doodle artwork. The doodle is
+	   painted on a ::before rather than a markup element (the section uses a
+	   <div class="doodle">) so no admin page markup changes, and it is fixed +
+	   non-interactive so it never scrolls over content or eats clicks. */
+	background: var(--sky-soft) !important;
+	color: var(--ink);
+	position: relative;
+
+	&::before {
+		content: '';
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: 0;
+		opacity: 0.85;
+		@include gt-doodle-backdrop;
+	}
+
+	/* Everything real sits above the backdrop. */
+	> * {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* ------------------------------------------------------------- app bar */
+	.admin-appbar {
+		background: var(--paper) !important;
+		color: var(--ink);
+		box-shadow: none;
+		border-bottom: 1px solid var(--line);
+		backdrop-filter: saturate(180%) blur(8px);
+	}
+	.admin-toolbar {
+		min-height: 68px;
+		gap: 10px;
+	}
+	.admin-toolbar__context {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.25;
+
+		span {
+			font-size: 0.7rem;
+			letter-spacing: 1.2px;
+			text-transform: uppercase;
+			font-weight: 700;
+			color: var(--sky);
+		}
+		strong {
+			font-family: 'Sora', sans-serif;
+			font-size: 1rem;
+			color: var(--ink);
+		}
+	}
+	.admin-toolbar__theme,
+	.admin-toolbar__menu {
+		border: 1px solid var(--line);
+		border-radius: 12px;
+		color: var(--body);
+		transition: 0.2s;
+
+		&:hover {
+			border-color: var(--sky);
+			color: var(--sky);
+			background: var(--sky-soft-2);
+		}
+	}
+	.admin-toolbar__avatar .MuiAvatar-root {
+		width: 38px;
+		height: 38px;
+		border: 2px solid var(--line);
+	}
+
+	/* MUI stamps AppBar with .MuiAppBar-root too — the legacy sheet targets that
+	   selector with !important, so match it. */
+	.MuiAppBar-root {
+		background: var(--paper) !important;
+		border-bottom: 1px solid var(--line);
+	}
+
+	/* ----------------------------------------------------------- side nav */
+	.aside .MuiDrawer-paper {
+		background: var(--paper);
+		border-right: 1px solid var(--line);
+		color: var(--ink);
+	}
+
+	/* Legacy navy body/cell text would be invisible on the light surfaces. */
+	.admin-cell-copy {
+		color: var(--body) !important;
+	}
+	.admin-metric-pair,
+	.admin-status {
+		color: var(--body);
+	}
+	.admin-navigation {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+
+		.MuiDivider-root {
+			border-color: var(--line);
+		}
+	}
+	.admin-navigation__brand {
+		min-height: 68px;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 11px;
+		border-bottom: 1px solid var(--line);
+
+		/* Mirrors .gth-root .brand in _header.scss so the mark reads identically on
+		   both surfaces. The values are repeated rather than @extend-ed because
+		   that rule is scoped under .gth-root, which the admin shell does not
+		   carry — extending it would drag the whole marketing header scope in. */
+		.logo {
+			width: 42px;
+			height: 42px;
+			flex: 0 0 42px;
+		}
+		.txt {
+			line-height: 1;
+			min-width: 0;
+
+			b {
+				display: block;
+				font-family: 'Sora', sans-serif;
+				font-size: 1.16rem;
+				font-weight: 700;
+				color: var(--ink);
+				letter-spacing: -0.5px;
+
+				i {
+					font-style: normal;
+					color: var(--sky);
+				}
+			}
+			small {
+				display: block;
+				font-size: 0.52rem;
+				letter-spacing: 3px;
+				color: var(--muted);
+				font-weight: 600;
+				margin-top: 3px;
+			}
+		}
+		.admin-navigation__close {
+			margin-left: auto;
+		}
+	}
+	.admin-navigation__operator {
+		padding: 18px 20px;
+
+		.MuiAvatar-root {
+			width: 44px;
+			height: 44px;
+			border: 2px solid var(--line);
+		}
+		strong {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			font-size: 0.95rem;
+			color: var(--ink);
+		}
+		span {
+			font-size: 0.78rem;
+			color: var(--muted);
+		}
+	}
+	.admin-navigation__menu {
+		padding: 12px 12px 24px;
+		overflow-y: auto;
+	}
+
+	.admin-menu-list__group + .admin-menu-list__group {
+		margin-top: 4px;
+	}
+	.admin-menu-list__group .MuiListItemButton-root,
+	.admin-menu-list .MuiListItemButton-root {
+		border-radius: 12px;
+		padding: 9px 12px;
+		color: var(--body);
+		transition: 0.2s;
+
+		.MuiListItemIcon-root {
+			min-width: 32px;
+			color: var(--muted);
+		}
+		.MuiListItemText-primary {
+			font-family: inherit;
+			font-size: 0.9rem;
+			font-weight: 600;
+		}
+		&:hover {
+			background: var(--sky-soft-2);
+			color: var(--sky);
+
+			.MuiListItemIcon-root {
+				color: var(--sky);
+			}
+		}
+		&.Mui-selected,
+		&.active {
+			background: var(--sky);
+			color: #fff;
+
+			.MuiListItemIcon-root {
+				color: #fff;
+			}
+			&:hover {
+				background: var(--sky);
+			}
+		}
+	}
+
+	/* ------------------------------------------------------------ content */
+	#bunker {
+		padding: 92px 30px 60px;
+		min-height: 100vh;
+	}
+
+	.admin-kicker {
+		font-size: 0.72rem;
+		letter-spacing: 1.2px;
+		text-transform: uppercase;
+		font-weight: 700;
+		color: var(--sky);
+	}
+	.admin-title,
+	.admin-page__heading h1,
+	.admin-page__heading h2,
+	#bunker .content .tit {
+		font-family: 'Playfair Display', serif;
+		font-size: 1.85rem;
+		letter-spacing: -0.5px;
+		color: var(--ink);
+		margin: 4px 0 6px;
+	}
+	.admin-copy,
+	.admin-page__heading p,
+	.admin-page__count {
+		color: var(--muted);
+		font-size: 0.94rem;
+	}
+
+	/* Stat cards */
+	.admin-stat-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+		gap: 20px;
+		margin-top: 26px;
+	}
+	.admin-stat-card {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 20px;
+		padding: 24px;
+		box-shadow: var(--shadow);
+		transition: transform 0.35s, box-shadow 0.35s, border-color 0.25s;
+
+		&:hover {
+			transform: translateY(-5px);
+			box-shadow: var(--pop);
+			border-color: var(--sky);
+		}
+		span {
+			display: block;
+			font-size: 0.75rem;
+			letter-spacing: 0.9px;
+			text-transform: uppercase;
+			font-weight: 700;
+			color: var(--muted);
+		}
+		strong {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			font-size: 2.1rem;
+			color: var(--ink);
+			margin: 6px 0 2px;
+		}
+		&--unavailable {
+			opacity: 0.65;
+		}
+	}
+
+	/* Panels / surfaces */
+	.admin-surface,
+	.admin-page,
+	.admin-mobile-card,
+	.MuiPaper-root.admin-panel {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: var(--adm-radius);
+		box-shadow: var(--shadow);
+		color: var(--ink);
+	}
+
+	/* --------------------------------------------------------- data tables */
+	.MuiTableContainer-root {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: var(--adm-radius);
+		box-shadow: var(--shadow);
+		overflow-x: auto;
+	}
+	.MuiTable-root {
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+	.MuiTableHead-root .MuiTableCell-root {
+		background: var(--paper-soft);
+		border-bottom: 1px solid var(--line);
+		color: var(--muted);
+		font-family: inherit;
+		font-size: 0.74rem;
+		font-weight: 800;
+		letter-spacing: 0.8px;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+	.MuiTableBody-root .MuiTableCell-root {
+		border-bottom: 1px solid var(--line);
+		color: var(--ink);
+		font-family: inherit;
+		font-size: 0.9rem;
+		padding: 14px 16px;
+	}
+	.MuiTableBody-root .MuiTableRow-root {
+		transition: background 0.2s;
+
+		&:hover {
+			background: var(--sky-soft-2);
+		}
+		&:last-child .MuiTableCell-root {
+			border-bottom: none;
+		}
+	}
+
+	/* Status pills used across the moderation tables */
+	.MuiChip-root {
+		border-radius: 999px;
+		font-family: inherit;
+		font-weight: 700;
+		font-size: 0.72rem;
+		letter-spacing: 0.4px;
+		background: var(--sky-soft);
+		color: var(--sky);
+		border: none;
+
+		&.MuiChip-colorSuccess {
+			background: rgba(47, 182, 115, 0.15);
+			color: #2fb673;
+		}
+		&.MuiChip-colorError {
+			background: rgba(239, 90, 60, 0.14);
+			color: #ef5a3c;
+		}
+		&.MuiChip-colorWarning {
+			background: rgba(244, 179, 82, 0.18);
+			color: #b8791d;
+		}
+	}
+
+	/* ---------------------------------------------- inputs / forms / menus */
+	.MuiOutlinedInput-root {
+		border-radius: 12px;
+		background: var(--paper);
+		color: var(--ink);
+		font-family: inherit;
+
+		.MuiOutlinedInput-notchedOutline {
+			border-color: var(--line);
+			border-width: 1.5px;
+		}
+		&:hover .MuiOutlinedInput-notchedOutline {
+			border-color: var(--sky);
+		}
+		&.Mui-focused .MuiOutlinedInput-notchedOutline {
+			border-color: var(--sky);
+			border-width: 1.5px;
+		}
+	}
+	.MuiInputLabel-root {
+		font-family: inherit;
+		color: var(--muted);
+
+		&.Mui-focused {
+			color: var(--sky);
+		}
+	}
+	.MuiInputBase-input {
+		color: var(--ink);
+	}
+	.MuiSelect-icon {
+		color: var(--muted);
+	}
+	.MuiPaper-root.MuiMenu-paper,
+	.MuiPaper-root.MuiPopover-paper {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 14px;
+		box-shadow: var(--pop);
+		color: var(--ink);
+
+		.MuiMenuItem-root {
+			font-family: inherit;
+			font-size: 0.9rem;
+
+			&:hover {
+				background: var(--sky-soft-2);
+				color: var(--sky);
+			}
+			&.Mui-selected {
+				background: var(--sky-soft);
+				color: var(--sky);
+			}
+		}
+	}
+	.admin-account-menu__identity {
+		padding: 12px 16px;
+
+		strong {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+		}
+		span {
+			font-size: 0.82rem;
+			color: var(--muted);
+		}
+	}
+
+	/* Tabs used for status filtering on the moderation screens */
+	.MuiTabs-root {
+		min-height: 0;
+
+		.MuiTab-root {
+			font-family: inherit;
+			font-weight: 600;
+			font-size: 0.88rem;
+			text-transform: none;
+			color: var(--body);
+			min-height: 0;
+			padding: 10px 18px;
+
+			&.Mui-selected {
+				color: var(--sky);
+			}
+		}
+		.MuiTabs-indicator {
+			background: var(--sky);
+			height: 3px;
+			border-radius: 3px;
+		}
+	}
+
+	/* ------------------------------------------------------------ buttons */
+	.MuiButton-root {
+		border-radius: 999px;
+		font-family: inherit;
+		font-weight: 700;
+		font-size: 0.86rem;
+		text-transform: none;
+		padding: 9px 20px;
+		box-shadow: none;
+
+		/* main.scss lists `.admin-action-button.MuiButton-root` alongside the public
+		   primary buttons and paints it `var(--gt-blue)` — a different blue from the
+		   GoTrip teal every other admin CTA uses, so "Create notice" and the notice
+		   row actions read as a foreign control. Fold it into this rule. */
+		&.MuiButton-contained,
+		&.admin-action-button,
+		/* The Notices CTA carries `admin-primary-action` (verified in the DOM, it
+		   is NOT .admin-action-button) and the legacy sheet paints it #1a56db. */
+		&.admin-primary-action {
+			/* !important because main.scss declares `.admin-action-button` at equal
+			   specificity but LATER in the bundle (this partial is imported at the
+			   top of main.scss, the button rule sits ~700 lines below it), so source
+			   order hands it the win. Measured: rgb(55,102,219) instead of teal. */
+			background: var(--sky) !important;
+			color: #fff !important;
+
+			&:hover {
+				background: var(--sky-deep, var(--sky));
+				box-shadow: var(--pop);
+			}
+			&.Mui-disabled {
+				background: var(--line);
+				color: var(--muted);
+			}
+		}
+		&.MuiButton-outlined {
+			border: 1.6px solid var(--line);
+			color: var(--body);
+
+			&:hover {
+				border-color: var(--sky);
+				color: var(--sky);
+				background: var(--sky-soft-2);
+			}
+		}
+		&.MuiButton-text:hover {
+			background: var(--sky-soft-2);
+			color: var(--sky);
+		}
+	}
+	.MuiIconButton-root {
+		color: var(--body);
+
+		&:hover {
+			color: var(--sky);
+			background: var(--sky-soft-2);
+		}
+	}
+
+	/* --------------------------------------------------------- pagination */
+	.MuiPagination-root .MuiPaginationItem-root {
+		border-radius: 10px;
+		font-family: inherit;
+		font-weight: 600;
+		color: var(--body);
+		border-color: var(--line);
+
+		&:hover {
+			background: var(--sky-soft-2);
+			color: var(--sky);
+		}
+		&.Mui-selected {
+			background: var(--sky);
+			color: #fff;
+
+			&:hover {
+				background: var(--sky);
+			}
+		}
+	}
+
+	/* ------------------------------------------------------------- states */
+	.admin-empty,
+	.gt-empty-state,
+	.admin-state {
+		background: var(--paper-soft);
+		border: 1px dashed var(--line);
+		border-radius: var(--adm-radius);
+		padding: 46px 24px;
+		text-align: center;
+		color: var(--muted);
+	}
+
+	/* Caught by screenshot, NOT by the contrast auditor — and that distinction is
+	   the point. In dark mode the filter bar painted pure #ffffff and the table
+	   head #fafafa, so a white band sat across an otherwise dark navy page. Both
+	   still passed WCAG (dark text on white is perfectly legible), which is why
+	   an automated ratio sweep reported them clean; they are theme-consistency
+	   bugs, not contrast bugs. The legacy sheet hardcodes those light values, so
+	   both surfaces are re-pointed at tokens that track the active theme. */
+	.admin-filterbar,
+	.admin-search-controls {
+		background: transparent;
+	}
+	/* The head row keeps its own hardcoded #fafafa from the legacy sheet at a
+	   specificity this layer cannot out-rank cleanly, so it is forced — the same
+	   approach the rest of this file uses for legacy !important declarations. */
+	.MuiTableHead-root .MuiTableRow-root,
+	.MuiTableHead-root .MuiTableRow-head,
+	.MuiTableHead-root .MuiTableCell-root {
+		background: var(--paper-soft) !important;
+		/* The legacy sheet pairs that hardcoded light background with a hardcoded
+		   dark heading colour. Forcing only the background left dark-on-dark at a
+		   measured 1.65:1, so the foreground has to be re-pointed in the same
+		   breath — background and text must move together or one breaks. */
+		color: var(--muted) !important;
+	}
+
+	/* Latent bug surfaced by the fix above. Body cells were rendering MUI's
+	   default #616161, not --ink — measured rgb(97,97,97). While the surrounding
+	   surface was (wrongly) light in dark mode that grey happened to pass, so the
+	   ratio sweep never flagged it. With the surfaces corrected it measured
+	   2.95:1, i.e. the table data itself was the least readable thing on screen.
+	   Forced, because the existing non-important rule was being out-ranked. */
+	.MuiTableBody-root .MuiTableCell-root {
+		color: var(--ink) !important;
+	}
+
+	/* Empty states read as a deliberate state rather than a gap: the leading line
+	   is promoted, and any recovery action sits clear of the message. */
+	.admin-empty,
+	.gt-empty-state,
+	.admin-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		font-size: 0.92rem;
+
+		.MuiButton-root {
+			margin-top: 4px;
+		}
+	}
+
+	/* The loading skeleton exists in markup (.admin-table-skeleton) but was a
+	   static grey block. A shimmer communicates "loading" rather than "broken",
+	   and it is disabled under reduced-motion. */
+	.admin-table-skeleton span {
+		background: linear-gradient(90deg, var(--paper-soft) 0%, var(--sky-soft-2) 50%, var(--paper-soft) 100%);
+		background-size: 200% 100%;
+		animation: adm-shimmer 1.4s ease-in-out infinite;
+		border-radius: 8px;
+	}
+
+	/* Dialogs */
+	.MuiDialog-paper {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 20px;
+		color: var(--ink);
+		box-shadow: var(--pop);
+	}
+	.MuiDialogTitle-root {
+		font-family: 'Sora', sans-serif;
+		color: var(--ink);
+		font-size: 1.12rem;
+		padding: 22px 24px 6px;
+	}
+	.MuiDialogContent-root {
+		padding: 8px 24px 4px;
+	}
+	.MuiDialogActions-root {
+		padding: 16px 24px 20px;
+		gap: 8px;
+	}
+	.MuiBackdrop-root {
+		background: rgba(9, 30, 36, 0.46);
+		backdrop-filter: blur(2px);
+	}
+
+	/* ------------------------------------------------------- focus states
+	 * Keyboard operators moderate real accounts here, so every interactive
+	 * surface gets one consistent ring. :focus-visible (not :focus) keeps the
+	 * ring off mouse clicks.
+	 *
+	 * (Correction to an earlier note in this file's history: admin.scss DOES
+	 * already declare :focus-visible rules. They are ineffective for the reason
+	 * below, not absent.)
+	 *
+	 * WHY box-shadow AND NOT outline: `outline` is not reliable in this codebase.
+	 * Measured on /_admin/users with a real keyboard Tab: the focused control
+	 * reported `outline: 3px none` — the width applied but the *style* longhand
+	 * was forced to `none` by another declaration. On the sidebar items it is
+	 * worse: `el.style.setProperty('outline','5px solid',...,'important')` still
+	 * computed 0px, i.e. even an inline !important could not restore it (a fresh
+	 * <div>, a table cell and a button in the same page all accepted the exact
+	 * same inline outline, so it is these elements specifically, not the browser).
+	 * I could not identify the declaration responsible. box-shadow is subject to
+	 * none of that, renders an identical ring, and is what Tailwind/Bootstrap/
+	 * Primer use for focus. outline is still declared as a progressive
+	 * enhancement for forced-colors/high-contrast mode, where box-shadow is
+	 * dropped by the OS. */
+	.MuiButton-root,
+	.MuiIconButton-root,
+	.MuiTab-root,
+	.MuiMenuItem-root,
+	.MuiPaginationItem-root,
+	.MuiListItemButton-root,
+	.MuiSelect-select,
+	.MuiInputBase-input,
+	.admin-status,
+	.admin-tabs .MuiButton-root,
+	a {
+		&:focus-visible,
+		/* MUI stamps .Mui-focusVisible on the element from its own JS keyboard
+		   heuristic. Pairing it with the pseudo-class means the ring renders even
+		   where the CSS engine declines to match :focus-visible — measured here:
+		   Element.matches(':focus-visible') returned true while a !important
+		   :focus-visible rule still computed as unapplied. */
+		&.Mui-focusVisible {
+			box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--sky) !important;
+			border-radius: 8px;
+			position: relative;
+			z-index: 1;
+		}
+	}
+
+	/* The text field's ring belongs on the notched outline wrapper, not on the
+	   bare <input>, or it draws inside the field's own border. */
+	.MuiOutlinedInput-root:focus-within {
+		box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--sky) !important;
+	}
+	.MuiOutlinedInput-root:focus-within .MuiInputBase-input:focus-visible {
+		box-shadow: none !important;
+	}
+
+	/* Windows High Contrast / forced-colors drops box-shadow entirely, so the
+	   outline is the fallback that survives there. */
+	@media (forced-colors: active) {
+		.MuiButton-root:focus-visible,
+		.MuiIconButton-root:focus-visible,
+		.MuiListItemButton-root:focus-visible,
+		.MuiSelect-select:focus-visible,
+		.MuiTab-root:focus-visible,
+		a:focus-visible {
+			outline: 3px solid Highlight;
+			outline-offset: 2px;
+		}
+	}
+
+	/* One consistent easing for interactive feedback across the panel. */
+	.MuiButton-root,
+	.MuiIconButton-root,
+	.MuiChip-root,
+	.admin-status,
+	.MuiPaginationItem-root,
+	.MuiListItemButton-root {
+		transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease,
+			transform 0.18s ease;
+	}
+	.MuiButton-root.MuiButton-contained:hover {
+		transform: translateY(-1px);
+	}
+	.MuiButton-root:active {
+		transform: translateY(0);
+	}
+}
+
+@keyframes adm-shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#pc-wrap.admin .admin-table-skeleton span {
+		animation: none;
+	}
+	#pc-wrap.admin .MuiButton-root.MuiButton-contained:hover,
+	#pc-wrap.admin .admin-stat-card:hover {
+		transform: none;
+	}
+}
+
+@media (max-width: 959px) {
+	#pc-wrap.admin #bunker {
+		padding: 88px 16px 48px;
+	}
+	#pc-wrap.admin .admin-stat-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* The Categories/Destinations filter row is a single non-wrapping flex line,
+	   so at 375px the trailing "New category" CTA was cut off by the viewport
+	   edge — measured in a mobile screenshot. Allowing the row to wrap keeps
+	   every control reachable without introducing a horizontal scrollbar. */
+	#pc-wrap.admin .admin-filters {
+		flex-wrap: wrap;
+		gap: 10px;
+		row-gap: 12px;
+
+		> .MuiButton-root {
+			margin-left: 0 !important;
+			width: 100%;
+		}
+	}
+
+	/* Categories and Destinations were the only modules still falling back to a
+	   horizontally scrolling desktop table on phones — Users, Tours and Community
+	   render stacked cards. Rather than duplicate their bespoke card markup, the
+	   existing table reflows into the same visual card: each row becomes a
+	   surface, each cell a labelled row using the data-label added in the TSX.
+	   Scoped to the two pages that need it so no other admin table changes. */
+	#pc-wrap.admin .admin-table-cards {
+		.MuiTableContainer-root {
+			overflow: visible;
+		}
+		.MuiTable-root,
+		.MuiTableBody-root,
+		.MuiTableRow-root,
+		.MuiTableCell-root {
+			display: block;
+			width: auto;
+		}
+		/* Column headers are redundant once each cell carries its own label. */
+		.MuiTableHead-root {
+			display: none;
+		}
+		.MuiTableBody-root .MuiTableRow-root {
+			background: var(--paper);
+			border: 1px solid var(--line);
+			border-radius: 14px;
+			box-shadow: var(--shadow-sm);
+			padding: 4px 14px 10px;
+			margin-bottom: 12px;
+		}
+		.MuiTableBody-root .MuiTableCell-root {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			/* MUI's align="right" cells (Order, Tours, Views, Likes) come through as
+			   row-reverse once the cell becomes a flex container, which printed the
+			   value on the left and its label on the right — backwards from every
+			   other row. Pin the direction so label-then-value always holds. */
+			flex-direction: row !important;
+			text-align: left !important;
+			padding: 9px 0;
+			border-bottom: 1px solid var(--line);
+
+			&:last-child {
+				border-bottom: none;
+			}
+			&::before {
+				content: attr(data-label);
+				flex: 0 0 auto;
+				font-size: 0.72rem;
+				font-weight: 700;
+				letter-spacing: 0.5px;
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+			/* The identity cell reads as the card title, so it drops the label.
+			   Targeted via data-col (a stable, untranslated hook) rather than
+			   data-label, since data-label is localized text rendered through
+			   attr() and must not double as a CSS selector key. */
+			&[data-col='identity']::before {
+				display: none;
+			}
+			&[data-col='identity'] {
+				padding-top: 14px;
+			}
+		}
+		/* Action buttons get a full row and share the width evenly. */
+		.MuiTableBody-root .MuiTableCell-root[data-col='actions'] {
+			flex-wrap: wrap;
+
+			&::before {
+				display: none;
+			}
+			.MuiStack-root {
+				width: 100%;
+				justify-content: stretch;
+			}
+			.MuiButton-root {
+				flex: 1 1 auto;
+			}
+		}
+	}
+}
+
+/* ============================================================================
+ * Contrast repair — measured, not guessed
+ *
+ * A WCAG audit run in the browser against /_admin/users found 23 elements below
+ * 4.5:1 in light mode. They all inherit the legacy navy admin palette
+ * (#eaf1ff / #d6e3ff / #8db8ff), which is near-white and therefore invisible on
+ * the light surfaces this panel now uses:
+ *
+ *   .admin-navigation__operator strong  "Admin"                 1.07:1
+ *   .MuiListItemText-primary            sidebar nav labels      1.07:1
+ *   page kicker span                    "Member administration" 2.01:1
+ *   page copy <p> / .admin-page__count  "Review accounts…"      1.29:1
+ *   .admin-mobile-card__meta span       "Warnings 0"            1.29:1
+ *   .admin-status--user / --agent       role buttons            1.29:1
+ *
+ * Each is re-pointed at a GoTrip token so it tracks the active theme instead of
+ * a fixed navy value. !important is required because the legacy sheet sets these
+ * with equal-or-higher specificity.
+ * ========================================================================== */
+#pc-wrap.admin {
+	/* ROOT CAUSE: the legacy sheet sets `.admin-navigation { color: #eaf1ff }`
+	   for a dark navy drawer. This layer makes the drawer light, so every
+	   descendant inherited near-white text on a near-white surface (1.07:1).
+	   Re-point the inherited colour and the whole sidebar follows. */
+	.admin-navigation,
+	.aside .MuiDrawer-paper,
+	/* Same inheritance trap on the content side: `.admin-page` carries #d6e3ff
+	   from the old navy theme, so every heading and count inside it was 1.29:1. */
+	.admin-page,
+	.admin-page__heading,
+	.admin-surface,
+	.admin-mobile-card {
+		color: var(--body) !important;
+	}
+
+	/* Default body copy for every MUI Typography inside the panel. */
+	.MuiTypography-root {
+		color: var(--body);
+	}
+
+	/* Sidebar: operator name + nav labels. */
+	.admin-navigation__operator strong,
+	.admin-navigation__operator .MuiTypography-root {
+		color: var(--ink) !important;
+	}
+	.admin-navigation__operator span {
+		color: var(--muted) !important;
+	}
+	.admin-menu-list .MuiListItemText-primary,
+	.admin-navigation__menu .MuiListItemText-primary {
+		color: inherit !important;
+	}
+
+	/* Page headings: kicker, title, supporting copy, counts. */
+	.admin-page__heading span,
+	.admin-kicker {
+		color: var(--sky) !important;
+	}
+	.admin-page__heading p,
+	.admin-copy,
+	.admin-page__count {
+		color: var(--muted) !important;
+	}
+	.admin-page__heading strong,
+	.admin-page__heading h1,
+	.admin-page__heading h2 {
+		color: var(--ink) !important;
+	}
+
+	/* Table + card body text. */
+	.admin-cell-copy,
+	.admin-mobile-card__meta,
+	.admin-mobile-card__meta span,
+	.admin-metric-pair,
+	.admin-metric-pair span {
+		color: var(--body) !important;
+	}
+	.MuiTableBody-root .MuiTableCell-root strong {
+		color: var(--ink) !important;
+	}
+
+	/* Role / status pills rendered as buttons — readable tinted chips.
+	 *
+	 * main.scss carries `#pc-wrap [class*='status'][class*='active'] { color:
+	 * var(--gt-success) !important }`. That is the same specificity as
+	 * `#pc-wrap.admin .admin-status--active` (1 id + 2 classes) but appears later
+	 * in the bundle, so it won and left ACTIVE at a measured 4.47:1. Chaining
+	 * .admin-status onto the modifier adds one class and settles it. */
+	.admin-status {
+		border-radius: 999px;
+		font-weight: 700;
+		font-size: 0.74rem;
+		letter-spacing: 0.4px;
+		padding: 5px 14px;
+		min-width: 0;
+		color: var(--body) !important;
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+
+		&:hover {
+			border-color: var(--sky);
+			background: var(--sky-soft-2);
+		}
+	}
+	/* Measured 4.19:1 in light. --sky (now #0c7d9b) clears AA on white, but this
+	   pill sits on the --sky-soft tint, which lifts the background and drops the
+	   ratio below 4.5. Same one-step-darker stop the profile badge needed. */
+	.admin-status.admin-status--user {
+		color: #0a6980 !important;
+		background: var(--sky-soft);
+		border-color: transparent;
+	}
+	/* #2fb673 measured 2.61:1 on its own tint; the darker shade clears AA while
+	   reading as the same green. */
+	.admin-status.admin-status--agent {
+		color: #17693f !important;
+		background: rgba(47, 182, 115, 0.16);
+		border-color: transparent;
+	}
+	.admin-status.admin-status--admin {
+		color: #8a5a12 !important;
+		background: rgba(244, 179, 82, 0.18);
+		border-color: transparent;
+	}
+	.admin-status.admin-status--active {
+		color: #17693f !important;
+		background: rgba(47, 182, 115, 0.16);
+		border-color: transparent;
+	}
+	.admin-status.admin-status--block,
+	.admin-status.admin-status--blocked {
+		color: #a8331c !important;
+		background: rgba(239, 90, 60, 0.14);
+		border-color: transparent;
+	}
+	.admin-status.admin-status--delete,
+	.admin-status.admin-status--deleted {
+		color: var(--muted) !important;
+		background: var(--paper-soft);
+	}
+
+	/* MUI <Chip color="success|warning|error"> paints its label with the raw MUI
+	   palette main colour on a 15%-alpha tint of the same hue. Measured on
+	   /_admin/categories and /_admin/destinations: ACTIVE = 2.61:1, DELETE =
+	   3.63:1. The soft-tint look is kept; only the foreground is darkened to the
+	   same AA-safe shades the .admin-status pills already use. */
+	.MuiChip-root {
+		font-family: inherit;
+		font-weight: 700;
+		letter-spacing: 0.3px;
+		border-radius: 999px;
+
+		&.MuiChip-colorSuccess {
+			color: #17693f !important;
+			background-color: rgba(47, 182, 115, 0.16);
+		}
+		&.MuiChip-colorWarning {
+			color: #8a5a12 !important;
+			background-color: rgba(244, 179, 82, 0.2);
+		}
+		&.MuiChip-colorError {
+			color: #a8331c !important;
+			background-color: rgba(239, 90, 60, 0.14);
+		}
+		&.MuiChip-colorDefault {
+			color: var(--body) !important;
+			background-color: var(--paper-soft);
+			border: 1px solid var(--line);
+		}
+	}
+
+	/* MUI's fallback initial-letter Avatar uses its own grey (#bdbdbd) with
+	   near-white text — measured 1.77:1 across the Community moderation table. */
+	.MuiAvatar-root.MuiAvatar-colorDefault {
+		background-color: var(--sky-soft);
+		color: var(--ink);
+		font-weight: 700;
+	}
+
+	/* Measured at 375px on /_admin/users: the "Deleted" tab rendered at x=339..415
+	   against a 375px viewport, i.e. the fourth status filter was clipped off
+	   screen and unreachable — the page itself does not scroll horizontally, so
+	   there was no way to get to it.
+	   ROOT CAUSE: admin.scss:1143 correctly sets `overflow-x: auto`, but
+	   main.scss:890 re-declares `.admin-tabs` later with `flex-wrap: wrap` and no
+	   overflow; inside the flex `.admin-filterbar` the strip neither wrapped nor
+	   scrolled. Pin the standard scrolling tab-strip behaviour here, where this
+	   layer wins on load order. */
+	.admin-filterbar {
+		min-width: 0;
+		max-width: 100%;
+	}
+	.admin-tabs {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		max-width: 100%;
+		scrollbar-width: thin;
+		-webkit-overflow-scrolling: touch;
+
+		.MuiButton-root {
+			flex: 0 0 auto;
+		}
+	}
+
+	/* Inputs and their placeholders must not inherit the navy palette either. */
+	.MuiInputBase-input,
+	.MuiOutlinedInput-input {
+		color: var(--ink) !important;
+
+		&::placeholder {
+			color: var(--muted) !important;
+			opacity: 1;
+		}
+	}
+	.MuiFormLabel-root,
+	.MuiInputLabel-root {
+		color: var(--muted) !important;
+
+		&.Mui-focused {
+			color: var(--sky) !important;
+		}
+	}
+
+	/* Disabled controls stay legible rather than vanishing.
+	 *
+	 * REGRESSION I INTRODUCED, caught on /_admin/comments: the legacy sheet pairs
+	 * a hardcoded `background: #9eafe4` with near-white text for .Mui-disabled.
+	 * Re-pointing only the colour to --muted left muted-grey on that light
+	 * periwinkle — measured 1.01:1, i.e. the "Load comments" button was
+	 * effectively invisible. The background has to move with the foreground, so
+	 * the disabled state is now fully token-driven. */
+	.MuiButton-root.Mui-disabled,
+	.MuiIconButton-root.Mui-disabled {
+		color: var(--muted) !important;
+		background: var(--paper-soft) !important;
+		border-color: var(--line) !important;
+		opacity: 0.8;
+	}
+	.MuiButton-root.MuiButton-text.Mui-disabled {
+		background: transparent !important;
+	}
+
+	/* The Help Center placeholder pages (/_admin/cs/faq, /_admin/cs/inquiry) were
+	   still fully on the navy palette — measured in-browser at 1.29:1, i.e. the
+	   heading and body copy were invisible on the light surface. The panel itself
+	   was `rgba(255,255,255,.08)` on white with a `rgba(255,255,255,.12)` border,
+	   so it had no visible edge either. Re-point all four at GoTrip tokens. */
+	.admin-unavailable-panel {
+		border-color: var(--line) !important;
+		background: var(--paper) !important;
+		box-shadow: var(--shadow-sm);
+		backdrop-filter: none;
+	}
+	.admin-unavailable__eyebrow {
+		color: var(--sky) !important;
+		text-transform: uppercase;
+		letter-spacing: 0.6px;
+	}
+	.admin-unavailable-panel h1,
+	.admin-unavailable-panel h2,
+	.admin-unavailable-panel strong {
+		color: var(--ink) !important;
+	}
+	.admin-unavailable__copy {
+		color: var(--muted) !important;
+	}
+}
+
+
+/* Dark mode: the AA-safe dark pill foregrounds above would be unreadable on the
+   dark tints, so flip them back to the lighter shades. */
+/* Dark mode: the darkened tokens above would disappear on dark tints, so the
+   admin subtree gets the lighter shades back. */
+[data-theme='dark'] #pc-wrap.admin {
+	@include gt-admin-tokens-dark;
+
+	--gt-success: #6ee7a8;
+	--gt-error: #ff9d86;
+	--gt-warning: #f4b352;
+
+	.admin-status.admin-status--agent,
+	.admin-status.admin-status--active {
+		color: #6ee7a8 !important;
+	}
+	.admin-status.admin-status--block,
+	.admin-status.admin-status--blocked {
+		color: #ff9d86 !important;
+	}
+	.admin-status.admin-status--admin {
+		color: #f4b352 !important;
+	}
+	/* The light-mode USER pill uses a deep teal for AA on its light tint; on the
+	   dark tint that same colour measured 2.5:1, so it flips to the bright teal
+	   like every other pill here. */
+	.admin-status.admin-status--user {
+		color: #22bce0 !important;
+	}
+
+	/* On dark, --sky is a bright cyan; white label text over it measures 2.25:1,
+	   so the contained button flips to dark-on-bright (7.9:1) instead. */
+	.MuiButton-root.MuiButton-contained {
+		color: var(--paper) !important;
+	}
+
+	/* Same flip for the MUI chips and the fallback avatar. */
+	.MuiChip-root {
+		&.MuiChip-colorSuccess {
+			color: #6ee7a8 !important;
+			background-color: rgba(110, 231, 168, 0.16);
+		}
+		&.MuiChip-colorWarning {
+			color: #f4b352 !important;
+			background-color: rgba(244, 179, 82, 0.18);
+		}
+		&.MuiChip-colorError {
+			color: #ff9d86 !important;
+			background-color: rgba(255, 157, 134, 0.16);
+		}
+	}
+}
+
+/* ============================================================================
+ * Admin dialogs render in a MUI Portal, i.e. as a direct child of <body> and
+ * therefore OUTSIDE #pc-wrap. Every rule above is scoped to #pc-wrap.admin, so
+ * none of it reached them and the admin tokens were undefined inside.
+ *
+ * Measured on /_admin/cs/notice in dark mode before this block: .MuiDialog-paper
+ * computed background rgb(255,255,255) — pure white — while its title was
+ * rgb(244,247,255), its field labels rgba(232,237,248,.66), its inputs
+ * rgb(232,237,248) and its Cancel button rgb(232,237,248). The entire Create
+ * Notice dialog was white-on-white and unreadable, exactly as reported.
+ *
+ * The token mixin is applied here so the portal carries the same palette as the
+ * shell rather than re-declaring values.
+ * ========================================================================== */
+.admin-notice-dialog,
+.MuiDialog-root:has(.admin-notice-dialog),
+.MuiDialog-root.admin-notice-dialog {
+	@include gt-admin-tokens-light;
+
+	.MuiDialog-paper {
+		background: var(--paper) !important;
+		border: 1px solid var(--line) !important;
+		border-radius: 20px;
+		color: var(--ink) !important;
+		box-shadow: var(--pop);
+	}
+	.MuiDialogTitle-root {
+		font-family: 'Sora', sans-serif;
+		color: var(--ink) !important;
+		border-bottom-color: var(--line) !important;
+	}
+	.MuiDialogContent-root {
+		color: var(--body) !important;
+		border-color: var(--line) !important;
+	}
+	.MuiDialogActions-root {
+		border-top-color: var(--line) !important;
+	}
+
+	/* Fields: label, value, placeholder, notch and helper text all track tokens. */
+	.MuiFormLabel-root,
+	.MuiInputLabel-root {
+		color: var(--muted) !important;
+
+		&.Mui-focused {
+			color: var(--sky) !important;
+		}
+	}
+	.MuiInputBase-input,
+	.MuiOutlinedInput-input,
+	textarea {
+		color: var(--ink) !important;
+		background: transparent !important;
+
+		&::placeholder {
+			color: var(--muted) !important;
+			opacity: 1;
+		}
+	}
+	.MuiOutlinedInput-root {
+		background: var(--paper-soft) !important;
+
+		.MuiOutlinedInput-notchedOutline {
+			border-color: var(--line) !important;
+		}
+		&:hover .MuiOutlinedInput-notchedOutline,
+		&.Mui-focused .MuiOutlinedInput-notchedOutline {
+			border-color: var(--sky) !important;
+		}
+	}
+	.MuiFormHelperText-root {
+		color: var(--muted) !important;
+	}
+	.MuiSelect-icon {
+		color: var(--muted) !important;
+	}
+
+	/* Actions: the confirm button was painting the legacy disabled periwinkle
+	   (#9eafe4) with near-white text even when enabled. */
+	.MuiDialogActions-root .MuiButton-root {
+		border-radius: 999px;
+		font-weight: 700;
+		text-transform: none;
+
+		&.MuiButton-contained {
+			background: var(--sky) !important;
+			color: #ffffff !important;
+		}
+		&.MuiButton-text,
+		&.MuiButton-outlined {
+			color: var(--body) !important;
+		}
+		&.Mui-disabled {
+			background: var(--paper-soft) !important;
+			color: var(--muted) !important;
+		}
+	}
+}
+
+[data-theme='dark'] .admin-notice-dialog,
+[data-theme='dark'] .MuiDialog-root.admin-notice-dialog {
+	@include gt-admin-tokens-dark;
+
+	/* On dark the bright --sky needs dark text on the confirm button (white
+	   measured 2.25:1 against it elsewhere in this sheet). */
+	.MuiDialogActions-root .MuiButton-root.MuiButton-contained {
+		color: var(--paper) !important;
+	}
+}

@@ -1,0 +1,2970 @@
+/* ============================================================================
+ * My Page — account centre
+ * Sidebar + panel shell shared by every account section, plus the
+ * section-specific pieces (profile, follows, notifications, messages, forms).
+ * Built entirely on the existing tokens so it matches the public pages.
+ * ========================================================================== */
+
+.gth-root {
+	.acc-sec {
+		background: var(--paper-soft);
+		transition: background 0.35s;
+		padding: 46px 0 80px;
+	}
+
+	.acc-layout {
+		display: grid;
+		grid-template-columns: 280px minmax(0, 1fr);
+		gap: 30px;
+		align-items: start;
+	}
+
+	/* ---------------------------------------------------------------- side
+	 * The sidebar is its own scroll container: it sticks below the header, is
+	 * capped to the remaining viewport height and scrolls internally when the
+	 * nav is taller than that. `overscroll-behavior: contain` stops a wheel
+	 * gesture that reaches the sidebar's end from chaining to the page, so
+	 * hovering the sidebar scrolls only the sidebar and hovering the content
+	 * scrolls only the content. */
+	.acc-side {
+		position: sticky;
+		top: 90px;
+		max-height: calc(100vh - 110px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 22px;
+		padding: 24px 18px;
+		box-shadow: var(--shadow);
+		transition: background 0.35s, border-color 0.35s;
+
+		/* Slim scrollbar so the rail does not look heavy. */
+		scrollbar-width: thin;
+		scrollbar-color: var(--line) transparent;
+
+		&::-webkit-scrollbar {
+			width: 6px;
+		}
+		&::-webkit-scrollbar-track {
+			background: transparent;
+		}
+		&::-webkit-scrollbar-thumb {
+			background: var(--line);
+			border-radius: 99px;
+		}
+		&:hover::-webkit-scrollbar-thumb {
+			background: var(--sky-soft);
+		}
+	}
+
+	.acc-id {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		padding-bottom: 18px;
+		border-bottom: 1px solid var(--line);
+	}
+	.acc-id-av {
+		width: 78px;
+		height: 78px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 3px solid var(--paper);
+		box-shadow: var(--pop);
+		background: var(--sky-soft);
+		margin-bottom: 12px;
+	}
+	.acc-id-name {
+		font-family: 'Sora', sans-serif;
+		color: var(--ink);
+		font-size: 1.02rem;
+		line-height: 1.3;
+	}
+	.acc-id-phone {
+		color: var(--muted);
+		font-size: 0.84rem;
+		margin-top: 2px;
+	}
+	.acc-id-role {
+		margin-top: 9px;
+		padding: 4px 13px;
+		border-radius: 999px;
+		background: var(--sky-soft);
+		color: var(--sky);
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.7px;
+	}
+
+	.acc-id-stats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 6px;
+		padding: 16px 0;
+		border-bottom: 1px solid var(--line);
+		text-align: center;
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 1.02rem;
+		}
+		small {
+			color: var(--muted);
+			font-size: 0.71rem;
+			letter-spacing: 0.4px;
+			text-transform: uppercase;
+			font-weight: 700;
+		}
+	}
+
+	.acc-nav {
+		padding-top: 14px;
+	}
+	.acc-nav-group + .acc-nav-group {
+		margin-top: 16px;
+	}
+	.acc-nav-title {
+		font-family: 'Sora', sans-serif;
+		font-size: 0.71rem;
+		letter-spacing: 1.1px;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin: 0 0 7px 10px;
+		font-weight: 700;
+	}
+	.acc-nav ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.acc-nav-link {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 11px;
+		padding: 10px 12px;
+		border: none;
+		border-radius: 12px;
+		background: none;
+		color: var(--body);
+		font-family: inherit;
+		font-size: 0.9rem;
+		font-weight: 600;
+		text-align: left;
+		white-space: normal;
+		cursor: pointer;
+		transition: 0.2s;
+
+		&:hover {
+			background: var(--sky-soft-2);
+			color: var(--sky);
+		}
+		&.on {
+			background: var(--sky);
+			color: #fff;
+		}
+		&.danger:hover {
+			background: rgba(239, 90, 60, 0.12);
+			color: #ef5a3c;
+		}
+	}
+	.acc-nav-ico {
+		display: flex;
+		flex: 0 0 18px;
+
+		svg {
+			width: 18px;
+			height: 18px;
+			stroke: currentColor;
+			fill: none;
+			stroke-width: 1.8;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	}
+
+	/* ---------------------------------------------------------------- main */
+	.acc-head {
+		margin-bottom: 22px;
+
+		h2 {
+			font-size: 1.75rem;
+			letter-spacing: -0.5px;
+			margin-bottom: 5px;
+		}
+		p {
+			color: var(--muted);
+			font-size: 0.94rem;
+			margin: 0;
+		}
+	}
+	.acc-main {
+		min-width: 0;
+		overscroll-behavior: contain;
+	}
+	.acc-body {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 22px;
+		padding: 26px;
+		box-shadow: var(--shadow);
+		transition: background 0.35s, border-color 0.35s;
+
+		/* Messages supplies its own frame. */
+		&.bare {
+			padding: 0;
+			overflow: hidden;
+		}
+	}
+	.acc-toolbar {
+		margin-bottom: 22px;
+	}
+	.acc-panel {
+		display: block;
+	}
+
+	.acc-kpis {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		gap: 14px;
+		margin-bottom: 22px;
+	}
+	.acc-kpi {
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		padding: 16px 18px;
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			font-size: 1.4rem;
+			color: var(--ink);
+		}
+		small {
+			color: var(--muted);
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 0.6px;
+			font-weight: 700;
+		}
+	}
+
+	/* Agent tour card + its edit affordance */
+	.acc-tour-wrap {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+	.acc-edit-btn {
+		width: 100%;
+		justify-content: center;
+		padding: 10px 18px;
+		font-size: 0.86rem;
+	}
+
+	/* ------------------------------------------------------------- profile */
+	.pf-head {
+		border: 1px solid var(--line);
+		border-radius: 22px;
+		overflow: hidden;
+		background: var(--paper-soft);
+		margin-bottom: 24px;
+	}
+	.pf-cover {
+		height: 170px;
+		position: relative;
+		background: var(--ink-solid);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			opacity: 0.85;
+		}
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, rgba(4, 26, 33, 0.15), rgba(4, 26, 33, 0.55));
+		}
+	}
+	.pf-id {
+		display: flex;
+		align-items: flex-end;
+		gap: 18px;
+		padding: 0 26px;
+		margin-top: -46px;
+		position: relative;
+		z-index: 2;
+	}
+	.pf-av-wrap {
+		position: relative;
+		flex: 0 0 104px;
+	}
+	.pf-av {
+		width: 104px;
+		height: 104px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 4px solid var(--paper);
+		background: var(--sky-soft);
+		box-shadow: var(--pop);
+	}
+	.pf-av-btn {
+		position: absolute;
+		right: 2px;
+		bottom: 4px;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		border: 2px solid var(--paper);
+		background: var(--sky);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: 0.2s;
+
+		&:hover {
+			transform: scale(1.08);
+		}
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+		svg {
+			width: 15px;
+			height: 15px;
+			stroke: #fff;
+			fill: none;
+			stroke-width: 1.9;
+		}
+	}
+	.pf-file {
+		display: none;
+	}
+	.pf-id-body {
+		padding-bottom: 8px;
+
+		h3 {
+			font-size: 1.4rem;
+			margin-bottom: 7px;
+		}
+	}
+	.pf-badges {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.pf-badge {
+		padding: 4px 12px;
+		border-radius: 999px;
+		background: var(--sky-soft);
+		/* --sky (#16a3c8) on --sky-soft measured 2.61:1 in-browser. At 0.72rem this
+		   is body-size text, so it needs 4.5:1; the deeper teal reads the same but
+		   clears AA. #0c7d9b still only reached 4.19:1 against this tinted (not
+		   white) pill, so the stop below is one step darker — measured 5.5:1.
+		   Scoped to the badge so the brand token stays as-is. */
+		color: #0a6980;
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.6px;
+
+		&.ok {
+			background: rgba(47, 182, 115, 0.14);
+			color: #2fb673;
+		}
+	}
+	.pf-loc {
+		color: var(--muted);
+		font-size: 0.85rem;
+	}
+
+	/* Administrator entry point — sits beside the ADMIN badge in the profile
+	   header so the privilege is obvious without hunting the sidebar. */
+	.pf-admin-cta {
+		display: flex;
+		align-items: center;
+		gap: 13px;
+		margin-left: auto;
+		margin-bottom: 8px;
+		padding: 12px 18px;
+		border-radius: 16px;
+		/* White label text measured 2.95:1 against the gradient's --sky start stop,
+		   which fails AA. Deepening both stops keeps the same teal identity and the
+		   same direction while putting the label at 4.75:1 at the lightest point. */
+		background: linear-gradient(135deg, #0c7d9b 0%, #075064 100%);
+		box-shadow: 0 16px 34px -16px rgba(16, 59, 66, 0.7);
+		white-space: normal;
+		transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s;
+
+		&:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 22px 44px -18px rgba(16, 59, 66, 0.8);
+		}
+		&:hover .pf-admin-arrow {
+			transform: translateX(4px);
+		}
+	}
+	.pf-admin-ico {
+		flex: 0 0 38px;
+		width: 38px;
+		height: 38px;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(255, 255, 255, 0.2);
+
+		svg {
+			width: 20px;
+			height: 20px;
+			stroke: #fff;
+			fill: none;
+			stroke-width: 1.9;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	}
+	.pf-admin-txt {
+		min-width: 0;
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			/* Measured in-browser as rgb(23,34,59) (--gt-text) despite this rule: a
+			   later global rule wins on the bare `b`. The CTA sits on a teal
+			   gradient and is meant to read as a primary action, so the intended
+			   white is pinned here. */
+			color: #fff !important;
+			font-size: 0.96rem;
+			line-height: 1.25;
+		}
+		small {
+			/* The 0.92 alpha measured 4.29:1 on the gradient's lightest stop; at
+			   0.77rem that misses AA. Full white matches the title's 4.75:1. */
+			color: #ffffff !important;
+			font-size: 0.77rem;
+		}
+	}
+	.pf-admin-arrow {
+		width: 17px;
+		height: 17px;
+		flex: 0 0 17px;
+		stroke: #fff;
+		fill: none;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition: transform 0.26s;
+	}
+	.pf-stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
+		gap: 6px;
+		padding: 22px 26px 24px;
+		text-align: center;
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 1.25rem;
+		}
+		small {
+			/* --muted (#8a979a) measured 2.89:1 against the panel in-browser. These
+			   labels are 0.73rem, so AA needs 4.5:1 — the marketing tokens are tuned
+			   for larger copy. Darkened here only; the token itself is untouched so
+			   no other page shifts. */
+			color: #5e6c6f;
+			font-size: 0.73rem;
+			text-transform: uppercase;
+			letter-spacing: 0.6px;
+			font-weight: 700;
+		}
+	}
+	/* ------------------------------------------------------- tour uploader */
+	.at-up {
+		display: grid;
+		gap: 14px;
+	}
+	.at-up-drop {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		width: 100%;
+		padding: 26px 20px;
+		border: 1.5px dashed var(--line);
+		border-radius: 16px;
+		background: var(--paper-soft);
+		cursor: pointer;
+		font-family: inherit;
+		transition: 0.22s;
+
+		svg {
+			width: 26px;
+			height: 26px;
+			stroke: var(--sky);
+			fill: none;
+			stroke-width: 1.8;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			margin-bottom: 4px;
+		}
+		b {
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.95rem;
+		}
+		span {
+			color: var(--muted);
+			font-size: 0.82rem;
+		}
+		&:hover:not(:disabled) {
+			border-color: var(--sky);
+			background: var(--sky-soft-2);
+		}
+		&:disabled {
+			opacity: 0.55;
+			cursor: not-allowed;
+		}
+	}
+	.at-thumbs {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+		gap: 12px;
+
+		li {
+			position: relative;
+			border-radius: 14px;
+			overflow: hidden;
+			border: 1px solid var(--line);
+			background: var(--sky-soft);
+			aspect-ratio: 4 / 3;
+		}
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+	}
+	.at-cover {
+		position: absolute;
+		left: 8px;
+		top: 8px;
+		padding: 3px 9px;
+		border-radius: 999px;
+		background: var(--sky);
+		color: #fff;
+		font-size: 0.64rem;
+		font-weight: 800;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+	}
+	.at-thumb-x {
+		position: absolute;
+		right: 6px;
+		top: 6px;
+		width: 26px;
+		height: 26px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 50%;
+		background: rgba(4, 26, 33, 0.66);
+		cursor: pointer;
+		transition: 0.2s;
+
+		svg {
+			width: 13px;
+			height: 13px;
+			stroke: #fff;
+			fill: none;
+			stroke-width: 2.4;
+			stroke-linecap: round;
+		}
+		&:hover {
+			background: #ef5a3c;
+		}
+	}
+	.at-up-err {
+		color: #ef5a3c !important;
+		font-weight: 600;
+	}
+
+	.pf-form-note,
+	.at-note {
+		color: var(--muted);
+		font-size: 0.89rem;
+		margin: 12px 0 20px;
+	}
+
+	/* Shared two-up form row + number grid */
+	.fl-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+	}
+	.at-nums {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 14px;
+	}
+	.fl-field textarea {
+		width: 100%;
+		padding: 12px 14px;
+		border-radius: 12px;
+		border: 1.5px solid var(--line);
+		background: var(--paper);
+		color: var(--ink);
+		font-family: inherit;
+		font-size: 0.92rem;
+		resize: vertical;
+		outline: none;
+		transition: 0.2s;
+
+		&:focus {
+			border-color: var(--sky);
+			box-shadow: 0 0 0 3px var(--sky-soft);
+		}
+		&::placeholder {
+			color: var(--muted);
+		}
+	}
+
+	/* --------------------------------------------------------- follow list */
+	.fl-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 18px;
+	}
+	.fl-card {
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		border-radius: 20px;
+		padding: 22px 18px;
+		text-align: center;
+		transition: transform 0.35s, box-shadow 0.35s;
+
+		&:hover {
+			transform: translateY(-5px);
+			box-shadow: var(--pop);
+		}
+	}
+	.fl-id {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		width: 100%;
+		border: none;
+		background: none;
+		cursor: pointer;
+		font-family: inherit;
+
+		b {
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.98rem;
+		}
+		&:hover b {
+			color: var(--sky);
+		}
+	}
+	.fl-av {
+		width: 66px;
+		height: 66px;
+		border-radius: 50%;
+		object-fit: cover;
+		background: var(--sky-soft);
+		margin-bottom: 6px;
+	}
+	.fl-role {
+		color: var(--muted);
+		font-size: 0.7rem;
+		letter-spacing: 0.6px;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+	.fl-stats {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 16px;
+		margin: 14px 0 16px;
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.95rem;
+		}
+		small {
+			color: var(--muted);
+			font-size: 0.68rem;
+			text-transform: uppercase;
+			letter-spacing: 0.4px;
+			font-weight: 700;
+		}
+	}
+	.fl-like {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		border: none;
+		background: none;
+		cursor: pointer;
+		padding: 0;
+	}
+	.fl-heart {
+		width: 18px;
+		height: 18px;
+		stroke: var(--muted);
+		fill: none;
+		stroke-width: 1.8;
+		transition: 0.2s;
+
+		&.on {
+			stroke: #ef5a3c;
+			fill: #ef5a3c;
+		}
+	}
+	.fl-like:hover .fl-heart {
+		stroke: #ef5a3c;
+	}
+	.fl-act .btn {
+		width: 100%;
+		justify-content: center;
+		padding: 9px 18px;
+		font-size: 0.86rem;
+	}
+	.fl-unfollow:hover {
+		border-color: #ef5a3c;
+		color: #ef5a3c;
+	}
+
+	/* ------------------------------------------------------- notifications */
+	.nt-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		flex-wrap: wrap;
+		margin-bottom: 22px;
+	}
+	.nt-tabs {
+		display: flex;
+		gap: 9px;
+		flex-wrap: wrap;
+	}
+	.nt-count {
+		margin-left: 7px;
+		padding: 1px 7px;
+		border-radius: 999px;
+		background: #ef5a3c;
+		color: #fff;
+		font-size: 0.68rem;
+		font-style: normal;
+		font-weight: 800;
+	}
+	.nt-readall {
+		padding: 9px 18px;
+		font-size: 0.86rem;
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	}
+	.nt-group + .nt-group {
+		margin-top: 24px;
+	}
+	.nt-bucket {
+		font-family: 'Sora', sans-serif;
+		font-size: 0.74rem;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin: 0 0 10px 4px;
+		font-weight: 700;
+	}
+	.nt-card {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		border-radius: 18px;
+		padding: 6px 16px 6px 6px;
+		transition: 0.25s;
+
+		& + & {
+			margin-top: 10px;
+		}
+		&:hover {
+			border-color: var(--sky);
+			box-shadow: var(--pop);
+		}
+		&.unread {
+			background: var(--sky-soft-2);
+			border-color: var(--sky-soft);
+		}
+	}
+	.nt-open {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 12px;
+		border: none;
+		background: none;
+		text-align: left;
+		font-family: inherit;
+		cursor: pointer;
+	}
+	.nt-ico {
+		flex: 0 0 40px;
+		width: 40px;
+		height: 40px;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		svg {
+			width: 19px;
+			height: 19px;
+			fill: none;
+			stroke-width: 1.9;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+		&.sky {
+			background: var(--sky-soft);
+			svg {
+				stroke: var(--sky);
+			}
+		}
+		&.violet {
+			background: rgba(124, 108, 232, 0.14);
+			svg {
+				stroke: #7c6ce8;
+			}
+		}
+		&.rose {
+			background: rgba(239, 90, 60, 0.13);
+			svg {
+				stroke: #ef5a3c;
+			}
+		}
+		&.green {
+			background: rgba(47, 182, 115, 0.14);
+			svg {
+				stroke: #2fb673;
+			}
+		}
+		&.amber {
+			background: rgba(244, 179, 82, 0.16);
+			svg {
+				stroke: #d9922a;
+			}
+		}
+	}
+	.nt-body {
+		flex: 1;
+		min-width: 0;
+	}
+	.nt-top {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		flex-wrap: wrap;
+
+		b {
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.93rem;
+		}
+	}
+	.nt-tag {
+		padding: 2px 9px;
+		border-radius: 999px;
+		font-size: 0.66rem;
+		font-weight: 800;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+
+		&.sky {
+			background: var(--sky-soft);
+			color: var(--sky);
+		}
+		&.violet {
+			background: rgba(124, 108, 232, 0.14);
+			color: #7c6ce8;
+		}
+		&.rose {
+			background: rgba(239, 90, 60, 0.13);
+			color: #ef5a3c;
+		}
+		&.green {
+			background: rgba(47, 182, 115, 0.14);
+			color: #2fb673;
+		}
+		&.amber {
+			background: rgba(244, 179, 82, 0.18);
+			color: #b8791d;
+		}
+	}
+	.nt-desc {
+		display: block;
+		color: var(--body);
+		font-size: 0.87rem;
+		line-height: 1.55;
+		margin-top: 3px;
+	}
+	.nt-time {
+		display: block;
+		color: var(--muted);
+		font-size: 0.78rem;
+		margin-top: 4px;
+	}
+	/* Sender avatar shown in place of the type glyph on inquiry notifications. */
+	.nt-av {
+		flex: 0 0 40px;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		object-fit: cover;
+		background: var(--sky-soft);
+	}
+	.nt-role {
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		color: var(--muted);
+		font-size: 0.63rem;
+		font-weight: 800;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+	}
+	.nt-ref {
+		display: block;
+		color: var(--sky);
+		font-size: 0.82rem;
+		font-weight: 600;
+		margin-top: 3px;
+	}
+	.nt-desc {
+		/* Inquiry bodies can be long — show a preview, not the whole message. */
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.nt-unread-dot {
+		flex: 0 0 8px;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--sky);
+	}
+	.nt-actions {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+	.nt-mini {
+		padding: 6px 12px;
+		border-radius: 9px;
+		border: 1px solid var(--line);
+		background: var(--paper);
+		color: var(--body);
+		font-family: inherit;
+		font-size: 0.78rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: 0.2s;
+
+		&:hover {
+			border-color: var(--sky);
+			color: var(--sky);
+		}
+		&.danger:hover {
+			border-color: #ef5a3c;
+			color: #ef5a3c;
+		}
+	}
+
+	/* ------------------------------------------------------------ messages */
+	.msg-shell {
+		display: grid;
+		grid-template-columns: 290px minmax(0, 1fr);
+		height: 620px;
+	}
+	.msg-list {
+		display: flex;
+		flex-direction: column;
+		border-right: 1px solid var(--line);
+		background: var(--paper-soft);
+		min-width: 0;
+	}
+	.msg-list-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		padding: 20px 18px 14px;
+
+		h3 {
+			font-size: 1.15rem;
+		}
+	}
+	.msg-online-pill {
+		padding: 3px 10px;
+		border-radius: 999px;
+		background: rgba(47, 182, 115, 0.14);
+		color: #2fb673;
+		font-size: 0.72rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+	.msg-search {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		margin: 0 16px 12px;
+		padding: 0 13px;
+		border-radius: 12px;
+		border: 1.5px solid var(--line);
+		background: var(--paper);
+
+		&:focus-within {
+			border-color: var(--sky);
+		}
+		svg {
+			width: 16px;
+			height: 16px;
+			flex: 0 0 16px;
+			stroke: var(--muted);
+			fill: none;
+			stroke-width: 1.9;
+			stroke-linecap: round;
+		}
+		input {
+			flex: 1;
+			min-width: 0;
+			padding: 10px 0;
+			border: none;
+			background: none;
+			outline: none;
+			color: var(--ink);
+			font-family: inherit;
+			font-size: 0.88rem;
+		}
+	}
+	.msg-threads {
+		flex: 1;
+		overflow-y: auto;
+		list-style: none;
+		margin: 0;
+		padding: 0 10px;
+	}
+	.msg-thread {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 11px;
+		padding: 11px;
+		border: none;
+		border-radius: 14px;
+		background: none;
+		text-align: left;
+		font-family: inherit;
+		cursor: pointer;
+		transition: 0.2s;
+
+		&:hover {
+			background: var(--sky-soft-2);
+		}
+		&.on {
+			background: var(--sky-soft);
+		}
+	}
+	.msg-thread-av {
+		position: relative;
+		flex: 0 0 42px;
+		width: 42px;
+		height: 42px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--sky-soft);
+
+		&.lounge svg {
+			width: 21px;
+			height: 21px;
+			stroke: var(--sky);
+			fill: none;
+			stroke-width: 1.8;
+			stroke-linecap: round;
+		}
+		&.lg {
+			flex-basis: 46px;
+			width: 46px;
+			height: 46px;
+		}
+	}
+	.msg-dot {
+		position: absolute;
+		right: 0;
+		bottom: 1px;
+		width: 11px;
+		height: 11px;
+		border-radius: 50%;
+		background: #2fb673;
+		border: 2px solid var(--paper-soft);
+
+		&.inline {
+			position: static;
+			border: none;
+			width: 7px;
+			height: 7px;
+			display: inline-block;
+			margin-right: 6px;
+			background: var(--muted);
+
+			&.live {
+				background: #2fb673;
+			}
+		}
+	}
+	.msg-thread-body {
+		flex: 1;
+		min-width: 0;
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.9rem;
+		}
+		small {
+			display: block;
+			color: var(--muted);
+			font-size: 0.8rem;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+	.msg-empty-row,
+	.msg-note {
+		color: var(--muted);
+		font-size: 0.8rem;
+		line-height: 1.55;
+		padding: 14px 18px;
+		margin: 0;
+	}
+	.msg-note {
+		border-top: 1px solid var(--line);
+	}
+
+	.msg-chat {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		background: var(--paper);
+	}
+	.msg-chat-head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 16px 22px;
+		border-bottom: 1px solid var(--line);
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 1rem;
+		}
+		small {
+			display: flex;
+			align-items: center;
+			color: var(--muted);
+			font-size: 0.82rem;
+		}
+	}
+	.msg-thread-body-scroll {
+		flex: 1;
+		overflow-y: auto;
+		padding: 24px 22px;
+		background: var(--paper-soft);
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+	.msg-row {
+		display: flex;
+		align-items: flex-end;
+		gap: 10px;
+		max-width: 76%;
+
+		&.mine {
+			align-self: flex-end;
+			flex-direction: row-reverse;
+		}
+	}
+	.msg-av {
+		width: 32px;
+		height: 32px;
+		flex: 0 0 32px;
+		border-radius: 50%;
+		object-fit: cover;
+		background: var(--sky-soft);
+	}
+	.msg-who {
+		display: block;
+		color: var(--muted);
+		font-size: 0.75rem;
+		margin: 0 0 4px 4px;
+	}
+	.msg-bubble {
+		padding: 11px 16px;
+		border-radius: 18px;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		color: var(--ink);
+		font-size: 0.91rem;
+		line-height: 1.55;
+		word-break: break-word;
+	}
+	.msg-row.mine .msg-bubble {
+		background: var(--sky);
+		border-color: var(--sky);
+		color: #fff;
+	}
+	.msg-blank {
+		margin: auto;
+		text-align: center;
+		color: var(--muted);
+
+		h4 {
+			font-size: 1.05rem;
+			margin-bottom: 5px;
+		}
+		p {
+			margin: 0;
+			font-size: 0.9rem;
+		}
+	}
+	.msg-compose {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 14px 20px;
+		border-top: 1px solid var(--line);
+
+		input {
+			flex: 1;
+			min-width: 0;
+			padding: 13px 16px;
+			border-radius: 999px;
+			border: 1.5px solid var(--line);
+			background: var(--paper-soft);
+			color: var(--ink);
+			font-family: inherit;
+			font-size: 0.92rem;
+			outline: none;
+			transition: 0.2s;
+
+			&:focus {
+				border-color: var(--sky);
+			}
+			&:disabled {
+				opacity: 0.65;
+			}
+		}
+	}
+	.msg-send {
+		flex: 0 0 46px;
+		width: 46px;
+		height: 46px;
+		padding: 0;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		svg {
+			width: 19px;
+			height: 19px;
+			stroke: #fff;
+			fill: none;
+			stroke-width: 1.9;
+			stroke-linejoin: round;
+		}
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+			box-shadow: none;
+		}
+	}
+
+	/* ------------------------------------------------------- write article */
+	.wa-wrap {
+		display: grid;
+		gap: 20px;
+	}
+	.wa-tips {
+		background: var(--sky-soft-2);
+		border: 1px solid var(--sky-soft);
+		border-radius: 16px;
+		padding: 18px 22px;
+
+		h4 {
+			font-size: 0.95rem;
+			margin-bottom: 8px;
+		}
+		ul {
+			margin: 0;
+			padding-left: 18px;
+			color: var(--body);
+			font-size: 0.88rem;
+			line-height: 1.75;
+		}
+	}
+
+	/* ------------------------------------------------- public guide profile */
+	.gp-head {
+		background: var(--paper);
+	}
+	.gp-actions {
+		display: flex;
+		gap: 10px;
+		margin-left: auto;
+		padding-bottom: 8px;
+		flex-wrap: wrap;
+
+		.btn {
+			padding: 10px 22px;
+			font-size: 0.88rem;
+		}
+	}
+	.gp-bio {
+		color: var(--body);
+		font-size: 0.96rem;
+		line-height: 1.8;
+		margin: 18px 26px 0;
+		max-width: 62em;
+	}
+	.gp-tabs {
+		margin: 24px 0 22px;
+	}
+
+	/* --------------------------------------------------- write-article editor
+	 * TOAST UI and MUI each ship their own palette, which reads washed-out on our
+	 * surfaces and is unreadable in dark mode. Everything below re-points those
+	 * components at the GoTrip tokens so text, placeholders, borders and controls
+	 * keep proper contrast in both themes. Layout and behaviour are untouched.
+	 * -------------------------------------------------------------------- */
+	.wa-editor {
+		/* --- MUI fields above the editor --- */
+		.article-editor-fields {
+			margin: 0 0 22px !important;
+			gap: 18px;
+			flex-wrap: wrap;
+			align-items: flex-start;
+		}
+		.article-editor-field {
+			flex: 1 1 260px;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+
+			.article-editor-label,
+			.MuiTypography-root {
+				display: block;
+				color: var(--muted);
+				font-family: inherit;
+				font-size: 0.78rem;
+				font-weight: 700;
+				letter-spacing: 0.6px;
+				text-transform: uppercase;
+				margin: 0 0 7px;
+			}
+			.MuiInputBase-root,
+			.MuiOutlinedInput-root {
+				border-radius: 12px;
+				background: var(--paper);
+				color: var(--ink);
+				font-family: inherit;
+				font-size: 0.94rem;
+			}
+			.MuiOutlinedInput-notchedOutline {
+				border-color: var(--line);
+				border-width: 1.5px;
+			}
+			.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+			.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+				border-color: var(--sky);
+			}
+			.MuiInputBase-input {
+				color: var(--ink);
+
+				&::placeholder {
+					color: var(--muted);
+					opacity: 1;
+				}
+			}
+			.MuiSelect-icon {
+				color: var(--muted);
+			}
+
+			/* main.scss applies `#pc-wrap input:focus-visible { outline: 3px solid }`,
+			   which draws a detached blue rectangle over the field while typing.
+			   Focus is not removed — it moves onto the field's own border + ring. */
+			.MuiInputBase-input:focus,
+			.MuiInputBase-input:focus-visible,
+			.MuiSelect-select:focus,
+			.MuiSelect-select:focus-visible {
+				outline: none !important;
+				box-shadow: none !important;
+			}
+			.MuiOutlinedInput-root.Mui-focused {
+				box-shadow: 0 0 0 3px var(--sky-soft);
+			}
+		}
+
+		/* --- TOAST UI shell --- */
+		.toastui-editor-defaultUI {
+			border: 1.5px solid var(--line);
+			border-radius: 16px;
+			overflow: hidden;
+			background: var(--paper);
+			font-family: inherit;
+		}
+		.toastui-editor-toolbar,
+		.toastui-editor-defaultUI-toolbar {
+			background: var(--paper-soft);
+			border-bottom: 1px solid var(--line);
+		}
+		/* Toolbar glyphs are a dark sprite tuned for a white bar; invert them in
+		   dark mode so they stay visible against the darker surface. */
+		.toastui-editor-toolbar-icons {
+			border: none;
+			background-color: transparent;
+
+			&:hover {
+				background-color: var(--sky-soft-2);
+				border-radius: 8px;
+			}
+		}
+		[data-theme='dark'] & .toastui-editor-toolbar-icons {
+			filter: invert(1) brightness(1.6);
+		}
+		.toastui-editor-toolbar-divider {
+			background-color: var(--line);
+		}
+		.toastui-editor-dropdown-toolbar {
+			background: var(--paper);
+			border-color: var(--line);
+		}
+
+		/* --- editing surfaces --- */
+		.toastui-editor-md-container,
+		.toastui-editor-ww-container,
+		.toastui-editor-md-container .toastui-editor,
+		.toastui-editor-md-preview {
+			background: var(--paper);
+			color: var(--ink);
+		}
+		.toastui-editor-contents,
+		.toastui-editor-contents p,
+		.toastui-editor-contents div,
+		.toastui-editor-contents span,
+		.toastui-editor-contents li,
+		.ProseMirror {
+			color: var(--ink);
+			font-family: inherit;
+			font-size: 0.97rem;
+			line-height: 1.75;
+		}
+		.toastui-editor-contents h1,
+		.toastui-editor-contents h2,
+		.toastui-editor-contents h3,
+		.toastui-editor-contents h4 {
+			color: var(--ink);
+		}
+		.toastui-editor-contents blockquote {
+			border-left: 3px solid var(--sky);
+			color: var(--body);
+		}
+		.toastui-editor-contents code,
+		.toastui-editor-contents pre {
+			background: var(--sky-soft-2);
+			color: var(--ink);
+		}
+		.toastui-editor-contents a {
+			color: var(--sky);
+		}
+		/* Markdown source pane: syntax tints must not vanish on a dark surface. */
+		.toastui-editor-md-container .CodeMirror,
+		.toastui-editor .CodeMirror {
+			background: var(--paper);
+			color: var(--ink);
+		}
+		.CodeMirror-cursor {
+			border-left-color: var(--ink);
+		}
+		.CodeMirror-selected {
+			background: var(--sky-soft) !important;
+		}
+
+		/* --- placeholders (the worst offenders before this) --- */
+		.toastui-editor-md-placeholder,
+		.toastui-editor-ww-placeholder,
+		.ProseMirror-placeholder,
+		.placeholder {
+			color: var(--muted) !important;
+			opacity: 1 !important;
+		}
+
+		/* --- mode switch + splitter --- */
+		.toastui-editor-mode-switch {
+			background: var(--paper-soft);
+			border-top: 1px solid var(--line);
+
+			.tab-item {
+				background: transparent;
+				border-color: var(--line);
+				color: var(--muted);
+				font-family: inherit;
+
+				&.active {
+					background: var(--paper);
+					color: var(--sky);
+					border-bottom-color: var(--paper);
+				}
+			}
+		}
+		.toastui-editor-md-splitter {
+			background-color: var(--line);
+		}
+
+		/* --- popups (link, image, table) --- */
+		.toastui-editor-popup,
+		.toastui-editor-popup-body {
+			background: var(--paper);
+			color: var(--ink);
+			border: 1px solid var(--line);
+			border-radius: 14px;
+
+			label,
+			.toastui-editor-popup-body label {
+				color: var(--muted);
+			}
+			input[type='text'],
+			input[type='file'],
+			textarea {
+				background: var(--paper);
+				border: 1.5px solid var(--line);
+				border-radius: 10px;
+				color: var(--ink);
+
+				&::placeholder {
+					color: var(--muted);
+				}
+			}
+			.toastui-editor-ok-button {
+				background: var(--sky);
+				color: #fff;
+				border-radius: 999px;
+			}
+			.toastui-editor-close-button {
+				background: var(--paper-soft);
+				color: var(--body);
+				border: 1px solid var(--line);
+				border-radius: 999px;
+			}
+		}
+
+		/* --- submit row --- */
+		.article-editor-submit {
+			margin-top: 22px;
+
+			.MuiButton-root {
+				border-radius: 999px;
+				background: var(--sky);
+				color: #fff;
+				font-family: inherit;
+				font-weight: 700;
+				text-transform: none;
+				padding: 11px 30px;
+				box-shadow: none;
+
+				&:hover {
+					box-shadow: var(--pop);
+				}
+				&.Mui-disabled {
+					background: var(--line);
+					color: var(--muted);
+				}
+			}
+		}
+	}
+
+	/* ------------------------------------------------------- become a guide */
+	.bg-card {
+		display: grid;
+		grid-template-columns: 300px minmax(0, 1fr);
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		border-radius: 24px;
+		overflow: hidden;
+		box-shadow: var(--shadow);
+	}
+	.bg-card-art {
+		position: relative;
+		min-height: 320px;
+		background: var(--ink-solid);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(120deg, rgba(4, 26, 33, 0.28), rgba(4, 26, 33, 0.62));
+		}
+	}
+	.bg-card-body {
+		padding: 32px;
+
+		h3 {
+			font-size: 1.55rem;
+			letter-spacing: -0.4px;
+			margin: 6px 0 10px;
+		}
+	}
+	.bg-card-lead {
+		color: var(--body);
+		font-size: 0.98rem;
+		line-height: 1.75;
+		margin: 0 0 22px;
+		max-width: 44em;
+	}
+	.bg-perks {
+		list-style: none;
+		margin: 0 0 26px;
+		padding: 0;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+
+		li {
+			display: flex;
+			align-items: flex-start;
+			gap: 11px;
+		}
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.93rem;
+			margin-bottom: 2px;
+		}
+		span {
+			color: var(--muted);
+			font-size: 0.86rem;
+			line-height: 1.6;
+		}
+	}
+	.bg-check {
+		flex: 0 0 24px;
+		width: 24px;
+		height: 24px;
+		margin-top: 1px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: var(--sky-soft);
+
+		svg {
+			width: 16px;
+			height: 16px;
+			stroke: var(--sky);
+			fill: none;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	}
+	.bg-cta {
+		padding: 13px 30px;
+	}
+	.bg-modal-sub {
+		color: var(--muted);
+		font-size: 0.9rem;
+		margin: -8px 0 18px;
+	}
+	/* The guide modal reuses .sp-help / .sp-count from the Support form. */
+	.bg-modal .sp-help {
+		color: var(--muted);
+	}
+	.bg-modal .sp-help-err {
+		color: #ef5a3c;
+	}
+
+	/* Submitted / rejected status panel */
+	.bg-status {
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		border-left: 4px solid var(--sky);
+		border-radius: 20px;
+		padding: 28px;
+
+		&.rejected {
+			border-left-color: #ef5a3c;
+		}
+		h3 {
+			font-size: 1.3rem;
+			margin: 10px 0 0;
+		}
+	}
+	.bg-pill {
+		display: inline-block;
+		padding: 5px 14px;
+		border-radius: 999px;
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.6px;
+		text-transform: uppercase;
+
+		&.pending {
+			background: rgba(244, 179, 82, 0.18);
+			color: #b8791d;
+		}
+		&.rejected {
+			background: rgba(239, 90, 60, 0.14);
+			color: #ef5a3c;
+		}
+	}
+	.bg-status-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		gap: 14px;
+		margin: 22px 0;
+		padding: 18px 0;
+		border-top: 1px solid var(--line);
+		border-bottom: 1px solid var(--line);
+
+		dt {
+			color: var(--muted);
+			font-size: 0.72rem;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+			font-weight: 700;
+			margin-bottom: 4px;
+		}
+		dd {
+			margin: 0;
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.98rem;
+		}
+	}
+	.bg-status-note {
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 14px;
+		padding: 16px 18px;
+		margin-bottom: 18px;
+
+		small {
+			display: block;
+			color: var(--muted);
+			font-size: 0.72rem;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+			font-weight: 700;
+			margin-bottom: 6px;
+		}
+		p {
+			margin: 0;
+			color: var(--body);
+			font-size: 0.93rem;
+			line-height: 1.7;
+		}
+	}
+	.bg-status-foot {
+		color: var(--muted);
+		font-size: 0.9rem;
+		line-height: 1.7;
+		margin: 0 0 18px;
+	}
+
+	/* -------------------------------------------------------------- modals */
+	.acc-modal {
+		position: fixed;
+		inset: 0;
+		z-index: 1200;
+		background: rgba(4, 26, 33, 0.55);
+		backdrop-filter: blur(3px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 20px;
+	}
+	.acc-modal-card {
+		width: 100%;
+		max-width: 520px;
+		max-height: 88vh;
+		overflow-y: auto;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 22px;
+		padding: 26px;
+		box-shadow: var(--pop);
+
+		h3 {
+			font-size: 1.25rem;
+			margin-bottom: 18px;
+		}
+	}
+	.acc-modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 10px;
+		margin-top: 22px;
+
+		.btn {
+			padding: 11px 22px;
+			font-size: 0.9rem;
+		}
+	}
+}
+
+/* -------------------------------------------------------------- responsive */
+@media (max-width: 1100px) {
+	.gth-root {
+		.acc-layout {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.acc-side {
+			position: static;
+		}
+		/* Sidebar becomes a horizontal rail above the content. */
+		.acc-id,
+		.acc-id-stats {
+			display: none;
+		}
+		.acc-nav {
+			display: flex;
+			gap: 22px;
+			overflow-x: auto;
+			padding: 0 0 6px;
+		}
+		.acc-nav-group + .acc-nav-group {
+			margin-top: 0;
+		}
+		.acc-nav ul {
+			display: flex;
+			gap: 6px;
+		}
+		.acc-nav-link {
+			white-space: nowrap;
+		}
+		.msg-shell {
+			grid-template-columns: 240px minmax(0, 1fr);
+		}
+	}
+}
+
+@media (max-width: 760px) {
+	.gth-root {
+		.acc-body {
+			padding: 18px;
+		}
+		.fl-row {
+			grid-template-columns: 1fr;
+		}
+		.pf-id {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+			padding: 0 18px;
+		}
+		.pf-admin-cta {
+			margin-left: 0;
+			width: 100%;
+		}
+		.pf-stats {
+			padding: 18px;
+		}
+		.nt-card {
+			flex-direction: column;
+			align-items: stretch;
+			padding: 12px;
+		}
+		/* Become a Guide: artwork on top, perks single column. */
+		.bg-card {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.bg-card-art {
+			min-height: 170px;
+		}
+		.bg-card-body {
+			padding: 22px 20px;
+		}
+		.bg-perks {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.bg-status {
+			padding: 20px;
+		}
+		.nt-actions {
+			justify-content: flex-end;
+		}
+		/* One pane at a time: the thread takes over, list stays reachable above. */
+		.msg-shell {
+			grid-template-columns: minmax(0, 1fr);
+			height: auto;
+		}
+		.msg-list {
+			border-right: none;
+			border-bottom: 1px solid var(--line);
+		}
+		.msg-threads {
+			max-height: 210px;
+		}
+		.msg-thread-body-scroll {
+			height: 380px;
+		}
+		.msg-row {
+			max-width: 88%;
+		}
+	}
+}
+
+/* ============================================================================
+ * Messages — Telegram-style two-pane private messaging.
+ *
+ * Uses only existing GoTrip tokens (--paper / --line / --ink / --body / --muted /
+ * --sky / --sky-soft / --shadow / --pop), so light and dark follow the app theme
+ * automatically with no palette of its own.
+ * ========================================================================== */
+.gth-root {
+	.ms-wrap {
+		display: grid;
+		grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+		gap: 0;
+		height: min(72vh, 720px);
+		border: 1px solid var(--line);
+		border-radius: 18px;
+		background: var(--paper);
+		box-shadow: var(--pop);
+		overflow: hidden;
+	}
+
+	/* ------------------------------------------------------------- left pane */
+	.ms-side {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		border-right: 1px solid var(--line);
+		background: var(--paper-soft);
+	}
+
+	.ms-search {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px 16px;
+		border-bottom: 1px solid var(--line);
+
+		svg {
+			width: 18px;
+			height: 18px;
+			flex: 0 0 18px;
+			fill: none;
+			stroke: var(--muted);
+			stroke-width: 2;
+			stroke-linecap: round;
+		}
+		input {
+			width: 100%;
+			min-width: 0;
+			border: 0;
+			outline: none;
+			background: transparent;
+			color: var(--ink);
+			font-family: inherit;
+			font-size: 0.9rem;
+
+			&::placeholder {
+				color: var(--muted);
+			}
+		}
+	}
+
+	.ms-results {
+		border-bottom: 1px solid var(--line);
+		padding: 8px 0;
+	}
+	.ms-results-title {
+		display: block;
+		padding: 4px 16px 6px;
+		font-size: 0.68rem;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.ms-list {
+		flex: 1 1 auto;
+		overflow-y: auto;
+		min-height: 0;
+	}
+
+	.ms-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		padding: 12px 16px;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+		text-align: left;
+		transition: background 0.18s ease;
+
+		&:hover {
+			background: var(--sky-soft-2);
+		}
+		&.is-active {
+			background: var(--sky-soft);
+		}
+		&:focus-visible {
+			outline: none;
+			box-shadow: inset 0 0 0 2px var(--sky);
+		}
+	}
+
+	.ms-av {
+		width: 42px;
+		height: 42px;
+		flex: 0 0 42px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 1px solid var(--line);
+	}
+
+	.ms-row-body {
+		display: grid;
+		gap: 2px;
+		min-width: 0;
+		flex: 1 1 auto;
+
+		b {
+			font-family: 'Sora', sans-serif;
+			font-size: 0.9rem;
+			color: var(--ink);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		small {
+			font-size: 0.78rem;
+			color: var(--muted);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+
+	.ms-row-meta {
+		display: grid;
+		justify-items: end;
+		gap: 6px;
+		flex: 0 0 auto;
+
+		time {
+			font-size: 0.7rem;
+			color: var(--muted);
+		}
+	}
+
+	.ms-badge {
+		display: inline-grid;
+		place-items: center;
+		min-width: 20px;
+		height: 20px;
+		padding: 0 6px;
+		border-radius: 999px;
+		background: var(--sky);
+		color: #fff;
+		font-size: 0.68rem;
+		font-style: normal;
+		font-weight: 700;
+	}
+
+	/* ------------------------------------------------------------ right pane */
+	.ms-chat {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		background: var(--paper);
+	}
+
+	.ms-chat-head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 18px;
+		border-bottom: 1px solid var(--line);
+
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			font-size: 0.95rem;
+			color: var(--ink);
+		}
+		small {
+			font-size: 0.74rem;
+			color: var(--muted);
+		}
+	}
+
+	.ms-thread {
+		flex: 1 1 auto;
+		overflow-y: auto;
+		min-height: 0;
+		padding: 18px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.ms-day {
+		align-self: center;
+		margin: 10px 0 4px;
+		padding: 4px 12px;
+		border-radius: 999px;
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		font-size: 0.7rem;
+		font-weight: 700;
+		color: var(--muted);
+	}
+
+	.ms-bubble {
+		max-width: min(78%, 520px);
+		align-self: flex-start;
+		padding: 9px 13px;
+		border-radius: 16px 16px 16px 5px;
+		/* Pure --paper (not --paper-soft) so the bubble stays crisp and opaque
+		   against the wallpaper behind .ms-thread — a tinted off-white read as
+		   washed out once the background image shipped. */
+		background: var(--paper);
+		border: 1px solid var(--line);
+		color: var(--body);
+		box-shadow: 0 1px 2px rgba(16, 24, 32, 0.08), 0 1px 1px rgba(16, 24, 32, 0.04);
+		transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+		&:hover {
+			box-shadow: 0 2px 6px rgba(16, 24, 32, 0.14), 0 1px 2px rgba(16, 24, 32, 0.06);
+		}
+
+		p {
+			margin: 0;
+			font-size: 0.9rem;
+			line-height: 1.55;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		&.is-mine {
+			align-self: flex-end;
+			border-radius: 16px 16px 5px 16px;
+			background: var(--sky);
+			border-color: transparent;
+			color: #fff;
+			box-shadow: 0 2px 8px -2px rgba(12, 125, 155, 0.45);
+
+			&:hover {
+				box-shadow: 0 3px 10px -2px rgba(12, 125, 155, 0.55);
+			}
+
+			.ms-bubble-meta {
+				color: rgba(255, 255, 255, 0.86);
+			}
+		}
+	}
+
+	.ms-bubble-meta {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 5px;
+		margin-top: 3px;
+		font-size: 0.66rem;
+		/* --muted measured 3.01:1 on the received bubble's --paper background in
+		   light mode — below AA for this size. --body (already used for the
+		   bubble's own message text, at 5.25:1) is reused rather than a new
+		   colour. */
+		color: var(--body);
+	}
+
+	.ms-tick {
+		font-style: normal;
+		opacity: 0.55;
+
+		&.is-read {
+			opacity: 1;
+		}
+	}
+
+	/* ------------------------------------------------------------- composer */
+	.ms-composer {
+		display: flex;
+		align-items: flex-end;
+		gap: 8px;
+		padding: 12px 16px;
+		border-top: 1px solid var(--line);
+		background: var(--paper-soft);
+
+		textarea {
+			flex: 1 1 auto;
+			min-width: 0;
+			max-height: 120px;
+			padding: 10px 14px;
+			border: 1px solid var(--line);
+			border-radius: 14px;
+			background: var(--paper);
+			color: var(--ink);
+			font-family: inherit;
+			font-size: 0.9rem;
+			line-height: 1.45;
+			resize: none;
+			outline: none;
+			transition: border-color 0.18s ease;
+
+			&::placeholder {
+				color: var(--muted);
+			}
+			&:focus {
+				border-color: var(--sky);
+			}
+		}
+	}
+
+	.ms-attach,
+	.ms-send {
+		display: grid;
+		place-items: center;
+		width: 42px;
+		height: 42px;
+		flex: 0 0 42px;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: var(--paper);
+		cursor: pointer;
+		transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+
+		svg {
+			width: 19px;
+			height: 19px;
+			fill: none;
+			stroke: var(--body);
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+		&:hover:not(:disabled) {
+			border-color: var(--sky);
+			transform: translateY(-1px);
+		}
+		&:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
+		}
+		&:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--sky);
+		}
+	}
+
+	.ms-send {
+		background: var(--sky);
+		border-color: transparent;
+
+		svg {
+			stroke: #fff;
+			fill: #fff;
+		}
+	}
+
+	/* --------------------------------------------------------------- states */
+	.ms-empty {
+		display: grid;
+		gap: 6px;
+		padding: 30px 22px;
+		text-align: center;
+
+		b {
+			font-family: 'Sora', sans-serif;
+			color: var(--ink);
+			font-size: 0.98rem;
+		}
+		span {
+			color: var(--muted);
+			font-size: 0.85rem;
+		}
+
+		&--chat {
+			margin: auto;
+		}
+	}
+
+	.ms-empty-mini {
+		margin: 0;
+		padding: 14px 16px;
+		color: var(--muted);
+		font-size: 0.84rem;
+	}
+}
+
+/* Mobile / tablet: one pane at a time — the thread takes over once a
+   conversation is open, which is the standard messaging pattern. */
+@media (max-width: 900px) {
+	.gth-root {
+		.ms-wrap {
+			grid-template-columns: minmax(0, 1fr);
+			height: min(78vh, 640px);
+		}
+		.ms-side {
+			border-right: 0;
+			border-bottom: 1px solid var(--line);
+			max-height: 42%;
+		}
+		.ms-bubble {
+			max-width: 88%;
+		}
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * Messages — measured contrast repair (in-browser, both themes).
+ *
+ *   .ms-bubble.is-mine   white on --sky   light 2.95:1 / dark 2.25:1
+ *   .ms-composer textarea                 dark  1.17:1
+ *
+ * The bubble reuses --sky, which is tuned as a brand/tint colour rather than a
+ * text background; white on it misses AA in both themes. Light gets the deeper
+ * teal (4.75:1 with white); dark keeps the bright teal but flips to dark text
+ * (~7.9:1), which is the same resolution the admin panel uses for contained
+ * buttons.
+ *
+ * The composer is a separate cause: a global layer forces
+ * var(--gt-input-bg)/var(--gt-input-text) !important onto input/select/textarea,
+ * which in dark mode painted near-dark text on the dark card. It has to be
+ * out-ranked with !important rather than out-specified.
+ * -------------------------------------------------------------------------- */
+.gth-root {
+	.ms-bubble.is-mine {
+		background: #0c7d9b;
+		color: #ffffff;
+
+		/* 0.92 measured 4.28:1 — just under AA at this text size. Solid white
+		   clears it (4.75:1, matching the bubble's own message-text contrast). */
+		.ms-bubble-meta {
+			color: #ffffff;
+		}
+	}
+
+	/* The forcing rule is ID-scoped (#pc-wrap input/select/textarea), so a class
+	   selector loses even with !important — measured 1.17:1 in dark. Matching the
+	   id raises specificity above it. */
+	#pc-wrap & .ms-composer textarea,
+	.ms-composer textarea {
+		background: var(--paper) !important;
+		color: var(--ink) !important;
+
+		&::placeholder {
+			color: var(--muted) !important;
+			opacity: 1;
+		}
+	}
+
+	/* Same ID-scoped conflict, different property: a global `#pc-wrap p,
+	   #mobile-wrap p { color: var(--gt-muted) }` rule (unrelated to Messages)
+	   targets the bare <p> inside every bubble directly, so the tuned colour
+	   set on .ms-bubble / .ms-bubble.is-mine above it never reached the actual
+	   text — measured 1.3:1 (light) / 1.5:1 (dark) on sent-bubble text despite
+	   the bubble itself measuring correctly. Inheriting explicitly, out-scoped
+	   the same way as the composer fix, restores it. */
+	#pc-wrap & .ms-bubble p,
+	.ms-bubble p {
+		color: inherit;
+	}
+}
+
+[data-theme='dark'] .gth-root {
+	.ms-bubble.is-mine {
+		background: var(--sky);
+		color: var(--paper);
+
+		.ms-bubble-meta {
+			color: rgba(11, 23, 25, 0.78);
+		}
+		.ms-tick {
+			color: var(--paper);
+		}
+	}
+}
+
+/* Load-older control — sits at the top of the thread, above the oldest bubble. */
+.gth-root {
+	.ms-older {
+		align-self: center;
+		margin-bottom: 6px;
+		padding: 7px 16px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--paper-soft);
+		color: var(--body);
+		font-family: inherit;
+		font-size: 0.78rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+
+		&:hover:not(:disabled) {
+			border-color: var(--sky);
+			color: var(--sky);
+			background: var(--sky-soft-2);
+		}
+		&:disabled {
+			opacity: 0.6;
+			cursor: default;
+		}
+		&:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--sky);
+		}
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * Messages — internal scrolling fix.
+ *
+ * Measured: .ms-thread reported clientHeight 4639px inside a shell declared at
+ * min(72vh, 720px), i.e. the pane stretched to fit all 69 messages instead of
+ * scrolling. A flex/grid child defaults to min-height:auto, which refuses to
+ * shrink below its content, so the height on .ms-wrap never propagated. Pinning
+ * min-height:0 down the chain lets .ms-thread become the scroll container.
+ * -------------------------------------------------------------------------- */
+.gth-root {
+	.ms-wrap {
+		min-height: 0;
+	}
+	.ms-side,
+	.ms-chat {
+		min-height: 0;
+	}
+	.ms-thread {
+		flex: 1 1 0;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+	.ms-list {
+		min-height: 0;
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * Messages — conversation wallpaper.
+ *
+ * Only .ms-thread gets the image (never .ms-side / .ms-list / the composer),
+ * so the sidebar and conversation list stay on the plain paper surface. Bubbles
+ * are opaque (see the .ms-bubble rule above) and carry their own shadow, so
+ * legibility does not depend on the scrim alone — the scrim just keeps the
+ * empty space between bubbles from competing with them, the same role a
+ * wallpaper plays in Telegram/WhatsApp.
+ *
+ * Implemented as two stacked backgrounds (a gradient scrim + the photo) rather
+ * than an ::after overlay, so it never intercepts clicks/scroll and needs no
+ * extra stacking-context bookkeeping.
+ * -------------------------------------------------------------------------- */
+.gth-root {
+	.ms-thread {
+		background-image: linear-gradient(180deg, rgba(246, 251, 252, 0.88) 0%, rgba(246, 251, 252, 0.8) 100%),
+			url('https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=1400&q=70');
+		background-size: cover, cover;
+		background-position: center, center 30%;
+		background-repeat: no-repeat, no-repeat;
+		background-attachment: local, local;
+	}
+}
+
+[data-theme='dark'] .gth-root {
+	.ms-thread {
+		background-image: linear-gradient(180deg, rgba(11, 23, 25, 0.86) 0%, rgba(11, 23, 25, 0.78) 100%),
+			url('https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=1400&q=70');
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * Messages — attachments (upload preview + sent image grid).
+ * -------------------------------------------------------------------------- */
+.gth-root {
+	.ms-file-input {
+		/* Native file inputs cannot be restyled directly — the attach button is
+		   the real control; this stays present for a11y (label/click target) but
+		   visually hidden rather than display:none, which some browsers exclude
+		   from the tab order entirely. */
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		border: 0;
+	}
+
+	/* Images already sent, rendered inside a bubble. */
+	.ms-attach-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 4px;
+		margin-bottom: 6px;
+		border-radius: 12px;
+		overflow: hidden;
+
+		&.is-single {
+			grid-template-columns: 1fr;
+		}
+	}
+	.ms-attach-thumb {
+		display: block;
+		aspect-ratio: 1;
+		overflow: hidden;
+		background: var(--paper-soft);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 0.25s ease;
+		}
+		&:hover img {
+			transform: scale(1.04);
+		}
+	}
+	.ms-bubble.is-mine .ms-attach-thumb {
+		background: rgba(255, 255, 255, 0.14);
+	}
+
+	/* Staged uploads, shown above the composer before Send. */
+	.ms-attach-preview {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 10px 16px;
+		background: var(--paper-soft);
+	}
+	.ms-attach-preview-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: 8px;
+	}
+	.ms-attach-preview-item {
+		position: relative;
+		width: 56px;
+		height: 56px;
+		flex: 0 0 56px;
+		border-radius: 10px;
+		overflow: hidden;
+		border: 1px solid var(--line);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+		button {
+			position: absolute;
+			top: 2px;
+			right: 2px;
+			width: 18px;
+			height: 18px;
+			display: grid;
+			place-items: center;
+			border: none;
+			border-radius: 50%;
+			background: rgba(9, 30, 36, 0.72);
+			cursor: pointer;
+			padding: 0;
+			z-index: 1;
+
+			svg {
+				width: 11px;
+				height: 11px;
+				stroke: #fff;
+				stroke-width: 2.4;
+				fill: none;
+			}
+			&:hover {
+				background: #a8331c;
+			}
+		}
+
+		/* Documents don't have a thumbnail — render as a small labelled card
+		   instead of the square image slot the width/height above set up. */
+		&.ms-attach-preview-item--file {
+			width: auto;
+			height: auto;
+			flex: 0 1 auto;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 28px 6px 8px;
+			background: var(--paper);
+			max-width: 220px;
+
+			.ms-file-icon {
+				flex: 0 0 auto;
+			}
+			button {
+				top: 50%;
+				right: 6px;
+				transform: translateY(-50%);
+				background: var(--paper-soft);
+
+				svg {
+					stroke: var(--muted);
+				}
+				&:hover {
+					background: #a8331c;
+
+					svg {
+						stroke: #fff;
+					}
+				}
+			}
+		}
+	}
+	.ms-attach-preview-file-name {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--ink);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100px;
+	}
+	.ms-attach-preview-item--file small {
+		font-size: 0.68rem;
+		color: var(--muted);
+		flex: 0 0 auto;
+	}
+
+	.ms-attach-loading {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+	.ms-attach-progress {
+		height: 4px;
+		border-radius: 999px;
+		background: var(--line);
+		overflow: hidden;
+
+		i {
+			display: block;
+			height: 100%;
+			background: var(--sky);
+			border-radius: 999px;
+			transition: width 0.15s ease;
+		}
+	}
+	.ms-attach-error {
+		font-size: 0.78rem;
+		color: #a8331c;
+	}
+
+	/* File-type badge — used both in the composer preview and inside a bubble. */
+	.ms-file-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 9px;
+		background: var(--sky-soft);
+		color: var(--sky-deep, var(--sky));
+		position: relative;
+
+		svg {
+			width: 20px;
+			height: 20px;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 1.6;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+		b {
+			position: absolute;
+			bottom: 2px;
+			left: 50%;
+			transform: translateX(-50%);
+			font-size: 0.44rem;
+			font-weight: 800;
+			letter-spacing: 0.02em;
+		}
+
+		&--pdf {
+			background: rgba(239, 90, 60, 0.14);
+			color: #a8331c;
+		}
+		&--doc,
+		&--docx {
+			background: var(--sky-soft);
+			color: #0a6980;
+		}
+		&--xls,
+		&--xlsx {
+			background: rgba(47, 182, 115, 0.16);
+			color: #17693f;
+		}
+		&--ppt,
+		&--pptx {
+			background: rgba(244, 179, 82, 0.2);
+			color: #8a5a12;
+		}
+		&--zip {
+			background: rgba(140, 110, 220, 0.16);
+			color: #5c3fa8;
+		}
+	}
+
+	/* Documents already sent, rendered inside a bubble. */
+	.ms-attach-files {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin-bottom: 6px;
+	}
+	.ms-attach-file {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 7px 10px;
+		border-radius: 12px;
+		background: var(--paper-soft);
+		border: 1px solid var(--line);
+		transition: background-color 0.18s ease;
+
+		&:hover {
+			background: var(--sky-soft-2);
+		}
+	}
+	.ms-bubble.is-mine .ms-attach-file {
+		background: rgba(255, 255, 255, 0.14);
+		border-color: transparent;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.22);
+		}
+	}
+	.ms-attach-file-body {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		flex: 1 1 auto;
+
+		b {
+			font-size: 0.82rem;
+			font-weight: 700;
+			color: inherit;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		small {
+			font-size: 0.68rem;
+			opacity: 0.72;
+		}
+	}
+	.ms-attach-file-dl {
+		flex: 0 0 auto;
+		width: 16px;
+		height: 16px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		opacity: 0.6;
+	}
+}
+
+[data-theme='dark'] .gth-root {
+	.ms-attach-error {
+		color: #ff9d86;
+	}
+	.ms-file-icon {
+		&--pdf {
+			background: rgba(255, 157, 134, 0.16);
+			color: #ffb4a3;
+		}
+		&--doc,
+		&--docx {
+			background: var(--sky-soft);
+			color: var(--sky);
+		}
+		&--xls,
+		&--xlsx {
+			background: rgba(126, 226, 168, 0.16);
+			color: #7ee2a8;
+		}
+		&--ppt,
+		&--pptx {
+			background: rgba(244, 213, 109, 0.18);
+			color: #f4d56d;
+		}
+		&--zip {
+			background: rgba(180, 150, 255, 0.18);
+			color: #b496ff;
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------ */
+/* LOGOUT CONFIRMATION DIALOG                                                */
+/* Built on the global .gt-scrim / .gt-modal / .gt-modal__panel tokens       */
+/* (scss/foundation/_components.scss) so entry/exit motion and elevation     */
+/* match every other overlay in the app; only the panel's inner content is   */
+/* styled here to match the GoTrip / My Page look.                          */
+/*                                                                            */
+/* Stays nested under .gth-root — not because the dialog is a DOM descendant */
+/* of the page shell (it renders through ModalPortal into document.body, see */
+/* libs/components/common/ModalPortal.tsx), but because ModalPortal wraps    */
+/* its portaled content in a `.gth-root` div specifically so this whole      */
+/* token/base-component layer (colors, .btn shape, dark-mode overrides —     */
+/* far too much to safely duplicate or unscope here) keeps applying. Un-     */
+/* scoping just this block previously seemed like the fix, but .btn's own    */
+/* base styles live in this same .gth-root layer (_tokens.scss), so the      */
+/* buttons would still render unstyled outside it — the portal needing its   */
+/* own .gth-root ancestor is the actual fix, not this stylesheet.            */
+/* ------------------------------------------------------------------------ */
+.gth-root {
+	.gt-modal__panel.logout-dlg {
+		width: min(400px, 100%);
+		padding: 34px 30px 28px;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.logout-dlg__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background: var(--gt-error-soft);
+		color: var(--gt-error);
+		margin-bottom: 18px;
+
+		svg {
+			width: 26px;
+			height: 26px;
+			stroke: currentColor;
+			fill: none;
+			stroke-width: 1.8;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	}
+
+	.logout-dlg__title {
+		font-family: 'Sora', sans-serif;
+		font-size: 1.28rem;
+		font-weight: 700;
+		color: var(--ink);
+		margin: 0 0 10px;
+	}
+
+	.logout-dlg__desc {
+		font-size: 0.94rem;
+		line-height: 1.55;
+		color: var(--muted);
+		margin: 0 0 26px;
+		max-width: 320px;
+	}
+
+	.logout-dlg__actions {
+		display: flex;
+		gap: 12px;
+		width: 100%;
+
+		.btn {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+
+	.btn-error {
+		/* Fixed (not theme-swapped) solid red: the dark-mode --gt-error token
+		   (#ffb4ab) is tuned as a soft text/icon color, not a fill — paired with
+		   white button text it drops to ~1.7:1 contrast. This stays AA-safe
+		   (~4.8:1 with white) in both themes. */
+		background: #d92d20;
+		color: #fff;
+		border-color: transparent;
+
+		&:hover {
+			background: #c02619;
+			box-shadow: 0 12px 26px -12px rgba(217, 45, 32, 0.55);
+		}
+
+		&:focus-visible {
+			outline: 2px solid #d92d20;
+			outline-offset: 2px;
+		}
+	}
+}

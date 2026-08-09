@@ -1,0 +1,256 @@
+.gth-root {
+	.plan-sec {
+		position: relative;
+		padding: 80px 0 104px;
+		overflow: hidden;
+		background: var(--paper);
+		transition: background 0.35s;
+
+		.deco {
+			position: absolute;
+			font-size: 2.4rem;
+			line-height: 1;
+			pointer-events: none;
+			user-select: none;
+			filter: drop-shadow(0 8px 14px rgba(16, 59, 66, 0.18));
+
+			&.p1 {
+				left: 3%;
+				top: 5%;
+				transform: rotate(-14deg);
+			}
+			&.p2 {
+				right: 4%;
+				top: 26%;
+				transform: rotate(10deg);
+			}
+			&.p3 {
+				left: 4%;
+				bottom: 12%;
+				transform: rotate(6deg);
+			}
+			&.p4 {
+				right: 6%;
+				bottom: 8%;
+				transform: rotate(-8deg);
+				font-size: 2.8rem;
+			}
+		}
+	}
+
+	.plan-grid {
+		position: relative;
+		z-index: 2;
+		display: grid;
+		grid-template-columns: 1.05fr 1fr;
+		gap: 70px;
+		align-items: center;
+	}
+
+	.plan-collage {
+		position: relative;
+		height: 600px;
+
+		.pc {
+			position: absolute;
+			border-radius: 24px;
+			overflow: hidden;
+			background: linear-gradient(150deg, #1fb6dd, #0d7f9f);
+			box-shadow: 0 30px 60px -30px rgba(16, 59, 66, 0.55);
+
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				transition: transform 0.7s;
+			}
+			&:hover img {
+				transform: scale(1.06);
+			}
+		}
+		.pc-a {
+			left: 0;
+			top: 0;
+			width: 56%;
+			height: 62%;
+			z-index: 1;
+		}
+		.pc-b {
+			right: 0;
+			top: 20%;
+			width: 56%;
+			height: 62%;
+			z-index: 3;
+			border: 6px solid #fff;
+		}
+		.pc-c {
+			left: 14%;
+			bottom: 0;
+			width: 52%;
+			height: 40%;
+			z-index: 2;
+			border: 6px solid #fff;
+		}
+	}
+
+	.plan-badge {
+		position: absolute;
+		right: 2%;
+		top: 12%;
+		z-index: 5;
+		background: var(--paper);
+		border-radius: 18px;
+		padding: 14px 18px;
+		box-shadow: 0 20px 40px -18px rgba(16, 59, 66, 0.5);
+		display: flex;
+		align-items: center;
+		gap: 11px;
+		transition: background 0.35s;
+
+		.st {
+			font-size: 1.3rem;
+			line-height: 1;
+		}
+		b {
+			display: block;
+			font-family: 'Sora', sans-serif;
+			font-size: 1.15rem;
+			color: var(--ink);
+			line-height: 1.1;
+		}
+		small {
+			display: block;
+			font-size: 0.74rem;
+			color: var(--muted);
+		}
+	}
+
+	.plan-txt {
+		.eyebrow {
+			font-family: 'Dancing Script', cursive;
+			color: var(--ink);
+			font-size: 2.05rem;
+			font-weight: 600;
+			display: block;
+			margin-bottom: 2px;
+		}
+		h2 {
+			font-size: 3.1rem;
+			letter-spacing: -1.4px;
+			margin-bottom: 20px;
+		}
+		> p {
+			font-size: 1.02rem;
+			max-width: 520px;
+		}
+		.btn {
+			margin-top: 36px;
+			background: var(--ink-solid);
+			color: #fff;
+			padding: 16px 32px;
+
+			&:hover {
+				background: var(--ink-solid-2);
+			}
+		}
+	}
+
+	.pfeat {
+		display: flex;
+		gap: 18px;
+		margin-top: 28px;
+		max-width: 540px;
+
+		.pi {
+			flex: 0 0 58px;
+			width: 58px;
+			height: 58px;
+			border-radius: 50%;
+			background: var(--sky-soft);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: var(--sky);
+			transition: 0.3s;
+
+			svg {
+				width: 26px;
+				height: 26px;
+				stroke: currentColor;
+				fill: none;
+				stroke-width: 1.7;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+		}
+		&:hover .pi {
+			background: var(--sky);
+			color: #fff;
+			transform: translateY(-3px);
+		}
+		h3 {
+			font-size: 1.28rem;
+			margin-bottom: 3px;
+		}
+		p {
+			font-size: 0.94rem;
+			margin: 0;
+		}
+	}
+}
+
+@media (max-width: 980px) {
+	.gth-root {
+		.plan-grid {
+			grid-template-columns: 1fr;
+			gap: 48px;
+		}
+		.plan-collage {
+			height: 520px;
+			max-width: 620px;
+		}
+		.plan-txt h2 {
+			font-size: 2.5rem;
+		}
+	}
+}
+@media (max-width: 640px) {
+	.gth-root {
+		.plan-collage {
+			height: 440px;
+		}
+		.plan-sec .deco {
+			font-size: 1.8rem;
+		}
+		.plan-txt h2 {
+			font-size: 2rem;
+		}
+	}
+}
+@media (max-width: 480px) {
+	.gth-root {
+		.plan-collage {
+			height: 380px;
+		}
+		.plan-badge {
+			padding: 10px 13px;
+
+			b {
+				font-size: 1rem;
+			}
+		}
+		.pfeat {
+			gap: 14px;
+			margin-top: 22px;
+
+			.pi {
+				flex: 0 0 48px;
+				width: 48px;
+				height: 48px;
+			}
+		}
+		.plan-sec .deco {
+			display: none;
+		}
+	}
+}

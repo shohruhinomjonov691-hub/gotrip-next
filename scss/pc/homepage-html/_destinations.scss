@@ -1,0 +1,323 @@
+.gth-root {
+	.ico {
+		width: 16px;
+		height: 16px;
+		stroke: currentColor;
+		fill: none;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.td-sec {
+		position: relative;
+		padding: 86px 0 96px;
+		overflow: hidden;
+		background: var(--paper);
+		transition: background 0.35s;
+
+		.topo {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			background-image: repeating-radial-gradient(circle at 14% 26%, transparent 0 44px, rgba(16, 59, 66, 0.05) 44px 45px),
+				repeating-radial-gradient(circle at 78% 18%, transparent 0 52px, rgba(16, 59, 66, 0.045) 52px 53px),
+				repeating-radial-gradient(circle at 60% 88%, transparent 0 48px, rgba(16, 59, 66, 0.04) 48px 49px),
+				repeating-radial-gradient(circle at 4% 82%, transparent 0 40px, rgba(16, 59, 66, 0.045) 40px 41px);
+		}
+		.deco {
+			position: absolute;
+			font-size: 2.4rem;
+			line-height: 1;
+			pointer-events: none;
+			user-select: none;
+			filter: drop-shadow(0 8px 14px rgba(16, 59, 66, 0.18));
+
+			&.d1 {
+				left: 3%;
+				top: 7%;
+				transform: rotate(-16deg);
+			}
+			&.d2 {
+				right: 4%;
+				top: 20%;
+				transform: rotate(12deg);
+			}
+			&.d3 {
+				left: 4%;
+				bottom: 22%;
+				transform: rotate(8deg);
+			}
+			&.d4 {
+				right: 3%;
+				bottom: 18%;
+				transform: rotate(-10deg);
+			}
+		}
+	}
+
+	.td-head {
+		position: relative;
+		z-index: 2;
+		text-align: center;
+		margin-bottom: 44px;
+
+		.eyebrow {
+			font-family: 'Dancing Script', cursive;
+			color: var(--ink);
+			font-size: 2.05rem;
+			font-weight: 600;
+			display: block;
+			margin-bottom: 2px;
+		}
+		h2 {
+			font-size: 2.9rem;
+			letter-spacing: -1px;
+		}
+	}
+
+	.td-rail {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		height: 540px;
+		margin: 0 -7px;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	.td-card {
+		position: relative;
+		flex: 0 0 100px;
+		flex-grow: 0;
+		margin: 0 7px;
+		border-radius: 20px;
+		overflow: hidden;
+		cursor: pointer;
+		min-width: 0;
+		box-shadow: 0 22px 46px -26px rgba(16, 59, 66, 0.6);
+		background: linear-gradient(150deg, #1fb6dd, #0d7f9f);
+		transition: flex-grow 0.95s cubic-bezier(0.4, 0.05, 0.2, 1), flex-basis 0.95s cubic-bezier(0.4, 0.05, 0.2, 1),
+			margin 0.95s cubic-bezier(0.4, 0.05, 0.2, 1), opacity 0.55s ease, box-shadow 0.4s;
+
+		&.on {
+			flex-grow: 1;
+		}
+		&.hid {
+			flex-basis: 0;
+			flex-grow: 0;
+			margin: 0;
+			opacity: 0;
+			pointer-events: none;
+			box-shadow: none;
+		}
+		img {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 1.2s ease;
+			pointer-events: none;
+		}
+		&.on img {
+			transform: scale(1.05);
+		}
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, rgba(6, 30, 36, 0.1) 0%, transparent 34%, rgba(6, 30, 36, 0.78) 100%);
+		}
+	}
+
+	.td-vert {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 22px;
+		z-index: 3;
+		display: flex;
+		justify-content: center;
+		align-items: flex-end;
+		gap: 4px;
+		color: #fff;
+		transition: opacity 0.45s;
+
+		b {
+			writing-mode: vertical-rl;
+			transform: rotate(180deg);
+			font-family: 'Sora', sans-serif;
+			font-weight: 700;
+			font-size: 1.22rem;
+			white-space: nowrap;
+		}
+		span {
+			writing-mode: vertical-rl;
+			transform: rotate(180deg);
+			font-size: 0.78rem;
+			opacity: 0.9;
+			white-space: nowrap;
+		}
+	}
+	.td-card.on .td-vert {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.td-open {
+		position: absolute;
+		left: 28px;
+		right: 28px;
+		bottom: 26px;
+		z-index: 3;
+		color: #fff;
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 18px;
+		opacity: 0;
+		transform: translateY(14px);
+		transition: opacity 0.5s 0.25s, transform 0.5s 0.25s;
+
+		.nm {
+			font-family: 'Sora', sans-serif;
+			font-weight: 700;
+			font-size: 1.85rem;
+			letter-spacing: -0.5px;
+			white-space: nowrap;
+		}
+		.ls {
+			font-size: 0.92rem;
+			opacity: 0.92;
+			margin-top: 2px;
+			white-space: nowrap;
+		}
+		.view {
+			display: inline-flex;
+			align-items: center;
+			gap: 9px;
+			border: 1.6px solid rgba(255, 255, 255, 0.65);
+			padding: 11px 20px;
+			border-radius: 999px;
+			font-weight: 600;
+			font-size: 0.9rem;
+			white-space: nowrap;
+			transition: 0.25s;
+			color: #fff;
+
+			&:hover {
+				background: #fff;
+				color: var(--ink);
+				border-color: #fff;
+			}
+		}
+	}
+	.td-card.on .td-open {
+		opacity: 1;
+		transform: none;
+	}
+
+	.td-season {
+		position: absolute;
+		top: 20px;
+		left: 20px;
+		z-index: 3;
+		padding: 7px 14px;
+		border-radius: 999px;
+		font-size: 0.74rem;
+		font-weight: 700;
+		letter-spacing: 0.4px;
+		color: #fff;
+		background: rgba(8, 32, 38, 0.42);
+		backdrop-filter: blur(6px);
+		border: 1px solid rgba(255, 255, 255, 0.28);
+		opacity: 0;
+		transition: opacity 0.5s 0.3s;
+	}
+	.td-card.on .td-season {
+		opacity: 1;
+	}
+
+	.td-cta {
+		position: relative;
+		z-index: 2;
+		text-align: center;
+		margin-top: 44px;
+	}
+}
+
+[data-theme='dark'] .gth-root {
+	.td-card img {
+		filter: brightness(0.82) saturate(1.05);
+	}
+	.td-sec .topo {
+		background-image: repeating-radial-gradient(circle at 14% 26%, transparent 0 44px, rgba(255, 255, 255, 0.06) 44px 45px),
+			repeating-radial-gradient(circle at 78% 18%, transparent 0 52px, rgba(255, 255, 255, 0.05) 52px 53px),
+			repeating-radial-gradient(circle at 60% 88%, transparent 0 48px, rgba(255, 255, 255, 0.045) 48px 49px),
+			repeating-radial-gradient(circle at 4% 82%, transparent 0 40px, rgba(255, 255, 255, 0.05) 40px 41px);
+	}
+}
+
+@media (max-width: 980px) {
+	.gth-root .td-rail {
+		height: 470px;
+	}
+	.gth-root .td-card {
+		flex-basis: 88px;
+	}
+	.gth-root .td-open .nm {
+		font-size: 1.5rem;
+	}
+}
+@media (max-width: 640px) {
+	.gth-root {
+		.td-rail {
+			height: 420px;
+		}
+		.td-card {
+			flex-basis: 74px;
+		}
+		.td-vert b {
+			font-size: 1rem;
+		}
+		.td-vert span {
+			display: none;
+		}
+		.td-open {
+			left: 20px;
+			right: 20px;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+		}
+		.td-sec .deco,
+		.plan-sec .deco {
+			font-size: 1.8rem;
+		}
+	}
+}
+@media (max-width: 480px) {
+	.gth-root {
+		.td-rail {
+			height: 360px;
+		}
+		.td-card {
+			flex-basis: 58px;
+			border-radius: 14px;
+		}
+		.td-vert b {
+			font-size: 0.86rem;
+		}
+		.td-open .nm {
+			font-size: 1.25rem;
+		}
+		.td-open .view {
+			padding: 9px 15px;
+			font-size: 0.82rem;
+		}
+		.td-sec .deco,
+		.plan-sec .deco {
+			display: none;
+		}
+	}
+}

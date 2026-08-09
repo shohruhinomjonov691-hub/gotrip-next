@@ -1,0 +1,186 @@
+/* ============================================================================
+ * Specificity fixes against the legacy global design system (scss/pc/main.scss)
+ *
+ * main.scss has `#pc-wrap h1,h2,h3{color:var(--gt-heading)!important}` (and the
+ * dark-mode equivalent). Because it uses an ID selector, it beats any pure-class
+ * .gth-root rule on specificity even when both sides use !important (id always
+ * outranks class count). Re-declaring the same ID here restores our intended
+ * colors without having to prefix every single selector in every section file.
+ * ========================================================================== */
+
+#pc-wrap .gth-root h1,
+#pc-wrap .gth-root h2,
+#pc-wrap .gth-root h3,
+#mobile-wrap .gth-root h1,
+#mobile-wrap .gth-root h2,
+#mobile-wrap .gth-root h3 {
+	color: var(--ink) !important;
+}
+
+#pc-wrap .gth-root .hero h1,
+#pc-wrap .gth-root .hero .eyebrow,
+#mobile-wrap .gth-root .hero h1,
+#mobile-wrap .gth-root .hero .eyebrow {
+	color: #fff !important;
+}
+
+#pc-wrap .gth-root .ts-sec h2,
+#pc-wrap .gth-root .ts-sec .eyebrow,
+#mobile-wrap .gth-root .ts-sec h2,
+#mobile-wrap .gth-root .ts-sec .eyebrow {
+	color: #fff !important;
+}
+
+/* Newsletter band sits on the footer's always-dark background (--ink-solid, which
+   never flips with theme) — same issue as .hero and .ts-sec above. */
+#pc-wrap .gth-root .f-newsletter h2,
+#mobile-wrap .gth-root .f-newsletter h2 {
+	color: #fff !important;
+}
+
+/* Breadcrumb banner sits on a darkened photo in both themes — same issue again.
+   The sub-line needs it too: a global `#pc-wrap p` rule otherwise wins and paints it
+   muted grey, which is unreadable over the photo. */
+#pc-wrap .gth-root .pg-hero h1,
+#mobile-wrap .gth-root .pg-hero h1 {
+	color: #fff !important;
+}
+#pc-wrap .gth-root .pg-hero p,
+#mobile-wrap .gth-root .pg-hero p {
+	color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ----------------------------------------------------------------------------
+ * Hero search field focus
+ *
+ * main.scss applies `#pc-wrap input:focus-visible { outline: 3px solid blue;
+ * outline-offset: 3px }`. On the hero's borderless, transparent inputs that
+ * paints a detached blue rectangle across the white search bar. Focus is not
+ * suppressed — it moves to the field wrapper as an inset ring, which reads as
+ * part of the design and still clearly marks the keyboard position.
+ * -------------------------------------------------------------------------- */
+#pc-wrap .gth-root .searchbar .sf-input:focus-visible,
+#pc-wrap .gth-root .searchbar .sf-input:focus,
+#mobile-wrap .gth-root .searchbar .sf-input:focus-visible,
+#mobile-wrap .gth-root .searchbar .sf-input:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/* The dark theme gives every input a translucent fill, which paints a grey slab
+   inside the hero's own search card. The field must read as part of the card. */
+#pc-wrap .gth-root .searchbar .sf-input,
+#mobile-wrap .gth-root .searchbar .sf-input {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+#pc-wrap .gth-root .searchbar .sf:focus-within,
+#mobile-wrap .gth-root .searchbar .sf:focus-within {
+	background: var(--sky-soft-2);
+	box-shadow: inset 0 0 0 2px var(--sky);
+	border-radius: 14px;
+}
+
+/* The field's own leading icon brightens with focus, same as the auth inputs. */
+#pc-wrap .gth-root .searchbar .sf:focus-within .lead,
+#mobile-wrap .gth-root .searchbar .sf:focus-within .lead {
+	stroke: var(--sky);
+}
+
+/* Support: the Share-your-experience and Customer-support bands sit on darkened
+   photography in BOTH themes, so their headings and copy must stay white. Without
+   this they inherit var(--ink), which is dark teal in light mode and unreadable. */
+#pc-wrap .gth-root .sp-share-copy h2,
+#pc-wrap .gth-root .sp-share-title,
+#pc-wrap .gth-root .sp-sent h3,
+#pc-wrap .gth-root .sp-care-panel h2,
+#mobile-wrap .gth-root .sp-share-copy h2,
+#mobile-wrap .gth-root .sp-share-title,
+#mobile-wrap .gth-root .sp-sent h3,
+#mobile-wrap .gth-root .sp-care-panel h2 {
+	color: #fff !important;
+}
+/* The sky accent inside the Customer-support heading must survive the same rule. */
+#pc-wrap .gth-root .sp-care-panel h2 b,
+#mobile-wrap .gth-root .sp-care-panel h2 b {
+	color: var(--sky) !important;
+}
+#pc-wrap .gth-root .sp-share-copy p,
+#mobile-wrap .gth-root .sp-share-copy p {
+	color: rgba(255, 255, 255, 0.92) !important;
+}
+#pc-wrap .gth-root .sp-care-lead,
+#pc-wrap .gth-root .sp-sent p,
+#mobile-wrap .gth-root .sp-care-lead,
+#mobile-wrap .gth-root .sp-sent p {
+	color: rgba(255, 255, 255, 0.86) !important;
+}
+#pc-wrap .gth-root .sp-share-guest,
+#pc-wrap .gth-root .sp-care-foot,
+#mobile-wrap .gth-root .sp-share-guest,
+#mobile-wrap .gth-root .sp-care-foot {
+	color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Auth artwork panel is always a darkened photo, in both themes — same conflict.
+   The body copy needs it too: the global `#pc-wrap p` rule otherwise paints it
+   muted grey, which is unreadable over the photo. */
+#pc-wrap .gth-root .au-art-title,
+#mobile-wrap .gth-root .au-art-title {
+	color: #fff !important;
+}
+#pc-wrap .gth-root .au-art-copy,
+#mobile-wrap .gth-root .au-art-copy {
+	color: rgba(255, 255, 255, 0.86) !important;
+}
+
+/* ============================================================================
+ * Shared loading / empty / error state, used by every GraphQL-backed Home
+ * section in place of its list while data is unavailable. Sits inside the
+ * section's existing fixed-height stage so the surrounding layout never jumps.
+ * ========================================================================== */
+.gth-root .gth-state {
+	width: 100%;
+	min-height: 220px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	color: var(--muted);
+	text-align: center;
+	padding: 24px;
+	font-size: 0.95rem;
+
+	&.gth-state--absolute {
+		position: absolute;
+		inset: 0;
+		min-height: 0;
+		z-index: 2;
+	}
+}
+.gth-root .gth-state-spinner {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	border: 3px solid var(--line);
+	border-top-color: var(--sky);
+	animation: gth-spin 0.8s linear infinite;
+}
+@keyframes gth-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Testimonial section sits on a dark video background — the default muted text
+   color is unreadable there, so brighten it locally. */
+.gth-root .ts-sec .gth-state {
+	color: rgba(255, 255, 255, 0.75);
+}
+.gth-root .ts-sec .gth-state-spinner {
+	border-color: rgba(255, 255, 255, 0.25);
+	border-top-color: #fff;
+}

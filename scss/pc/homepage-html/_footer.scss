@@ -1,0 +1,381 @@
+.gth-root {
+	.foot {
+		background: var(--ink-solid);
+		color: #cfe0e3;
+		position: relative;
+		overflow: hidden;
+
+		.car {
+			position: absolute;
+			left: 5%;
+			top: 74px;
+			width: 52px;
+			color: rgba(255, 255, 255, 0.5);
+
+			svg {
+				width: 100%;
+				stroke: currentColor;
+				fill: none;
+				stroke-width: 1.5;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+		}
+	}
+
+	.f-newsletter {
+		padding: 64px 0;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+		.wrap {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 40px;
+			flex-wrap: wrap;
+		}
+		h2 {
+			// !important: the global `.gth-root h1,h2,h3 { color: var(--ink) !important }` rule
+			// (_tokens.scss) otherwise wins. --ink flips between light/dark mode, but this
+			// section's background (--ink-solid) never does — in light mode --ink resolves to a
+			// dark navy, which is invisible against the always-dark footer. This heading must stay
+			// white regardless of site theme, same as every other hardcoded color in this file.
+			color: #fff !important;
+			font-size: 2.15rem;
+			max-width: 440px;
+			line-height: 1.28;
+			letter-spacing: -0.5px;
+		}
+	}
+	.f-form {
+		display: flex;
+		gap: 14px;
+		flex-wrap: wrap;
+
+		input {
+			background: transparent;
+			border: 1.5px solid rgba(255, 255, 255, 0.32);
+			border-radius: 999px;
+			padding: 16px 26px;
+			color: #fff;
+			min-width: 300px;
+			font-family: inherit;
+			font-size: 0.96rem;
+			outline: none;
+			transition: 0.2s;
+
+			&::placeholder {
+				color: #9fb6ba;
+			}
+			&:focus {
+				border-color: var(--sky);
+			}
+		}
+		.btn-sky {
+			padding: 16px 28px;
+		}
+	}
+	.f-note {
+		font-size: 0.78rem;
+		color: #8fa8ac;
+		margin-top: 10px;
+	}
+
+	.f-cols {
+		padding: 60px 0 34px;
+		display: grid;
+		grid-template-columns: 1.5fr 1fr 1fr 1.15fr 1fr;
+		gap: 36px;
+	}
+	.f-col {
+		h4 {
+			color: #fff;
+			font-size: 1.1rem;
+			margin-bottom: 22px;
+			font-family: 'Sora', sans-serif;
+		}
+		ul li {
+			margin-bottom: 13px;
+
+			a {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				font-size: 0.92rem;
+				transition: 0.2s;
+				color: #cfe0e3;
+
+				&:hover {
+					color: #fff;
+					transform: translateX(3px);
+				}
+				svg {
+					width: 12px;
+					height: 12px;
+					stroke: var(--sky);
+					fill: none;
+					stroke-width: 2;
+					flex: 0 0 12px;
+				}
+			}
+		}
+	}
+
+	.f-brand {
+		display: flex;
+		align-items: center;
+		gap: 11px;
+		margin-bottom: 18px;
+
+		.logo {
+			width: 44px;
+			height: 44px;
+			flex: 0 0 44px;
+		}
+		.txt {
+			b {
+				display: block;
+				font-family: 'Sora', sans-serif;
+				font-weight: 700;
+				color: #fff;
+				font-size: 1.34rem;
+				line-height: 1;
+
+				i {
+					font-style: normal;
+					color: var(--sky);
+				}
+			}
+			small {
+				display: block;
+				font-size: 0.58rem;
+				letter-spacing: 3.2px;
+				color: #8fa8ac;
+				font-weight: 600;
+				margin-top: 3px;
+			}
+		}
+	}
+	.f-about {
+		font-size: 0.9rem;
+		line-height: 1.75;
+		max-width: 290px;
+		color: #a9c0c3;
+	}
+	.f-soc {
+		display: flex;
+		gap: 10px;
+		margin-top: 20px;
+
+		a {
+			width: 38px;
+			height: 38px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: 0.25s;
+			background: var(--brand);
+			color: #fff;
+			box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.5);
+
+			svg {
+				width: 16px;
+				height: 16px;
+				fill: currentColor;
+			}
+			&:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 12px 22px -8px rgba(0, 0, 0, 0.6);
+				filter: brightness(1.08);
+			}
+		}
+		a.fb {
+			--brand: #1877f2;
+		}
+		a.tw {
+			--brand: #000000;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+		}
+		a.li {
+			--brand: #0a66c2;
+		}
+		a.yt {
+			--brand: #ff0000;
+		}
+		a.ig {
+			background: radial-gradient(
+				circle at 30% 110%,
+				#fdf497 0%,
+				#fdf497 5%,
+				#fd5949 45%,
+				#d6249f 60%,
+				#285aeb 90%
+			);
+			color: #fff;
+		}
+	}
+
+	.f-touch {
+		display: flex;
+		gap: 12px;
+		margin-bottom: 16px;
+		align-items: flex-start;
+		font-size: 0.9rem;
+		color: #cfe0e3;
+
+		.ti {
+			flex: 0 0 38px;
+			width: 38px;
+			height: 38px;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.08);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: var(--sky);
+
+			svg {
+				width: 16px;
+				height: 16px;
+				stroke: currentColor;
+				fill: none;
+				stroke-width: 1.8;
+			}
+		}
+	}
+
+	.f-insta {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 8px;
+
+		a {
+			border-radius: 9px;
+			overflow: hidden;
+			aspect-ratio: 1;
+			position: relative;
+			display: block;
+
+			&::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: rgba(16, 59, 66, 0);
+				transition: 0.25s;
+			}
+			&:hover::after {
+				background: rgba(16, 59, 66, 0.2);
+			}
+			&:hover img {
+				transform: scale(1.14);
+			}
+		}
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: 0.35s;
+		}
+	}
+
+	.f-bot {
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+		.wrap {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 22px 24px;
+			flex-wrap: wrap;
+			gap: 14px;
+			font-size: 0.85rem;
+			color: #a9c0c3;
+		}
+		.legal {
+			display: flex;
+			gap: 18px;
+			flex-wrap: wrap;
+
+			a {
+				color: #a9c0c3;
+				transition: 0.2s;
+
+				&:hover {
+					color: #fff;
+				}
+			}
+		}
+	}
+	.f-pay {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+
+		.badge {
+			background: #fff;
+			border-radius: 5px;
+			padding: 5px 9px;
+			font-weight: 800;
+			font-size: 0.68rem;
+			color: var(--ink-solid);
+			font-family: 'Sora', sans-serif;
+			letter-spacing: 0.3px;
+		}
+	}
+
+	.f-top {
+		position: fixed;
+		right: 26px;
+		bottom: 26px;
+		z-index: 150;
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background: var(--sky);
+		color: #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.6);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: 0.3s;
+
+		&.show {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+		}
+		&:hover {
+			background: var(--sky-2);
+		}
+		svg {
+			width: 20px;
+			height: 20px;
+			stroke: currentColor;
+			fill: none;
+			stroke-width: 2.3;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	}
+}
+
+@media (max-width: 980px) {
+	.gth-root .f-cols {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+@media (max-width: 640px) {
+	.gth-root {
+		.f-cols {
+			grid-template-columns: 1fr;
+		}
+		.f-newsletter .wrap {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+}

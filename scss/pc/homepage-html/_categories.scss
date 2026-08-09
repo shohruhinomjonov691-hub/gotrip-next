@@ -1,0 +1,259 @@
+.gth-root {
+	.cats-sec {
+		position: relative;
+		padding: 78px 0 40px;
+		overflow: hidden;
+		background: var(--paper);
+		transition: background 0.35s;
+
+		.pattern {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			opacity: 0.55;
+			background-image: radial-gradient(circle at 8% 18%, rgba(22, 163, 200, 0.16) 2.2px, transparent 2.2px),
+				radial-gradient(circle at 26% 62%, rgba(22, 163, 200, 0.11) 2.2px, transparent 2.2px),
+				radial-gradient(circle at 48% 22%, rgba(22, 163, 200, 0.13) 2.2px, transparent 2.2px),
+				radial-gradient(circle at 72% 68%, rgba(22, 163, 200, 0.12) 2.2px, transparent 2.2px),
+				radial-gradient(circle at 92% 30%, rgba(22, 163, 200, 0.14) 2.2px, transparent 2.2px);
+			background-size: 340px 260px;
+		}
+		.rings {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			opacity: 0.5;
+
+			span {
+				position: absolute;
+				border: 1.4px dashed rgba(22, 163, 200, 0.28);
+				border-radius: 50%;
+
+				&:nth-child(1) {
+					width: 280px;
+					height: 280px;
+					left: -90px;
+					top: 40px;
+				}
+				&:nth-child(2) {
+					width: 190px;
+					height: 190px;
+					right: 6%;
+					top: 20px;
+				}
+				&:nth-child(3) {
+					width: 340px;
+					height: 340px;
+					right: -120px;
+					bottom: -40px;
+				}
+				&:nth-child(4) {
+					width: 150px;
+					height: 150px;
+					left: 18%;
+					bottom: 20px;
+				}
+			}
+		}
+	}
+
+	.cat-head {
+		position: relative;
+		z-index: 2;
+		text-align: center;
+		margin-bottom: 40px;
+
+		.eyebrow {
+			font-family: 'Dancing Script', cursive;
+			color: var(--ink);
+			font-size: 2.05rem;
+			font-weight: 600;
+			display: block;
+			margin-bottom: 2px;
+		}
+		h2 {
+			font-size: 2.9rem;
+			letter-spacing: -1px;
+		}
+	}
+
+	.cat-stage {
+		position: relative;
+		z-index: 2;
+		height: 490px;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	.cat-item {
+		position: absolute;
+		left: 50%;
+		top: 0;
+		width: var(--cw);
+		text-align: center;
+		transform: translateX(-50%);
+		transition: transform 0.95s cubic-bezier(0.35, 0.05, 0.2, 1), opacity 0.6s ease;
+		will-change: transform;
+	}
+	/* Card face only — the arch silhouette. Positioning, transforms and the
+	   curved-flow animation all live on .cat-item and are untouched. */
+	.cat-ph {
+		height: 330px;
+		overflow: hidden;
+		position: relative;
+		background: linear-gradient(150deg, #1fb6dd, #0d7f9f);
+		box-shadow: 0 26px 50px -26px rgba(16, 59, 66, 0.65);
+		/* Dome top, gently tapered base. */
+		border-radius: 50% 50% 46% 46% / 44% 44% 30% 30%;
+		transition: box-shadow 0.45s, border-radius 0.55s;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 0.6s;
+			pointer-events: none;
+		}
+
+		/* Readability veil so the badge and any light imagery hold contrast. */
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, rgba(4, 26, 33, 0) 55%, rgba(4, 26, 33, 0.28) 100%);
+			pointer-events: none;
+		}
+	}
+	.cat-item:hover .cat-ph img {
+		transform: scale(1.07);
+	}
+	.cat-item.hovered .cat-ph {
+		box-shadow: 0 40px 70px -30px rgba(16, 59, 66, 0.75);
+	}
+
+	/* Circular arrow badge — hidden until the card is focused/active. */
+	.cat-badge {
+		position: absolute;
+		left: 50%;
+		bottom: 22px;
+		transform: translate(-50%, 10px) scale(0.86);
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--paper);
+		box-shadow: 0 10px 26px -10px rgba(16, 59, 66, 0.6);
+		opacity: 0;
+		transition: opacity 0.35s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+		z-index: 2;
+
+		svg {
+			width: 20px;
+			height: 20px;
+			stroke: var(--sky);
+			fill: none;
+			stroke-width: 2.1;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	}
+	.cat-item.hovered .cat-badge,
+	.cat-item:focus-visible .cat-badge {
+		opacity: 1;
+		transform: translate(-50%, 0) scale(1);
+	}
+	.cat-name {
+		font-family: 'Sora', sans-serif;
+		font-weight: 700;
+		color: var(--ink);
+		font-size: 1.35rem;
+		margin-top: 20px;
+	}
+	.cat-more {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 2px;
+		color: var(--muted);
+		font-weight: 600;
+		font-size: 0.92rem;
+		transition: 0.2s;
+
+		svg {
+			width: 15px;
+			height: 15px;
+			stroke: currentColor;
+			fill: none;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			transition: transform 0.28s;
+		}
+	}
+	.cat-item:hover .cat-more svg {
+		transform: translateX(4px);
+	}
+	.cat-item:hover .cat-more {
+		color: var(--sky);
+	}
+
+	.cat-dots {
+		position: relative;
+		z-index: 3;
+		display: flex;
+		justify-content: center;
+		gap: 11px;
+		padding-bottom: 50px;
+
+		button {
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			border: 1.6px solid #b9d7e2;
+			background: transparent;
+			transition: 0.25s;
+			padding: 0;
+			cursor: pointer;
+
+			&.on {
+				background: var(--sky);
+				border-color: var(--sky);
+				transform: scale(1.18);
+			}
+		}
+	}
+}
+
+@media (max-width: 980px) {
+	.gth-root {
+		--cw: 210px;
+		--cgap: 20px;
+		.cat-stage {
+			height: 430px;
+		}
+		.cat-ph {
+			height: 280px;
+		}
+	}
+}
+
+@media (max-width: 640px) {
+	.gth-root {
+		--cw: 190px;
+		--cgap: 16px;
+		.cat-head h2 {
+			font-size: 2rem;
+		}
+		.cat-stage {
+			height: 380px;
+		}
+		.cat-ph {
+			height: 240px;
+		}
+		.cat-name {
+			font-size: 1.1rem;
+			margin-top: 15px;
+		}
+	}
+}

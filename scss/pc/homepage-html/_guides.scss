@@ -1,0 +1,368 @@
+.gth-root {
+	.tg-sec {
+		position: relative;
+		padding: 84px 0 40px;
+		background: var(--sky-soft);
+		overflow: hidden;
+		transition: background 0.35s;
+
+		.doodle {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			opacity: 0.75;
+			background-image: radial-gradient(circle at 9% 22%, rgba(255, 255, 255, 0.9) 3px, transparent 3px),
+				radial-gradient(circle at 30% 68%, rgba(255, 255, 255, 0.8) 2.5px, transparent 2.5px),
+				radial-gradient(circle at 57% 26%, rgba(255, 255, 255, 0.85) 3px, transparent 3px),
+				radial-gradient(circle at 80% 74%, rgba(255, 255, 255, 0.8) 2.5px, transparent 2.5px),
+				repeating-radial-gradient(circle at 25% 45%, transparent 0 66px, rgba(255, 255, 255, 0.5) 66px 67px),
+				repeating-radial-gradient(circle at 82% 55%, transparent 0 76px, rgba(255, 255, 255, 0.44) 76px 77px);
+			background-size: 250px 210px, 250px 210px, 250px 210px, 250px 210px, auto, auto;
+		}
+	}
+
+	.tg-head {
+		position: relative;
+		z-index: 2;
+		text-align: center;
+		margin: 0 auto 44px;
+
+		.eyebrow {
+			font-family: 'Dancing Script', cursive;
+			color: var(--ink);
+			font-size: 2.05rem;
+			font-weight: 600;
+			display: block;
+			margin-bottom: 2px;
+		}
+		h2 {
+			font-size: 2.9rem;
+			letter-spacing: -1px;
+		}
+	}
+
+	.tg-stage {
+		position: relative;
+		z-index: 2;
+	}
+	.tg-scroll {
+		display: flex;
+		gap: var(--tgap);
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-behavior: smooth;
+		padding: 6px 2px 20px;
+		cursor: grab;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+		&.grabbing {
+			cursor: grabbing;
+			scroll-behavior: auto;
+		}
+	}
+
+	.tg-card {
+		position: relative;
+		flex: 0 0 calc((100% - 2 * var(--tgap)) / 3);
+		scroll-snap-align: start;
+		background: var(--paper-soft);
+		border-radius: 20px;
+		overflow: hidden;
+		padding-bottom: 18px;
+		box-shadow: 0 18px 44px -28px rgba(16, 59, 66, 0.5);
+		transition: transform 0.45s, box-shadow 0.45s, background 0.35s;
+		cursor: pointer;
+
+		&:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 30px 58px -28px rgba(16, 59, 66, 0.6);
+		}
+	}
+
+	.tg-cover {
+		position: relative;
+		height: 170px;
+		background: linear-gradient(150deg, #1fb6dd, #0d7f9f);
+		overflow: hidden;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			pointer-events: none;
+		}
+	}
+	.tg-tours {
+		position: absolute;
+		top: 14px;
+		left: 14px;
+		z-index: 3;
+		background: rgba(255, 255, 255, 0.94);
+		color: var(--ink-solid);
+		border-radius: 999px;
+		padding: 8px 15px;
+		font-family: 'Sora', sans-serif;
+		font-weight: 700;
+		font-size: 0.78rem;
+		box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.6);
+	}
+	.tg-av {
+		width: 148px;
+		height: 148px;
+		border-radius: 50%;
+		overflow: hidden;
+		border: 6px solid #fff;
+		margin: -76px auto 0;
+		position: relative;
+		z-index: 2;
+		background: var(--sky-soft);
+		box-shadow: 0 14px 30px -16px rgba(16, 59, 66, 0.7);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			pointer-events: none;
+		}
+	}
+
+	.tg-panel {
+		margin: 16px 16px 0;
+		background: var(--paper);
+		border-radius: 14px;
+		padding: 18px 14px 16px;
+		text-align: center;
+		transition: background 0.45s, color 0.45s;
+	}
+	.tg-card.on .tg-panel {
+		background: var(--sky);
+	}
+	.tg-name {
+		font-size: 1.16rem;
+		transition: color 0.45s;
+	}
+	.tg-card.on .tg-name {
+		color: #fff;
+	}
+	/* Bios vary wildly in length; two lines keeps every card the same height and
+	   keeps the eye on the name. The full text lives on the guide's profile. */
+	.tg-role {
+		font-size: 0.87rem;
+		line-height: 1.55;
+		color: var(--muted);
+		margin-top: 5px;
+		transition: color 0.45s;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		/* Reserve both lines so cards stay aligned even with a one-line bio. */
+		min-height: 2.7em;
+	}
+	.tg-card.on .tg-role {
+		color: rgba(255, 255, 255, 0.92);
+	}
+
+	.tg-stats {
+		display: flex;
+		justify-content: center;
+		gap: 20px;
+		margin-top: 12px;
+		padding-top: 12px;
+		border-top: 1px solid var(--line);
+		transition: border-color 0.45s;
+
+		span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			color: var(--body);
+			transition: color 0.45s;
+		}
+		svg {
+			width: 16px;
+			height: 16px;
+			stroke: currentColor;
+			fill: none;
+			stroke-width: 1.8;
+		}
+		.lk {
+			color: #e2604a;
+
+			svg {
+				fill: currentColor;
+				stroke: currentColor;
+			}
+		}
+	}
+	.tg-card.on .tg-stats {
+		border-color: rgba(255, 255, 255, 0.32);
+
+		span {
+			color: #fff;
+		}
+		.lk {
+			color: #fff;
+		}
+	}
+
+	/* Stretched link covering the whole card. Sits under the social row so those
+	   remain independently clickable. */
+	.tg-link {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+
+		&:focus-visible {
+			outline: 3px solid var(--sky);
+			outline-offset: -3px;
+		}
+	}
+
+	.tg-soc {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		justify-content: center;
+		gap: 9px;
+		margin-top: 14px;
+
+		a {
+			width: 34px;
+			height: 34px;
+			border-radius: 50%;
+			border: 1.5px solid var(--sky);
+			color: var(--sky);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: 0.25s;
+
+			svg {
+				width: 14px;
+				height: 14px;
+				fill: currentColor;
+			}
+			&:hover {
+				background: var(--sky);
+				color: #fff;
+			}
+		}
+	}
+	.tg-card.on .tg-soc a {
+		border-color: rgba(255, 255, 255, 0.75);
+		color: #fff;
+
+		&:hover {
+			background: #fff;
+			color: var(--sky);
+		}
+	}
+
+	.tg-arrow {
+		position: absolute;
+		top: 44%;
+		z-index: 8;
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		background: #fff;
+		color: var(--ink);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 16px 34px -14px rgba(16, 59, 66, 0.7);
+		transition: 0.25s;
+
+		svg {
+			width: 19px;
+			height: 19px;
+			stroke: currentColor;
+			fill: none;
+			stroke-width: 2.2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+		&:hover {
+			background: var(--sky);
+			color: #fff;
+		}
+		&[disabled] {
+			opacity: 0.35;
+			pointer-events: none;
+		}
+		&.prev {
+			left: -16px;
+		}
+		&.next {
+			right: -16px;
+		}
+	}
+
+	.tg-dots {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		justify-content: center;
+		gap: 12px;
+		margin-top: 8px;
+
+		button {
+			width: 13px;
+			height: 13px;
+			border-radius: 50%;
+			border: 1.7px solid #a9cfdf;
+			background: transparent;
+			padding: 0;
+			transition: 0.25s;
+
+			&:hover {
+				border-color: var(--sky);
+			}
+			&.on {
+				background: var(--sky);
+				border-color: var(--sky);
+				transform: scale(1.15);
+			}
+		}
+	}
+
+	.tg-strip {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		justify-content: space-around;
+		align-items: center;
+		margin-top: 34px;
+		padding-top: 22px;
+		border-top: 1.5px solid rgba(22, 163, 200, 0.28);
+		font-size: 1.7rem;
+		line-height: 1;
+		user-select: none;
+	}
+}
+
+@media (max-width: 980px) {
+	.gth-root .tg-card {
+		flex-basis: calc((100% - 1 * var(--tgap)) / 2);
+	}
+}
+@media (max-width: 640px) {
+	.gth-root {
+		.tg-card {
+			flex-basis: 78%;
+		}
+		.tg-arrow {
+			display: none;
+		}
+	}
+}
