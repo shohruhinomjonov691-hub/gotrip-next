@@ -15,15 +15,16 @@ export interface CustomJwtPayload extends JwtPayload {
 	memberProperties?: number;
 	memberRank: number;
 	memberArticles: number;
+	/* Present in the signed token (see Member.model) — declared so the account
+	   sidebar can show follow counts without an extra query. */
+	memberFollowers?: number;
+	memberFollowings?: number;
+	/* Also signed into the token; drives the Become-a-Guide card state. */
+	agentRequestStatus?: string;
+	agentRequestMessage?: string;
 	memberPoints: number;
 	memberLikes: number;
 	memberViews: number;
 	memberWarnings: number;
 	memberBlocks: number;
-	agentRequestStatus?: string;
-	agentRequestMessage?: string;
-	agentExperience?: string;
-	agentApprovedAt?: Date;
-	agentRejectedAt?: Date;
-	isVerifiedAgent?: boolean;
 }

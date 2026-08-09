@@ -181,13 +181,20 @@
 
 	/* ------------------------------------------------------------------ */
 	/* Z-INDEX — layering contract (§8.4): content < sticky < nav <        */
-	/* overlay < toast. Overlay/toast align with MUI's modal/snackbar.     */
+	/* overlay < toast < modal. Overlay/toast align with MUI's             */
+	/* modal/snackbar. `--gt-z-modal` is the single topmost tier: every    */
+	/* blocking confirmation/alert (the shared .gt-modal/.gt-scrim layer   */
+	/* AND SweetAlert2, see the .swal2-container override below) binds to  */
+	/* this one token, so a dialog is guaranteed to outrank the AI         */
+	/* launcher/window, toasts, and page content in a single place instead */
+	/* of per-component z-index guesses.                                  */
 	/* ------------------------------------------------------------------ */
 	--gt-z-content: 1;
 	--gt-z-sticky: 100;
 	--gt-z-nav: 1100;
 	--gt-z-overlay: 1300;
 	--gt-z-toast: 1400;
+	--gt-z-modal: 1500;
 
 	/* ------------------------------------------------------------------ */
 	/* ICON SIZES (§9) + OPACITY ROLES                                     */

@@ -1,13 +1,19 @@
 import { NextPage } from 'next';
 import withLayoutMain from '../libs/components/layout/LayoutHome';
-import TopAgents from '../libs/components/homepage/TopAgents';
 import { Stack } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import TourHighlights from '../libs/components/homepage/TourHighlights';
-import { Direction } from '../libs/enums/common.enum';
-import DestinationHighlights from '../libs/components/homepage/DestinationHighlights';
-import TravelerReviews from '../libs/components/homepage/TravelerReviews';
-import GuideCtaNewsletter from '../libs/components/homepage/GuideCtaNewsletter';
+import GthStats from '../libs/components/homepage-html/GthStats';
+import GthCategories from '../libs/components/homepage-html/GthCategories';
+import GthDestinations from '../libs/components/homepage-html/GthDestinations';
+import GthPlanTrip from '../libs/components/homepage-html/GthPlanTrip';
+import GthAbout from '../libs/components/homepage-html/GthAbout';
+import GthServices from '../libs/components/homepage-html/GthServices';
+import GthMostPopularTours from '../libs/components/homepage-html/GthMostPopularTours';
+import GthNewTours from '../libs/components/homepage-html/GthNewTours';
+import GthGuides from '../libs/components/homepage-html/GthGuides';
+import GthTestimonials from '../libs/components/homepage-html/GthTestimonials';
+import GthBadgeMarquee from '../libs/components/homepage-html/GthBadgeMarquee';
+import GthArticles from '../libs/components/homepage-html/GthArticles';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -18,11 +24,18 @@ export const getStaticProps = async ({ locale }: any) => ({
 const Home: NextPage = () => {
 	return (
 		<Stack className={'home-page'}>
-			<DestinationHighlights />
-			<TourHighlights title="Elite Tour Collection" sort="tourRank" direction={Direction.DESC} limit={4} />
-			<TopAgents />
-			<TravelerReviews />
-			<GuideCtaNewsletter />
+			<GthStats />
+			<GthCategories />
+			<GthDestinations />
+			<GthAbout />
+			<GthPlanTrip />
+			<GthServices />
+			<GthMostPopularTours />
+			<GthNewTours />
+			<GthGuides />
+			<GthTestimonials />
+			<GthBadgeMarquee />
+			<GthArticles />
 		</Stack>
 	);
 };

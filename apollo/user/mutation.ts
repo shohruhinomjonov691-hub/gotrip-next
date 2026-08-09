@@ -22,7 +22,6 @@ export const CREATE_TOUR = gql`
 			tourLanguage
 			tourDifficulty
 			memberId
-			destinationId
 			createdAt
 			updatedAt
 		}
@@ -51,7 +50,6 @@ export const UPDATE_TOUR = gql`
 			tourLanguage
 			tourDifficulty
 			memberId
-			destinationId
 			createdAt
 			updatedAt
 		}
@@ -67,117 +65,17 @@ export const LIKE_TARGET_TOUR = gql`
 	}
 `;
 
-export const TOGGLE_WISHLIST = gql`
-	mutation ToggleWishlist($input: WishlistInput!) {
-		toggleWishlist(input: $input) {
+export const CONTACT_AGENT = gql`
+	mutation ContactAgent($input: ContactAgentInput!) {
+		contactAgent(input: $input) {
 			_id
-			wishlistGroup
-			wishlistRefId
-			memberId
+			notificationType
+			notificationStatus
+			notificationGroup
+			notificationTitle
+			notificationDesc
+			tourId
 			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const LIKE_TARGET_DESTINATION = gql`
-	mutation LikeTargetDestination($destinationId: String!) {
-		likeTargetDestination(destinationId: $destinationId) {
-			_id
-			destinationLikes
-		}
-	}
-`;
-
-export const CREATE_TOUR_SCHEDULE = gql`
-	mutation CreateTourSchedule($input: TourScheduleInput!) {
-		createTourSchedule(input: $input) {
-			_id
-			scheduleStatus
-			tourId
-			startDate
-			endDate
-			availableSeats
-			reservedSeats
-			price
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const UPDATE_TOUR_SCHEDULE = gql`
-	mutation UpdateTourSchedule($input: TourScheduleUpdate!) {
-		updateTourSchedule(input: $input) {
-			_id
-			scheduleStatus
-			tourId
-			startDate
-			endDate
-			availableSeats
-			reservedSeats
-			price
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const DELETE_TOUR_SCHEDULE = gql`
-	mutation DeleteTourSchedule($scheduleId: String!) {
-		deleteTourSchedule(scheduleId: $scheduleId) {
-			_id
-			scheduleStatus
-		}
-	}
-`;
-
-export const CREATE_BOOKING = gql`
-	mutation CreateBooking($input: BookingInput!) {
-		createBooking(input: $input) {
-			_id
-			bookingStatus
-			bookingNumber
-			tourId
-			scheduleId
-			peopleCount
-			totalPrice
-		}
-	}
-`;
-
-export const CANCEL_BOOKING = gql`
-	mutation CancelBooking($bookingId: String!, $cancelReason: String!) {
-		cancelBooking(bookingId: $bookingId, cancelReason: $cancelReason) {
-			_id
-			bookingStatus
-			cancelReason
-			cancelledAt
-		}
-	}
-`;
-
-export const UPDATE_AGENT_BOOKING_STATUS = gql`
-	mutation UpdateAgentBookingStatus($bookingId: String!, $bookingStatus: BookingStatus!) {
-		updateAgentBookingStatus(bookingId: $bookingId, bookingStatus: $bookingStatus) {
-			_id
-			bookingStatus
-			cancelReason
-			cancelledAt
-			updatedAt
-		}
-	}
-`;
-
-export const CREATE_PAYMENT = gql`
-	mutation CreatePayment($input: PaymentInput!) {
-		createPayment(input: $input) {
-			_id
-			paymentStatus
-			paymentMethod
-			paymentAmount
-			bookingId
-			tourId
 		}
 	}
 `;
@@ -440,6 +338,142 @@ export const UNSUBSCRIBE = gql`
 			followerId
 			createdAt
 			updatedAt
+		}
+	}
+`;
+
+/**************************
+ *       TESTIMONIAL      *
+ *************************/
+
+/**
+ * Self-service submission. The server derives authorName/authorImage from the
+ * logged-in member and starts the record as PENDING for admin approval, so the
+ * client only sends the content, an optional rating and an optional tour link.
+ */
+export const CREATE_TESTIMONIAL = gql`
+	mutation CreateTestimonial($input: TestimonialInput!) {
+		createTestimonial(input: $input) {
+			_id
+			testimonialStatus
+			testimonialContent
+			testimonialRating
+			authorName
+			createdAt
+		}
+	}
+`;
+
+/**************************
+ *    AGENT (GUIDE) REQUEST
+ *************************/
+
+/**
+ * Self-service guide application. USER only (@Roles(MemberType.USER) server-side).
+ * AgentRequestInput accepts exactly these two optional fields — no others exist.
+ */
+export const REQUEST_AGENT_ROLE = gql`
+	mutation RequestAgentRole($input: AgentRequestInput!) {
+		requestAgentRole(input: $input) {
+			_id
+			memberType
+			agentRequestStatus
+			agentRequestMessage
+			agentExperience
+			updatedAt
+		}
+	}
+`;
+
+/**************************
+ *        MESSAGING       *
+ *************************/
+
+export const SEND_MESSAGE = gql`
+	mutation SendMessage($input: MessageInput!) {
+		sendMessage(input: $input) {
+			_id
+			conversationId
+			senderId
+			receiverId
+			messageText
+			messageImages
+			messageFiles {
+				url
+				fileName
+				fileSize
+				mimeType
+			}
+			messageStatus
+			createdAt
+		}
+	}
+`;
+
+export const START_CONVERSATION = gql`
+	mutation StartConversation($partnerId: String!) {
+		startConversation(partnerId: $partnerId) {
+			_id
+			lastActivityAt
+		}
+	}
+`;
+
+export const MARK_CONVERSATION_READ = gql`
+	mutation MarkConversationRead($conversationId: String!) {
+		markConversationRead(conversationId: $conversationId)
+	}
+`;
+
+/**************************
+ *        GOTRIP AI       *
+ *************************/
+
+const GOTRIP_AI_MESSAGE_FIELDS = `
+	_id
+	conversationId
+	memberId
+	role
+	content
+	status
+	createdAt
+`;
+
+export const SEND_GOTRIP_AI_MESSAGE = gql`
+	mutation SendGoTripAIMessage($input: SendMessageInput!) {
+		sendGoTripAIMessage(input: $input) {
+			${GOTRIP_AI_MESSAGE_FIELDS}
+		}
+	}
+`;
+
+/** Persists + returns the final assistant message, same as SEND_GOTRIP_AI_MESSAGE — the
+ *  incremental text is delivered separately over the shared messaging WebSocket
+ *  (see libs/messagingSocket.ts) as 'gotripAiStream' frames while this is in flight. */
+export const STREAM_GOTRIP_AI_MESSAGE = gql`
+	mutation StreamGoTripAIMessage($input: SendMessageInput!) {
+		streamGoTripAIMessage(input: $input) {
+			${GOTRIP_AI_MESSAGE_FIELDS}
+		}
+	}
+`;
+
+export const UPDATE_GOTRIP_AI_CONVERSATION = gql`
+	mutation UpdateGoTripAIConversation($input: ConversationUpdate!) {
+		updateGoTripAIConversation(input: $input) {
+			_id
+			title
+			status
+			updatedAt
+		}
+	}
+`;
+
+export const DELETE_GOTRIP_AI_CONVERSATION = gql`
+	mutation DeleteGoTripAIConversation($conversationId: String!) {
+		deleteGoTripAIConversation(conversationId: $conversationId) {
+			_id
+			status
 		}
 	}
 `;

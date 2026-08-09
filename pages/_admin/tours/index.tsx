@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import type { NextPage } from 'next';
 import { Button, MenuItem, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -11,8 +12,9 @@ import { TourLocation, TourStatus } from '../../../libs/enums/tour.enum';
 import { AllToursInquiry } from '../../../libs/types/tour/tour.input';
 import { Tour } from '../../../libs/types/tour/tour';
 import { T } from '../../../libs/types/common';
-import { REACT_APP_API_URL } from '../../../libs/config';
+import { getImageUrl } from '../../../libs/config';
 import { sweetConfirmAlert, sweetErrorHandling } from '../../../libs/sweetAlert';
+import { useTranslation } from '../../../libs/i18n/useTranslation';
 
 const tourStatusClass = (status?: string) => `admin-status admin-status--${(status ?? 'hold').toLowerCase()}`;
 const formatPrice = (price: number) => `$${new Intl.NumberFormat('en-US').format(price)}`;
@@ -23,6 +25,7 @@ const MotionSection = motion.section;
 const MotionArticle = motion.article;
 
 const AdminTours: NextPage = ({ initialInquiry }: any) => {
+	const { t } = useTranslation();
 	const [inquiry, setInquiry] = useState<AllToursInquiry>(initialInquiry);
 	const [tours, setTours] = useState<Tour[]>([]);
 	const [total, setTotal] = useState(0);
@@ -41,29 +44,31 @@ const AdminTours: NextPage = ({ initialInquiry }: any) => {
 	const statusHandler = async (nextStatus: string) => { setStatus(nextStatus); const search = { ...inquiry.search }; if (nextStatus === 'ALL') delete search.tourStatus; else search.tourStatus = nextStatus as TourStatus; const next = { ...inquiry, page: 1, search }; setInquiry(next); await refetch({ input: next }); };
 	const locationHandler = async (nextLocation: string) => { setLocation(nextLocation); const search = { ...inquiry.search }; if (nextLocation === 'ALL') delete search.tourLocationList; else search.tourLocationList = [nextLocation as TourLocation]; const next = { ...inquiry, page: 1, search }; setInquiry(next); await refetch({ input: next }); };
 	const pauseHandler = async (tour: Tour) => { try { await updateTourByAdmin({ variables: { input: { _id: tour._id, tourStatus: tour.tourStatus === TourStatus.PAUSED ? TourStatus.ACTIVE : TourStatus.PAUSED } } }); await refetch({ input: inquiry }); } catch (err: any) { sweetErrorHandling(err).then(); } };
-	const removeHandler = async (tourId: string) => { try { if (!(await sweetConfirmAlert('Remove this tour?'))) return; await removeTourByAdmin({ variables: { tourId } }); await refetch({ input: inquiry }); } catch (err: any) { sweetErrorHandling(err).then(); } };
-	const imageFor = (tour: Tour) => tour.tourImages?.[0] ? `${REACT_APP_API_URL}/${tour.tourImages[0]}` : '/img/banner/joinBg.svg';
+	const removeHandler = async (tourId: string) => { try { if (!(await sweetConfirmAlert(t('Remove this tour?') as string))) return; await removeTourByAdmin({ variables: { tourId } }); await refetch({ input: inquiry }); } catch (err: any) { sweetErrorHandling(err).then(); } };
+	/* Tours store absolute image URLs; getImageUrl passes those through instead of
+	   prefixing the API host, which produced a broken src and no thumbnail. */
+	const imageFor = (tour: Tour) => getImageUrl(tour.tourImages?.[0], '/img/banner/joinBg.svg');
 
 	const renderHeading = (): React.ReactElement => (
 		<div className="admin-page__heading">
 			<div>
-				<Typography component="span">Tour operations</Typography>
-				<Typography component="h1">Tour inventory</Typography>
-				<Typography component="p">Monitor availability and publication status across every operator experience.</Typography>
+				<Typography component="span">{t('Tour operations')}</Typography>
+				<Typography component="h1">{t('Tour inventory')}</Typography>
+				<Typography component="p">{t('Monitor availability and publication status across every operator experience.')}</Typography>
 			</div>
-			<Typography className="admin-page__count">{total} tours</Typography>
+			<Typography className="admin-page__count">{t('{{count}} tours', { count: total })}</Typography>
 		</div>
 	);
 
 	const renderFilters = (): React.ReactElement => (
 		<div className="admin-filterbar admin-filterbar--selects">
-			<Select value={status} onChange={(event) => statusHandler(event.target.value)} aria-label="Filter tours by status">
-				<MenuItem value="ALL">All statuses</MenuItem>
-				{tourStatusOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
+			<Select value={status} onChange={(event) => statusHandler(event.target.value)} aria-label={t('Filter tours by status') as string}>
+				<MenuItem value="ALL">{t('All statuses')}</MenuItem>
+				{tourStatusOptions.map((item) => <MenuItem key={item} value={item}>{t(item)}</MenuItem>)}
 			</Select>
-			<Select value={location} onChange={(event) => locationHandler(event.target.value)} aria-label="Filter tours by location">
-				<MenuItem value="ALL">All locations</MenuItem>
-				{tourLocationOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
+			<Select value={location} onChange={(event) => locationHandler(event.target.value)} aria-label={t('Filter tours by location') as string}>
+				<MenuItem value="ALL">{t('All locations')}</MenuItem>
+				{tourLocationOptions.map((item) => <MenuItem key={item} value={item}>{t(item)}</MenuItem>)}
 			</Select>
 		</div>
 	);
@@ -75,21 +80,24 @@ const AdminTours: NextPage = ({ initialInquiry }: any) => {
 					<img src={imageFor(tour)} alt="" />
 					<div>
 						<Typography component="strong">{tour.tourTitle}</Typography>
-						<Typography component="span">{formatPrice(tour.tourPrice)} · {tour.tourDuration} days</Typography>
+						<Typography component="span">{formatPrice(tour.tourPrice)} · {t('{{count}} days', { count: tour.tourDuration })}</Typography>
 					</div>
 				</Stack>
 			</TableCell>
-			<TableCell>{tour.tourLocation}</TableCell>
-			<TableCell>{tour.tourCategory}</TableCell>
-			<TableCell>{tour.tourAvailableSeats} seats</TableCell>
-			<TableCell><span className={tourStatusClass(tour.tourStatus)}>{tour.tourStatus}</span></TableCell>
+			<TableCell>{t(tour.tourLocation)}</TableCell>
+			<TableCell>{t(tour.tourCategory)}</TableCell>
+			<TableCell>{t('{{count}} seats', { count: tour.tourAvailableSeats })}</TableCell>
+			<TableCell><span className={tourStatusClass(tour.tourStatus)}>{t(tour.tourStatus)}</span></TableCell>
 			<TableCell align="right">
 				<Stack direction="row" spacing={1} justifyContent="flex-end">
-					<Button className="admin-action-button" onClick={() => pauseHandler(tour)}>
-						{tour.tourStatus === TourStatus.PAUSED ? 'Activate' : 'Pause'}
+					<Button
+						className={`admin-action-button ${tour.tourStatus === TourStatus.PAUSED ? 'admin-action-button--success' : 'admin-action-button--warning'}`}
+						onClick={() => pauseHandler(tour)}
+					>
+						{tour.tourStatus === TourStatus.PAUSED ? t('Activate') : t('Pause')}
 					</Button>
 					<Button className="admin-action-button admin-action-button--danger" onClick={() => removeHandler(tour._id)}>
-						Remove
+						{t('Remove')}
 					</Button>
 				</Stack>
 			</TableCell>
@@ -107,19 +115,22 @@ const AdminTours: NextPage = ({ initialInquiry }: any) => {
 			<img src={imageFor(tour)} alt="" />
 			<div className="admin-mobile-card__title">
 				<Typography component="strong">{tour.tourTitle}</Typography>
-				<span className={tourStatusClass(tour.tourStatus)}>{tour.tourStatus}</span>
+				<span className={tourStatusClass(tour.tourStatus)}>{t(tour.tourStatus)}</span>
 			</div>
-			<Typography component="p">{tour.tourLocation} · {tour.tourCategory}</Typography>
+			<Typography component="p">{t(tour.tourLocation)} · {t(tour.tourCategory)}</Typography>
 			<div className="admin-mobile-card__meta">
 				<span>{formatPrice(tour.tourPrice)}</span>
-				<span>{tour.tourAvailableSeats} seats</span>
+				<span>{t('{{count}} seats', { count: tour.tourAvailableSeats })}</span>
 			</div>
 			<Stack direction="row" spacing={1}>
-				<Button className="admin-action-button" onClick={() => pauseHandler(tour)}>
-					{tour.tourStatus === TourStatus.PAUSED ? 'Activate' : 'Pause'}
+				<Button
+					className={`admin-action-button ${tour.tourStatus === TourStatus.PAUSED ? 'admin-action-button--success' : 'admin-action-button--warning'}`}
+					onClick={() => pauseHandler(tour)}
+				>
+					{tour.tourStatus === TourStatus.PAUSED ? t('Activate') : t('Pause')}
 				</Button>
 				<Button className="admin-action-button admin-action-button--danger" onClick={() => removeHandler(tour._id)}>
-					Remove
+					{t('Remove')}
 				</Button>
 			</Stack>
 		</MotionArticle>
@@ -129,32 +140,32 @@ const AdminTours: NextPage = ({ initialInquiry }: any) => {
 		if (error) {
 			return (
 				<div className="admin-state admin-state--error">
-					<Typography>We could not load the tour inventory.</Typography>
-					<Button onClick={() => refetch({ input: inquiry })}>Try again</Button>
+					<Typography>{t('We could not load the tour inventory.')}</Typography>
+					<Button onClick={() => refetch({ input: inquiry })}>{t('Try again')}</Button>
 				</div>
 			);
 		}
 		if (loading && !tours.length) {
 			return (
-				<div className="admin-table-skeleton" role="status" aria-label="Loading tours">
+				<div className="admin-table-skeleton" role="status" aria-label={t('Loading tours') as string}>
 					{Array.from({ length: 6 }).map((_, index) => <span key={index} />)}
 				</div>
 			);
 		}
-		if (!tours.length) return <div className="admin-state admin-state--empty">No tours match these inventory controls.</div>;
+		if (!tours.length) return <div className="admin-state admin-state--empty">{t('No tours match these inventory controls.')}</div>;
 
 		return (
 			<>
 				<TableContainer className="admin-data-table">
-					<Table aria-label="Tour inventory">
+					<Table aria-label={t('Tour inventory') as string}>
 						<TableHead>
 							<TableRow>
-								<TableCell>Tour</TableCell>
-								<TableCell>Location</TableCell>
-								<TableCell>Category</TableCell>
-								<TableCell>Availability</TableCell>
-								<TableCell>Status</TableCell>
-								<TableCell align="right">Actions</TableCell>
+								<TableCell>{t('Tour')}</TableCell>
+								<TableCell>{t('Location')}</TableCell>
+								<TableCell>{t('Categories')}</TableCell>
+								<TableCell>{t('Availability')}</TableCell>
+								<TableCell>{t('Status')}</TableCell>
+								<TableCell align="right">{t('Actions')}</TableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>{renderDesktopRows()}</TableBody>
@@ -178,5 +189,11 @@ const AdminTours: NextPage = ({ initialInquiry }: any) => {
 };
 
 AdminTours.defaultProps = { initialInquiry: { page: 1, limit: 10, sort: 'createdAt', direction: Direction.DESC, search: {} } };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminTours);

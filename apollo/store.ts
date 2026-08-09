@@ -22,10 +22,8 @@ export const userVar = makeVar<CustomJwtPayload>({
 	memberViews: 0,
 	memberWarnings: 0,
 	memberBlocks: 0,
-	agentRequestStatus: '',
+	agentRequestStatus: 'NONE',
 	agentRequestMessage: '',
-	agentExperience: '',
-	isVerifiedAgent: false,
 });
 
 // @ts-ignore

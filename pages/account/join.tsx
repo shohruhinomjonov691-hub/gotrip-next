@@ -1,15 +1,14 @@
-import React, { FormEvent, useCallback, useState } from 'react';
+import React, { FormEvent, useCallback, useMemo, useState } from 'react';
 import { NextPage } from 'next';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Button, Checkbox, CircularProgress, FormControlLabel, Stack } from '@mui/material';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import withLayoutGth from '../../libs/components/layout/LayoutGth';
+import { useTranslation } from '../../libs/i18n/useTranslation';
 import { logIn, signUp } from '../../libs/auth';
 import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { MemberType } from '../../libs/enums/member.enum';
 import { MemberInput } from '../../libs/types/member/member.input';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { easeOutExpo, tapPress } from '../../libs/components/homepage/motion';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -17,26 +16,79 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
+/** Panel artwork — one per view so switching tabs feels like a different moment. */
+const ART = {
+	login: {
+		image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1400&q=80',
+		eyebrow: 'Welcome back',
+		title: 'Your next route is\nalready waiting',
+		copy: 'Pick up where you left off — saved tours, guide replies and trip plans all in one place.',
+	},
+	signup: {
+		image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1400&q=80',
+		eyebrow: 'Start exploring',
+		title: 'Travel with people\nwho know the way',
+		copy: 'Join GoTrip to book guided routes from verified local guides — real prices, no hidden fees.',
+	},
+};
+
+const STATS = [
+	{ value: '65+', label: 'Tours' },
+	{ value: '10+', label: 'Destinations' },
+	{ value: '10+', label: 'Guides' },
+];
+
+const MailIcon = () => (
+	<svg viewBox="0 0 24 24">
+		<rect height="15" rx="2.4" width="19" x="2.5" y="4.5" />
+		<path d="M3 6l9 6.5L21 6" />
+	</svg>
+);
+const LockIcon = () => (
+	<svg viewBox="0 0 24 24">
+		<rect height="11" rx="2.4" width="15" x="4.5" y="10.5" />
+		<path d="M8 10.5V7.5a4 4 0 018 0v3" />
+	</svg>
+);
+const PhoneIcon = () => (
+	<svg viewBox="0 0 24 24">
+		<path d="M6.5 3.5h3l1.5 4-2 1.4a12 12 0 006.1 6.1l1.4-2 4 1.5v3a2 2 0 01-2.2 2A17 17 0 014.5 5.7a2 2 0 012-2.2z" />
+	</svg>
+);
+const EyeIcon = ({ off }: { off?: boolean }) => (
+	<svg viewBox="0 0 24 24">
+		<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+		<circle cx="12" cy="12" r="3" />
+		{off && <path d="M4 4l16 16" />}
+	</svg>
+);
+
+/** Informational only — never blocks submission. */
+const scorePassword = (value: string) => {
+	if (!value) return 0;
+	let score = 0;
+	if (value.length >= 8) score++;
+	if (value.length >= 12) score++;
+	if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
+	if (/\d/.test(value)) score++;
+	if (/[^A-Za-z0-9]/.test(value)) score++;
+	return Math.min(score, 4);
+};
+const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+
 const Join: NextPage = () => {
+	const { t } = useTranslation();
 	const router = useRouter();
-	const reduceMotion = useReducedMotion();
 	const [input, setInput] = useState<MemberInput>({
 		memberNick: '',
 		memberPassword: '',
 		memberPhone: '',
 		memberType: MemberType.USER,
-		wantsToBecomeAgent: false,
-		agentRequestMessage: '',
-		agentExperience: '',
 	});
 	const [loginView, setLoginView] = useState<boolean>(true);
 	const [submitting, setSubmitting] = useState<boolean>(false);
 	const [formError, setFormError] = useState<string>('');
-
-	const cardInitial = reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28 };
-	const cardAnimate = { opacity: 1, y: 0 };
-	const panelInitial = reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 };
-	const panelTransition = reduceMotion ? { duration: 0.12 } : { duration: 0.28, ease: easeOutExpo };
+	const [showPassword, setShowPassword] = useState(false);
 
 	/** HANDLERS **/
 	const viewChangeHandler = (state: boolean) => {
@@ -58,7 +110,7 @@ const Join: NextPage = () => {
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
 			console.error('login form error:', err);
-			setFormError(err.message ?? 'Login failed. Please check your details and try again.');
+			setFormError(err.message ?? t('Login failed. Please check your details and try again.'));
 			await sweetMixinErrorAlert(err.message);
 		} finally {
 			setSubmitting(false);
@@ -66,23 +118,12 @@ const Join: NextPage = () => {
 	}, [input, router]);
 
 	const buildSignupInput = useCallback((): MemberInput => {
-		const payload: MemberInput = {
+		return {
 			memberNick: input.memberNick.trim(),
 			memberPassword: input.memberPassword,
 			memberPhone: input.memberPhone.trim(),
 			memberType: MemberType.USER,
 		};
-
-		if (input.wantsToBecomeAgent) {
-			const agentRequestMessage = input.agentRequestMessage?.trim();
-			const agentExperience = input.agentExperience?.trim();
-
-			payload.wantsToBecomeAgent = true;
-			if (agentRequestMessage) payload.agentRequestMessage = agentRequestMessage;
-			if (agentExperience) payload.agentExperience = agentExperience;
-		}
-
-		return payload;
 	}, [input]);
 
 	const doSignUp = useCallback(async () => {
@@ -90,13 +131,12 @@ const Join: NextPage = () => {
 			setSubmitting(true);
 			setFormError('');
 			const signupInput = buildSignupInput();
-			console.log('signup form payload:', signupInput);
 			await signUp(signupInput);
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
 			console.error('signup form error:', err);
-			setFormError(err.message ?? 'Signup failed. Please check your details and try again.');
-			await sweetMixinErrorAlert(err.message ?? 'Signup failed');
+			setFormError(err.message ?? t('Signup failed. Please check your details and try again.'));
+			await sweetMixinErrorAlert(err.message ?? t('Signup failed'));
 		} finally {
 			setSubmitting(false);
 		}
@@ -112,223 +152,194 @@ const Join: NextPage = () => {
 		else await doSignUp();
 	};
 
+	const strength = useMemo(() => scorePassword(input.memberPassword), [input.memberPassword]);
+	const art = loginView ? ART.login : ART.signup;
+
 	return (
-		<Stack className={'join-page'}>
-			<motion.div
-				className="join-bg-drift"
-				aria-hidden="true"
-				animate={reduceMotion ? undefined : { scale: [1, 1.045, 1], x: ['0%', '-0.8%', '0%'] }}
-				transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' }}
-			/>
-			<Stack className={'container join-shell'}>
-				<motion.div
-					className={'join-card'}
-					initial={cardInitial}
-					animate={cardAnimate}
-					transition={reduceMotion ? { duration: 0.12 } : { duration: 0.48, ease: easeOutExpo }}
-				>
-					<aside className="join-brand-panel" aria-label="GoTrip travel account">
-						<div>
-							<div className={'logo'}>
-								<img src="/img/logo/logoWhite.svg" alt="GoTrip" />
-								<span>GoTrip</span>
+		<section className="au-sec">
+			<div className="wrap">
+				<div className="au-card">
+					{/* ---------- Artwork panel ---------- */}
+					<aside className="au-art">
+						<img alt="" className="au-art-img" loading="lazy" src={art.image} />
+						<div className="au-art-body">
+							<span className="au-eyebrow">{t(art.eyebrow)}</span>
+							<h1 className="au-art-title">{t(art.title)}</h1>
+							<p className="au-art-copy">{t(art.copy)}</p>
+							<div className="au-art-stats">
+								{STATS.map((s) => (
+									<div key={s.label}>
+										<b>{s.value}</b>
+										<small>{t(s.label)}</small>
+									</div>
+								))}
 							</div>
-							<p className="join-kicker">Luxury travel concierge</p>
-							<h1>Travel, curated for you.</h1>
-							<p className="join-brand-copy">
-								Access curated tours, saved destinations, bookings, and guide/operator tools from one secure
-								account.
-							</p>
-						</div>
-						<div className="join-trust-list">
-							<span>Secure account access</span>
-							<span>Wishlist and booking continuity</span>
-							<span>Guide approval requests reviewed by admins</span>
 						</div>
 					</aside>
 
-					<section className="join-form-panel" aria-labelledby="join-title">
-						<div className="join-mobile-brand">
-							<img src="/img/logo/logoText.svg" alt="GoTrip" />
-							<span>GoTrip</span>
-						</div>
-
-						<div className="join-tabs" role="tablist" aria-label="Authentication mode">
+					{/* ---------- Form panel ---------- */}
+					<div className="au-form-panel">
+						<div className="au-tabs" role="tablist" aria-label={t('Authentication mode') as string}>
 							<button
-								type="button"
-								role="tab"
 								aria-selected={loginView}
-								className={loginView ? 'active' : ''}
+								className={loginView ? 'au-tab on' : 'au-tab'}
 								onClick={() => viewChangeHandler(true)}
+								role="tab"
+								type="button"
 							>
-								Login
+								{t('Log in')}
 							</button>
 							<button
-								type="button"
-								role="tab"
 								aria-selected={!loginView}
-								className={!loginView ? 'active' : ''}
+								className={!loginView ? 'au-tab on' : 'au-tab'}
 								onClick={() => viewChangeHandler(false)}
+								role="tab"
+								type="button"
 							>
-								Sign Up
+								{t('Sign up')}
 							</button>
 						</div>
 
-						<div className="join-heading">
-							<p>{loginView ? 'Welcome back' : 'Create your traveler account'}</p>
-							<h2 id="join-title">{loginView ? 'Continue your GoTrip journey.' : 'Start planning with GoTrip.'}</h2>
-						</div>
+						<h2 className="au-h2">{loginView ? t('Welcome back') : t('Create your account')}</h2>
+						<p className="au-sub">
+							{loginView
+								? t('Log in to manage your trips, saved tours and guide messages.')
+								: t('It takes under a minute. No card needed to browse or enquire.')}
+						</p>
 
 						{formError && (
-							<div className="join-error" role="alert" aria-live="polite">
+							<div className="au-error" role="alert">
 								{formError}
 							</div>
 						)}
 
-						<form className="join-form" onSubmit={submitHandler}>
-							<AnimatePresence mode="wait" initial={false}>
-								<motion.div
-									key={loginView ? 'login' : 'signup'}
-									className="join-form-stage"
-									initial={panelInitial}
-									animate={{ opacity: 1, y: 0 }}
-									exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
-									transition={panelTransition}
-								>
-									<label className={'input-box'} htmlFor="memberNick">
-										<span>Nickname</span>
+						<form className="au-form" onSubmit={submitHandler}>
+							<div className="fl-field">
+								<label htmlFor="memberNick">{t('Nickname')}</label>
+								<div className="au-input">
+									<MailIcon />
+									<input
+										autoComplete="username"
+										id="memberNick"
+										name="memberNick"
+										onChange={(e) => handleInput('memberNick', e.target.value)}
+										placeholder={t('Your nickname') as string}
+										required
+										type="text"
+										value={input.memberNick}
+									/>
+								</div>
+							</div>
+
+							<div className="fl-field">
+								<label htmlFor="memberPassword">{t('Password')}</label>
+								<div className="au-input">
+									<LockIcon />
+									<input
+										autoComplete={loginView ? 'current-password' : 'new-password'}
+										id="memberPassword"
+										name="memberPassword"
+										onChange={(e) => handleInput('memberPassword', e.target.value)}
+										placeholder={t('Your password') as string}
+										required
+										type={showPassword ? 'text' : 'password'}
+										value={input.memberPassword}
+									/>
+									<button
+										aria-label={(showPassword ? t('Hide password') : t('Show password')) as string}
+										className="au-eye"
+										onClick={() => setShowPassword((v) => !v)}
+										type="button"
+									>
+										<EyeIcon off={showPassword} />
+									</button>
+								</div>
+
+								{!loginView && input.memberPassword.length > 0 && (
+									<div className="au-strength" aria-live="polite">
+										<div className={`au-bars s${strength}`}>
+											<i />
+											<i />
+											<i />
+											<i />
+										</div>
+										<span>{t(STRENGTH_LABELS[strength])}</span>
+									</div>
+								)}
+							</div>
+
+							{!loginView && (
+								<div className="fl-field">
+									<label htmlFor="memberPhone">{t('Phone')}</label>
+									<div className="au-input">
+										<PhoneIcon />
 										<input
-											id="memberNick"
-											name="memberNick"
-											type="text"
-											autoComplete="username"
-											value={input.memberNick}
-											onChange={(e) => handleInput('memberNick', e.target.value)}
+											autoComplete="tel"
+											id="memberPhone"
+											name="memberPhone"
+											onChange={(e) => handleInput('memberPhone', e.target.value)}
+											placeholder={t('e.g. +1 234 567 890') as string}
 											required
+											type="tel"
+											value={input.memberPhone}
 										/>
-									</label>
-
-									<label className={'input-box'} htmlFor="memberPassword">
-										<span>Password</span>
-										<input
-											id="memberPassword"
-											name="memberPassword"
-											type="password"
-											autoComplete={loginView ? 'current-password' : 'new-password'}
-											value={input.memberPassword}
-											onChange={(e) => handleInput('memberPassword', e.target.value)}
-											required
-										/>
-									</label>
-
-									{!loginView && (
-										<>
-											<label className={'input-box'} htmlFor="memberPhone">
-												<span>Phone</span>
-												<input
-													id="memberPhone"
-													name="memberPhone"
-													type="tel"
-													autoComplete="tel"
-													value={input.memberPhone}
-													onChange={(e) => handleInput('memberPhone', e.target.value)}
-													required
-												/>
-											</label>
-
-											<div className={'guide-request'}>
-												<FormControlLabel
-													control={
-														<Checkbox
-															size="small"
-															checked={Boolean(input.wantsToBecomeAgent)}
-															onChange={(event) => handleInput('wantsToBecomeAgent', event.target.checked)}
-															inputProps={{ 'aria-label': 'Request guide or operator approval' }}
-														/>
-													}
-													label="Request guide/operator approval"
-												/>
-												<p>Traveler account is the default. Admins review guide access separately.</p>
-												<AnimatePresence initial={false}>
-													{input.wantsToBecomeAgent && (
-														<motion.div
-															className="guide-fields"
-															initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-															animate={{ opacity: 1, y: 0 }}
-															exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-															transition={panelTransition}
-														>
-															<label className={'input-box'} htmlFor="agentRequestMessage">
-																<span>Request message</span>
-																<textarea
-																	id="agentRequestMessage"
-																	name="agentRequestMessage"
-																	rows={3}
-																	value={input.agentRequestMessage ?? ''}
-																	onChange={(event) => handleInput('agentRequestMessage', event.target.value)}
-																/>
-															</label>
-															<label className={'input-box'} htmlFor="agentExperience">
-																<span>Experience</span>
-																<textarea
-																	id="agentExperience"
-																	name="agentExperience"
-																	rows={3}
-																	value={input.agentExperience ?? ''}
-																	onChange={(event) => handleInput('agentExperience', event.target.value)}
-																/>
-															</label>
-														</motion.div>
-													)}
-												</AnimatePresence>
-											</div>
-										</>
-									)}
-								</motion.div>
-							</AnimatePresence>
-
-							{loginView && (
-								<div className={'remember-info'}>
-									<FormControlLabel control={<Checkbox defaultChecked size="small" />} label="Remember me" />
-									<span>Lost your password?</span>
+									</div>
 								</div>
 							)}
 
-							<motion.div whileTap={submitting ? undefined : tapPress}>
-								<Button
-									type="submit"
-									variant="contained"
-									disabled={loginView ? loginDisabled : signupDisabled}
-									className="join-submit"
-								>
-									{submitting && <CircularProgress size={18} color="inherit" />}
-									{loginView ? 'Login' : 'Create account'}
-								</Button>
-							</motion.div>
+							{loginView && (
+								<div className="au-row">
+									<label className="au-check">
+										<input defaultChecked type="checkbox" />
+										<span>{t('Remember me')}</span>
+									</label>
+									<Link className="au-link" href="/cs?tab=inquiry">
+										{t('Lost your password?')}
+									</Link>
+								</div>
+							)}
+
+							<button
+								className="btn btn-sky au-submit"
+								disabled={loginView ? loginDisabled : signupDisabled}
+								type="submit"
+							>
+								{submitting ? t('Please wait…') : loginView ? t('Log in') : t('Create account')}
+							</button>
+
+							{!loginView && (
+								<p className="au-terms">
+									{t('By creating an account you agree to our')}{' '}
+									<Link className="au-link" href="/cs?tab=terms">
+										{t('terms and privacy policy')}
+									</Link>
+									.
+								</p>
+							)}
 						</form>
 
-						<div className={'ask-info'}>
+						<div className="au-switch">
 							{loginView ? (
 								<p>
-									Not registered yet?
-									<button type="button" onClick={() => viewChangeHandler(false)}>
-										Sign up
+									{t('Not registered yet?')}{' '}
+									<button onClick={() => viewChangeHandler(false)} type="button">
+										{t('Sign up')}
 									</button>
 								</p>
 							) : (
 								<p>
-									Already have an account?
-									<button type="button" onClick={() => viewChangeHandler(true)}>
-										Login
+									{t('Already have an account?')}{' '}
+									<button onClick={() => viewChangeHandler(true)} type="button">
+										{t('Log in')}
 									</button>
 								</p>
 							)}
 						</div>
-					</section>
-				</motion.div>
-			</Stack>
-		</Stack>
+					</div>
+				</div>
+			</div>
+		</section>
 	);
 };
 
-export default withLayoutBasic(Join);
+export default withLayoutGth(Join);

@@ -181,6 +181,9 @@ const components = (mode: PaletteMode) => ({
 				backgroundColor: 'var(--gt-input-bg)',
 				color: 'var(--gt-input-text)',
 				input: {},
+				'&.MuiInputBase-multiline': {
+					height: 'auto',
+				},
 			},
 			notchedOutline: {
 				padding: '8px',

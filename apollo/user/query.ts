@@ -16,6 +16,7 @@ export const TOUR_FIELDS = gql`
 		tourLikes
 		tourComments
 		tourRank
+		tourRating
 		tourImages
 		tourDesc
 		tourItinerary
@@ -25,7 +26,15 @@ export const TOUR_FIELDS = gql`
 		tourLanguage
 		tourDifficulty
 		memberId
-		destinationId
+		translations {
+			locale
+			tourTitle
+			tourDesc
+			tourMeetingPoint
+			tourItinerary
+			tourIncluded
+			tourExcluded
+		}
 		deletedAt
 		createdAt
 		updatedAt
@@ -45,50 +54,15 @@ export const TOUR_FIELDS = gql`
 			memberImage
 			memberAddress
 			memberDesc
+			translations {
+				locale
+				memberDesc
+			}
 			memberTours
 			memberRank
 			memberPoints
 			memberLikes
 			memberViews
-			isVerifiedAgent
-		}
-		schedules {
-			_id
-			scheduleStatus
-			tourId
-			startDate
-			endDate
-			availableSeats
-			reservedSeats
-			price
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const DESTINATION_FIELDS = gql`
-	fragment DestinationFields on Destination {
-		_id
-		destinationStatus
-		destinationCountry
-		destinationCity
-		destinationAddress
-		destinationTitle
-		destinationDesc
-		destinationImages
-		destinationViews
-		destinationLikes
-		destinationComments
-		destinationRating
-		destinationTours
-		destinationRank
-		createdAt
-		updatedAt
-		meLiked {
-			memberId
-			likeRefId
-			myFavorite
 		}
 	}
 `;
@@ -144,80 +118,17 @@ export const GET_VISITED_TOURS = gql`
 	}
 `;
 
-export const GET_TOUR_SCHEDULES = gql`
-	query GetTourSchedules($tourId: String!) {
-		getTourSchedules(tourId: $tourId) {
-			list {
-				_id
-				scheduleStatus
-				tourId
-				startDate
-				endDate
-				availableSeats
-				reservedSeats
-				price
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_DESTINATIONS = gql`
-	${DESTINATION_FIELDS}
-	query GetDestinations($input: DestinationsInquiry!) {
-		getDestinations(input: $input) {
-			list {
-				...DestinationFields
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_DESTINATION = gql`
-	${DESTINATION_FIELDS}
-	query GetDestination($destinationId: String!) {
-		getDestination(destinationId: $destinationId) {
-			...DestinationFields
-		}
-	}
-`;
-
-export const GET_MY_WISHLIST = gql`
+export const GET_FAVORITE_TOURS = gql`
 	${TOUR_FIELDS}
-	${DESTINATION_FIELDS}
-	query GetMyWishlist($input: WishlistsInquiry!) {
-		getMyWishlist(input: $input) {
+	query GetFavoriteTours($input: OrdinaryInquiry!) {
+		getFavorites(input: $input) {
 			list {
-				_id
-				wishlistGroup
-				wishlistRefId
-				memberId
-				createdAt
-				updatedAt
-				tourData {
-					...TourFields
-				}
-				destinationData {
-					...DestinationFields
-				}
+				...TourFields
 			}
 			metaCounter {
 				total
 			}
 		}
-	}
-`;
-
-export const CHECK_WISHLIST = gql`
-	query CheckWishlist($input: WishlistInput!) {
-		checkWishlist(input: $input)
 	}
 `;
 
@@ -231,6 +142,11 @@ export const GET_NOTICES = gql`
 				noticeTitle
 				noticeContent
 				memberId
+				translations {
+					locale
+					noticeTitle
+					noticeContent
+				}
 				createdAt
 				updatedAt
 			}
@@ -250,156 +166,11 @@ export const GET_NOTICE = gql`
 			noticeTitle
 			noticeContent
 			memberId
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const GET_MY_BOOKINGS = gql`
-	query GetMyBookings($input: BookingsInquiry!) {
-		getMyBookings(input: $input) {
-			list {
-				_id
-				bookingStatus
-				bookingNumber
-				tourId
-				memberId
-				agentId
-				scheduleId
-				peopleCount
-				totalPrice
-				bookingDate
-				travelerName
-				travelerEmail
-				travelerPhone
-				createdAt
-				updatedAt
+			translations {
+				locale
+				noticeTitle
+				noticeContent
 			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_AGENT_BOOKINGS = gql`
-	query GetAgentBookings($input: BookingsInquiry!) {
-		getAgentBookings(input: $input) {
-			list {
-				_id
-				bookingStatus
-				bookingNumber
-				tourId
-				memberId
-				agentId
-				scheduleId
-				peopleCount
-				totalPrice
-				bookingDate
-				travelerName
-				travelerEmail
-				travelerPhone
-				cancelReason
-				cancelledAt
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_AGENT_BOOKING = gql`
-	query GetAgentBooking($bookingId: String!) {
-		getAgentBooking(bookingId: $bookingId) {
-			_id
-			bookingStatus
-			bookingNumber
-			tourId
-			memberId
-			agentId
-			scheduleId
-			peopleCount
-			totalPrice
-			bookingDate
-			travelerName
-			travelerEmail
-			travelerPhone
-			passportNumber
-			specialRequest
-			cancelReason
-			cancelledAt
-			expiresAt
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const GET_MY_PAYMENTS = gql`
-	query GetMyPayments($input: PaymentsInquiry!) {
-		getMyPayments(input: $input) {
-			list {
-				_id
-				paymentStatus
-				paymentMethod
-				paymentAmount
-				bookingId
-				memberId
-				tourId
-				transactionId
-				paidAt
-				refundedAt
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_AGENT_PAYMENTS = gql`
-	query GetAgentPayments($input: PaymentsInquiry!) {
-		getAgentPayments(input: $input) {
-			list {
-				_id
-				paymentStatus
-				paymentMethod
-				paymentAmount
-				bookingId
-				memberId
-				tourId
-				transactionId
-				paidAt
-				refundedAt
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_AGENT_PAYMENT = gql`
-	query GetAgentPayment($paymentId: String!) {
-		getAgentPayment(paymentId: $paymentId) {
-			_id
-			paymentStatus
-			paymentMethod
-			paymentAmount
-			bookingId
-			memberId
-			tourId
-			transactionId
-			paidAt
-			refundedAt
 			createdAt
 			updatedAt
 		}
@@ -416,14 +187,113 @@ export const GET_MY_NOTIFICATIONS = gql`
 				notificationGroup
 				notificationTitle
 				notificationDesc
+				notificationLink
 				authorId
 				receiverId
-				memberId
 				tourId
-				bookingId
-				paymentId
 				articleId
 				commentId
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *        CATEGORY        *
+ *************************/
+
+export const GET_CATEGORIES = gql`
+	query GetCategories($input: CategoriesInquiry!) {
+		getCategories(input: $input) {
+			list {
+				_id
+				categoryType
+				categoryKey
+				categoryStatus
+				categoryName
+				categoryDesc
+				categoryImage
+				categoryIcon
+				categoryOrder
+				translations {
+					locale
+					categoryName
+					categoryDesc
+				}
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *       DESTINATION      *
+ *************************/
+
+export const GET_DESTINATIONS = gql`
+	query GetDestinations($input: DestinationsInquiry!) {
+		getDestinations(input: $input) {
+			list {
+				_id
+				destinationStatus
+				memberId
+				destinationTitle
+				destinationDesc
+				destinationThumbnail
+				destinationGallery
+				destinationHighlights
+				destinationSeason
+				destinationCountry
+				destinationCity
+				locationKey
+				translations {
+					locale
+					destinationTitle
+					destinationDesc
+					destinationHighlights
+					destinationSeason
+				}
+				destinationViews
+				destinationLikes
+				destinationRank
+				tourCount
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *       TESTIMONIAL      *
+ *************************/
+
+export const GET_TESTIMONIALS = gql`
+	query GetTestimonials($input: TestimonialsInquiry!) {
+		getTestimonials(input: $input) {
+			list {
+				_id
+				testimonialStatus
+				testimonialContent
+				testimonialRating
+				authorName
+				authorRole
+				authorImage
+				memberId
+				tourId
+				testimonialOrder
 				createdAt
 				updatedAt
 			}
@@ -450,8 +320,23 @@ export const GET_AGENTS = gql`
 				memberNick
 				memberFullName
 				memberImage
+				memberCoverImage
 				memberAddress
 				memberDesc
+				translations {
+					locale
+					memberDesc
+				}
+				agentExperience
+				memberLanguages
+				memberSpecialties
+				memberSocial {
+					facebook
+					twitter
+					linkedin
+					youtube
+					instagram
+				}
 				memberWarnings
 				memberBlocks
 				memberTours
@@ -487,8 +372,23 @@ export const GET_MEMBER = gql(`
         memberNick
         memberFullName
         memberImage
+        memberCoverImage
         memberAddress
         memberDesc
+        translations {
+          locale
+          memberDesc
+        }
+        agentExperience
+        memberLanguages
+        memberSpecialties
+        memberSocial {
+          facebook
+          twitter
+          linkedin
+          youtube
+          instagram
+        }
         memberTours
         memberArticles
         memberPoints
@@ -525,6 +425,12 @@ export const GET_BOARD_ARTICLE = gql`
 			articleTitle
 			articleContent
 			articleImage
+			articleImages
+			translations {
+				locale
+				articleTitle
+				articleContent
+			}
 			articleViews
 			articleLikes
 			articleComments
@@ -542,9 +448,16 @@ export const GET_BOARD_ARTICLE = gql`
 				memberImage
 				memberAddress
 				memberDesc
+				translations {
+					locale
+					memberDesc
+				}
 				memberWarnings
 				memberBlocks
 				memberTours
+				memberArticles
+				memberFollowers
+				memberFollowings
 				memberRank
 				memberPoints
 				memberLikes
@@ -572,12 +485,25 @@ export const GET_BOARD_ARTICLES = gql`
 				articleTitle
 				articleContent
 				articleImage
+				articleImages
+				translations {
+					locale
+					articleTitle
+					articleContent
+				}
 				articleViews
 				articleLikes
 				articleComments
 				memberId
 				createdAt
 				updatedAt
+				readersCount
+				readers {
+					_id
+					memberFullName
+					memberNick
+					memberImage
+				}
 				meLiked {
 					memberId
 					likeRefId
@@ -626,7 +552,6 @@ export const GET_COMMENTS = gql`
 				commentGroup
 			commentContent
 			commentRefId
-			rating
 			memberId
 				createdAt
 				updatedAt
@@ -763,6 +688,145 @@ export const GET_MEMBER_FOLLOWINGS = gql`
 					followerId
 					myFollowing
 				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *        MESSAGING       *
+ *************************/
+
+export const GET_MY_CONVERSATIONS = gql`
+	query GetMyConversations($input: ConversationsInquiry!) {
+		getMyConversations(input: $input) {
+			list {
+				_id
+				lastMessageText
+				lastMessageAt
+				lastMessageSenderId
+				lastActivityAt
+				unreadCount
+				partner {
+					_id
+					memberNick
+					memberImage
+					memberType
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_MESSAGES = gql`
+	query GetMessages($input: MessagesInquiry!) {
+		getMessages(input: $input) {
+			list {
+				_id
+				conversationId
+				senderId
+				receiverId
+				messageText
+				messageImages
+				messageFiles {
+					url
+					fileName
+					fileSize
+					mimeType
+				}
+				messageStatus
+				readAt
+				createdAt
+				senderData {
+					_id
+					memberNick
+					memberImage
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_UNREAD_MESSAGE_COUNT = gql`
+	query GetUnreadMessageCount {
+		getUnreadMessageCount
+	}
+`;
+
+export const SEARCH_MEMBERS = gql`
+	query SearchMembers($input: MemberSearchInquiry!) {
+		searchMembers(input: $input) {
+			list {
+				_id
+				memberNick
+				memberImage
+				memberType
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *        GOTRIP AI       *
+ *************************/
+
+export const GET_GOTRIP_AI_CONVERSATIONS = gql`
+	query GetGoTripAIConversations($input: AIConversationsInquiry!) {
+		getGoTripAIConversations(input: $input) {
+			list {
+				_id
+				title
+				locale
+				status
+				lastMessageAt
+				messageCount
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_GOTRIP_AI_CONVERSATION = gql`
+	query GetGoTripAIConversation($conversationId: String!) {
+		getGoTripAIConversation(conversationId: $conversationId) {
+			_id
+			title
+			locale
+			status
+			lastMessageAt
+			messageCount
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const GET_GOTRIP_AI_MESSAGES = gql`
+	query GetGoTripAIMessages($input: AIMessagesInquiry!) {
+		getGoTripAIMessages(input: $input) {
+			list {
+				_id
+				conversationId
+				role
+				content
+				status
+				createdAt
 			}
 			metaCounter {
 				total

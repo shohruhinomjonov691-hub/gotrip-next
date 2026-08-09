@@ -16,6 +16,7 @@ export enum MemberAuthType {
 	TELEGRAM = 'TELEGRAM',
 }
 
+/** Mirrors the backend AgentRequestStatus (libs/enums/member.enum.ts). */
 export enum AgentRequestStatus {
 	NONE = 'NONE',
 	PENDING = 'PENDING',

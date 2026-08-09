@@ -3,6 +3,7 @@
 @import '/scss/pc/general.scss';
 
 @import '/scss/pc/homepage/homepage';
+@import '/scss/pc/homepage-html/index';
 
 @import '/scss/pc/agent/agent';
 @import '/scss/pc/agent/detail.scss';
@@ -21,12 +22,16 @@
 @import '/scss/pc/about/about.scss';
 @import '/scss/pc/account/join.scss';
 @import '/scss/pc/admin/admin.scss';
+/* GoTrip design layer for the admin app — must follow admin.scss. */
+@import '/scss/pc/admin/gth-admin';
 @import '/scss/pc/destination.scss';
 
 @import '/scss/pc/member/memberPage.scss';
 @import '/scss/pc/member/memberFollows.scss';
 @import '/scss/pc/member/memberArticles.scss';
 @import '/scss/pc/member/memberTours.scss';
+
+@import '/scss/pc/gotrip-ai';
 
 body {
 	-ms-overflow-style: none; /* for Internet Explorer, Edge */
@@ -791,11 +796,49 @@ body::-webkit-scrollbar {
 	.saved-state-card.error,
 	.booking-inline-error,
 	.admin-action-button--danger.MuiButton-root,
+	.admin-action-button.admin-action-button--danger.MuiButton-root,
 	.agent-ops-danger.MuiButton-root,
 	.agent-schedule-delete.MuiButton-root {
 		background: var(--gt-error-soft) !important;
 		color: var(--gt-error) !important;
 		border-color: color-mix(in srgb, var(--gt-error) 32%, var(--gt-border)) !important;
+	}
+
+	/* Admin action-button semantic set (Part 4.4): Delete/Remove above is red;
+	   these give Pause, Hide, Activate/Publish/Approve, and Restore their own
+	   distinct colour so no two destructive-vs-safe actions read the same.
+	   Same !important + border-color pattern as --danger above, for the same
+	   reason — MuiButton's theme root override otherwise wins on every one.
+	   The doubled-up `.admin-action-button.admin-action-button--X` selector
+	   (not just `.admin-action-button--X`) is deliberate: _gth-admin.scss's
+	   `.MuiButton-root.admin-action-button` teal-fill rule carries 3 classes
+	   of specificity (1,3,0); a bare `.admin-action-button--X.MuiButton-root`
+	   is only (1,2,0) and loses despite also being !important and later in
+	   the bundle — ties are what let source order decide, so specificity has
+	   to be brought level first. */
+	.admin-action-button--warning.MuiButton-root,
+	.admin-action-button.admin-action-button--warning.MuiButton-root {
+		background: var(--gt-warning-soft) !important;
+		color: var(--gt-warning) !important;
+		border-color: color-mix(in srgb, var(--gt-warning) 32%, var(--gt-border)) !important;
+	}
+	.admin-action-button--success.MuiButton-root,
+	.admin-action-button.admin-action-button--success.MuiButton-root {
+		background: var(--gt-success-soft) !important;
+		color: var(--gt-success) !important;
+		border-color: color-mix(in srgb, var(--gt-success) 32%, var(--gt-border)) !important;
+	}
+	.admin-action-button--teal.MuiButton-root,
+	.admin-action-button.admin-action-button--teal.MuiButton-root {
+		background: var(--gt-info-soft) !important;
+		color: var(--gt-info) !important;
+		border-color: color-mix(in srgb, var(--gt-info) 32%, var(--gt-border)) !important;
+	}
+	.admin-action-button--neutral.MuiButton-root,
+	.admin-action-button.admin-action-button--neutral.MuiButton-root {
+		background: var(--gt-surface-2) !important;
+		color: var(--gt-text-2) !important;
+		border-color: var(--gt-border) !important;
 	}
 
 	.booking-inline-success,
@@ -1047,18 +1090,26 @@ body::-webkit-scrollbar {
 	-webkit-backdrop-filter: none;
 }
 
+/* Once the hero is scrolled past, the over-hero bar has to become glass again — the
+   transparent state above wins on specificity, so it is restored explicitly here. */
 #pc-wrap #top .navbar .gotrip-nav.navbar-main.nav-over-hero.nav-scrolled {
 	position: fixed;
 	height: 72px;
+	background: rgba(11, 23, 48, 0.72);
+	border-bottom-color: var(--gt-line-light);
+	backdrop-filter: blur(16px) saturate(140%);
+	-webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container {
-	width: min(1180px, calc(100% - 64px));
+	/* Same gutter as the body sections so the chrome and content share one edge. */
+	width: min(1280px, calc(100% - 128px));
 	height: 100%;
 	display: grid;
-	grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) minmax(200px, auto);
+	grid-template-columns: minmax(150px, 200px) minmax(0, 1fr) minmax(200px, auto);
 	align-items: center;
-	gap: 18px;
+	/* The centred nav needs air on both sides, otherwise it visually merges with the actions. */
+	gap: 40px;
 }
 
 /* Brand — coral→gold gradient mark + Fraunces wordmark */
@@ -1220,7 +1271,51 @@ body::-webkit-scrollbar {
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box:hover {
 	transform: translateY(-3px);
-	box-shadow: 0 22px 40px -14px rgba(255, 106, 77, 0.8);
+	/* Was a leftover coral glow under a blue fill — the accent owns the primary action (§4.1). */
+	box-shadow: 0 22px 40px -14px rgba(26, 86, 219, 0.75);
+}
+
+/* The chrome's single primary action keeps the accent fill in every theme and scroll state
+   (§4.1). Several later theme blocks re-paint nav pills as glass; this outranks them. */
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box,
+[data-theme='dark'] #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box {
+	background: var(--gt-accent);
+	border: 0;
+	color: var(--gt-accent-contrast);
+	box-shadow: var(--gt-coral-glow);
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box span,
+[data-theme='dark'] #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box span {
+	color: var(--gt-accent-contrast);
+}
+
+/* Secondary sign-in — quiet next to the one primary action (§1.8) */
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .signin-box {
+	height: 42px;
+	padding: 0 14px;
+	gap: 7px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 999px;
+	border: 1px solid var(--gt-line-light);
+	background: transparent;
+	color: #ffffff;
+	font-family: var(--gt-font-body);
+	font-size: 0.9rem;
+	font-weight: 600;
+	white-space: nowrap;
+	transition: background 300ms var(--gt-ease), border-color 300ms var(--gt-ease);
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .signin-box:hover {
+	background: rgba(255, 255, 255, 0.1);
+	border-color: rgba(255, 255, 255, 0.34);
+}
+
+#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .signin-box svg {
+	font-size: 1.15rem;
 }
 
 #pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user {
@@ -1300,7 +1395,8 @@ body::-webkit-scrollbar {
 	max-width: none;
 	margin: 0;
 	padding: 58px 0 0;
-	background: #06162f;
+	/* Token file assigns the ink family to "heroes, footer, dark bands" — no hardcoded hex. */
+	background: var(--gt-ink);
 	color: rgba(234, 241, 255, 0.86);
 	font-family: var(--gt-font-body);
 }
@@ -1313,8 +1409,9 @@ body::-webkit-scrollbar {
 
 #pc-wrap #footer .footer-container .main {
 	display: grid;
-	grid-template-columns: minmax(280px, 1.1fr) minmax(0, 2fr);
-	gap: 72px;
+	/* Brand block stays readable while four link columns get the room they need. */
+	grid-template-columns: minmax(260px, 1fr) minmax(0, 2.4fr);
+	gap: 56px;
 	align-items: start;
 	padding-bottom: 54px;
 }
@@ -1397,8 +1494,8 @@ body::-webkit-scrollbar {
 
 #pc-wrap #footer .footer-container .bottom {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(150px, 1fr));
-	gap: 56px;
+	grid-template-columns: repeat(4, minmax(130px, 1fr));
+	gap: 40px;
 	width: 100%;
 }
 
@@ -1893,10 +1990,6 @@ body::-webkit-scrollbar {
 	font-size: 12px;
 }
 
-#pc-wrap .destination-highlight-section {
-	margin-top: 0;
-	padding-top: 78px;
-}
 
 @media (max-width: 1180px) {
 	#pc-wrap .stitch-search-grid {
@@ -1908,701 +2001,6 @@ body::-webkit-scrollbar {
 	}
 }
 
-/* Stitch-accurate Home rebuild layer. Scoped to the Home layout only.
-   (The hero itself lives in the gotrip-sunrise-hero block at the end of this file.) */
-#pc-wrap {
-	.home-page {
-		position: relative;
-		background: var(--gt-paper);
-		color: var(--gt-on-background);
-	}
-
-	.home-page .section-title,
-	.top-agents .info-box .left span,
-	.traveler-reviews-section .section-title,
-	.guide-cta-newsletter-section .section-title,
-	.guide-cta-newsletter-section .newsletter-title {
-		font-family: var(--gt-font-heading);
-		letter-spacing: -0.01em;
-	}
-
-	.destination-highlight-section,
-	.tour-highlight-section,
-	.top-agents,
-	.traveler-reviews-section,
-	.guide-cta-newsletter-section {
-		position: relative;
-		padding: 78px 0;
-	}
-
-	.destination-highlight-container,
-	.tour-highlight-container,
-	.top-agents .container,
-	.premium-section-container {
-		width: min(1280px, calc(100% - 128px));
-		margin: 0 auto;
-	}
-
-	.destination-stitch-heading {
-		margin-bottom: 8px;
-		align-items: flex-end;
-	}
-
-	.destination-stitch-heading .section-title,
-	.tour-section-heading .section-title {
-		color: var(--gt-deep-ocean);
-		font-size: 22px;
-		font-weight: 900;
-		line-height: 1.2;
-	}
-
-	.destination-stitch-heading .section-copy,
-	.tour-section-heading .section-copy {
-		max-width: 520px;
-		color: var(--gt-slate-text);
-		font-size: 13px;
-		line-height: 1.55;
-	}
-
-	.section-link.MuiButton-root {
-		color: var(--gt-primary);
-		text-transform: none;
-		font-size: 12px;
-		font-weight: 900;
-	}
-
-	.destination-stitch-grid {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 24px;
-	}
-
-	.destination-feature-card {
-		position: relative;
-		height: 390px;
-		overflow: hidden;
-		border-radius: 18px;
-		box-shadow: 0 24px 54px rgba(15, 41, 77, 0.2);
-		background: var(--gt-deep-ocean);
-	}
-
-	.destination-feature-card-offset {
-		transform: translateY(0);
-	}
-
-	.destination-feature-card img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform 900ms ease;
-	}
-
-	.destination-feature-card:hover img {
-		transform: scale(1.08);
-	}
-
-	.destination-feature-overlay {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(180deg, rgba(15, 41, 77, 0.02) 15%, rgba(15, 41, 77, 0.18) 48%, rgba(15, 41, 77, 0.88) 100%);
-	}
-
-	.destination-feature-copy {
-		position: absolute;
-		left: 22px;
-		right: 22px;
-		bottom: 22px;
-		color: #ffffff;
-	}
-
-	.destination-feature-copy span {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		margin-bottom: 10px;
-		padding: 5px 9px;
-		border-radius: 999px;
-		background: rgba(212, 175, 55, 0.96);
-		color: #ffffff;
-		font-size: 10px;
-		font-weight: 900;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
-	}
-
-	.destination-feature-copy strong {
-		display: block;
-		color: #ffffff;
-		font-family: var(--gt-font-heading);
-		font-size: 22px;
-		font-weight: 900;
-		line-height: 1.12;
-	}
-
-	.destination-feature-copy p {
-		margin: 7px 0 0;
-		color: rgba(255, 255, 255, 0.82);
-		font-size: 12px;
-		line-height: 1.45;
-	}
-
-	.tour-highlight-section {
-		padding-top: 76px;
-		background: rgba(232, 238, 255, 0.42);
-	}
-
-	.tour-section-heading-centered {
-		margin-bottom: 24px;
-		text-align: center;
-	}
-
-	.tour-section-heading .eyebrow {
-		display: none;
-	}
-
-	.tour-highlight-section .tour-card-grid,
-	.tour-highlight-section .tour-skeleton-grid {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 22px;
-	}
-
-	.tour-highlight-section .tour-card-premium {
-		height: 100%;
-		border-radius: 18px;
-		background: rgba(255, 255, 255, 0.78);
-		border: 1px solid rgba(255, 255, 255, 0.78);
-		box-shadow: 0 22px 52px rgba(15, 41, 77, 0.13);
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-	}
-
-	.tour-highlight-section .tour-card-media {
-		padding: 10px 10px 0;
-	}
-
-	.tour-highlight-section .tour-card-image {
-		aspect-ratio: 1.28 / 1;
-		border-radius: 14px;
-	}
-
-	.tour-highlight-section .tour-card-body {
-		padding: 14px 14px 16px;
-	}
-
-	.tour-highlight-section .tour-card-title {
-		min-height: 40px;
-		font-size: 15px;
-		line-height: 1.3;
-	}
-
-	.tour-highlight-section .tour-card-description,
-	.tour-highlight-section .tour-card-meta {
-		display: none;
-	}
-
-	.tour-highlight-section .tour-card-footer {
-		margin-top: 10px;
-		padding-top: 12px;
-		border-top: 1px solid rgba(15, 41, 77, 0.08);
-	}
-
-	.tour-highlight-section .tour-card-cta.MuiButton-root {
-		min-height: 34px;
-		margin-top: 12px;
-		border-radius: 10px;
-		background: var(--gt-deep-ocean);
-		font-size: 11px;
-	}
-
-	.top-agents {
-		padding-top: 84px;
-		background: #f9f9ff;
-	}
-
-	.top-agents .info-box {
-		margin-bottom: 28px;
-		justify-content: center;
-		text-align: center;
-	}
-
-	.top-agents .info-box .left {
-		align-items: center;
-	}
-
-	.top-agents .info-box .left span {
-		color: var(--gt-deep-ocean);
-		font-size: 22px;
-		font-weight: 900;
-		line-height: 1.2;
-	}
-
-	.top-agents .info-box .left p {
-		margin: 8px 0 0;
-		color: var(--gt-slate-text);
-		font-size: 13px;
-	}
-
-	.top-agents .info-box .right {
-		display: none;
-	}
-
-	.top-agents .wrapper.compact-agents {
-		margin-top: 0;
-	}
-
-	.top-agents .card-wrapper.compact-grid {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 28px;
-	}
-
-	.top-agents .top-agent-card {
-		align-items: center;
-		padding: 28px 24px;
-		border-radius: 18px;
-		background: rgba(255, 255, 255, 0.86);
-		border: 1px solid rgba(15, 41, 77, 0.08);
-		box-shadow: 0 22px 52px rgba(15, 41, 77, 0.08);
-		text-align: center;
-		transition: transform 220ms ease, box-shadow 220ms ease;
-	}
-
-	.top-agents .top-agent-card:hover {
-		transform: translateY(-5px);
-		box-shadow: 0 30px 66px rgba(15, 41, 77, 0.14);
-	}
-
-	.top-agents .agent-avatar-frame {
-		position: relative;
-		width: 118px;
-		height: 118px;
-		margin-bottom: 14px;
-	}
-
-	.top-agents .agent-avatar-frame img {
-		width: 118px;
-		height: 118px;
-		border-radius: 999px;
-		object-fit: cover;
-		border: 4px solid #ffffff;
-		box-shadow: 0 16px 34px rgba(15, 41, 77, 0.18);
-	}
-
-	.top-agents .agent-verified {
-		position: absolute;
-		right: 2px;
-		bottom: 6px;
-		display: inline-flex;
-		width: 28px;
-		height: 28px;
-		align-items: center;
-		justify-content: center;
-		border-radius: 999px;
-		background: var(--gt-gold);
-		color: #ffffff;
-		border: 2px solid #ffffff;
-	}
-
-	.top-agents .agent-name-link {
-		color: var(--gt-deep-ocean);
-		text-decoration: none;
-		white-space: normal;
-	}
-
-	.top-agents .top-agent-card strong {
-		font-family: var(--gt-font-heading);
-		font-size: 16px;
-		font-weight: 900;
-	}
-
-	.top-agents .top-agent-card > span {
-		margin-top: 4px;
-		color: var(--gt-gold);
-		font-size: 10px;
-		font-weight: 900;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-	}
-
-	.top-agents .agent-stats {
-		margin: 12px 0;
-		display: flex;
-		justify-content: center;
-		gap: 16px;
-		color: var(--gt-slate-text);
-		font-size: 11px;
-		font-weight: 800;
-	}
-
-	.top-agents .top-agent-card p {
-		margin: 0;
-		color: var(--gt-slate-text);
-		font-size: 12px;
-		line-height: 1.55;
-	}
-
-	.traveler-reviews-section {
-		padding: 76px 0;
-		background: var(--gt-deep-ocean);
-		color: #ffffff;
-	}
-
-	.traveler-reviews-section .premium-section-heading {
-		margin-bottom: 28px;
-		text-align: center;
-	}
-
-	.traveler-reviews-section .eyebrow {
-		display: none;
-	}
-
-	.traveler-reviews-section .section-title {
-		color: #ffffff;
-		font-size: 22px;
-		font-weight: 900;
-	}
-
-	.traveler-reviews-section .section-copy {
-		color: rgba(255, 255, 255, 0.58);
-		font-size: 13px;
-	}
-
-	.review-card-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 24px;
-	}
-
-	.review-card-premium {
-		border-radius: 18px;
-		background: rgba(255, 255, 255, 0.07);
-		border: 1px solid rgba(255, 255, 255, 0.13);
-		box-shadow: 0 22px 54px rgba(0, 10, 28, 0.22);
-	}
-
-	.review-card-body {
-		padding: 30px;
-	}
-
-	.review-card-body .quote-icon {
-		display: none;
-	}
-
-	.review-card-score {
-		color: var(--gt-gold);
-	}
-
-	.review-card-body p {
-		color: rgba(255, 255, 255, 0.9);
-		font-size: 15px;
-		font-style: italic;
-		line-height: 1.65;
-	}
-
-	.review-author strong {
-		color: #ffffff;
-	}
-
-	.review-author small {
-		color: rgba(255, 255, 255, 0.58);
-	}
-
-	.guide-cta-newsletter-section {
-		padding: 76px 0 88px;
-		background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
-	}
-
-	.guide-cta-duo {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 28px;
-	}
-
-	.guide-cta-panel,
-	.homepage-newsletter-panel {
-		min-height: 330px;
-		overflow: hidden;
-		border-radius: 20px;
-		box-shadow: 0 24px 64px rgba(15, 41, 77, 0.14);
-	}
-
-	.guide-cta-panel {
-		position: relative;
-		display: flex;
-		align-items: flex-end;
-		padding: 36px;
-		background: var(--gt-primary);
-		color: #ffffff;
-	}
-
-	.guide-cta-image {
-		position: absolute;
-		inset: 0;
-		background:
-			linear-gradient(180deg, rgba(0, 73, 227, 0.08), rgba(0, 73, 227, 0.86)),
-			url('/img/banner/agents.webp') center / cover no-repeat;
-		transition: transform 900ms ease;
-	}
-
-	.guide-cta-panel:hover .guide-cta-image {
-		transform: scale(1.05);
-	}
-
-	.guide-cta-copy {
-		position: relative;
-		z-index: 1;
-		max-width: 420px;
-		color: #ffffff;
-	}
-
-	.guide-cta-copy .section-title {
-		color: #ffffff;
-		font-size: 24px;
-		font-weight: 900;
-	}
-
-	.guide-cta-copy .section-copy {
-		margin: 10px 0 22px;
-		color: rgba(255, 255, 255, 0.82);
-		font-size: 13px;
-		line-height: 1.6;
-	}
-
-	.premium-primary-cta.MuiButton-root {
-		border-radius: 12px;
-		background: #ffffff;
-		color: var(--gt-primary);
-		text-transform: none;
-		font-weight: 900;
-	}
-
-	.homepage-newsletter-panel {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 18px;
-		padding: 36px;
-		background: rgba(232, 238, 255, 0.92);
-		border: 1px solid rgba(15, 41, 77, 0.08);
-	}
-
-	.homepage-newsletter-panel .eyebrow {
-		color: var(--gt-primary);
-		font-size: 11px;
-		font-weight: 900;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-	}
-
-	.homepage-newsletter-panel .newsletter-title {
-		color: var(--gt-deep-ocean);
-		font-size: 24px;
-		font-weight: 900;
-	}
-
-	.homepage-newsletter-panel .section-copy,
-	.newsletter-unavailable-copy {
-		color: var(--gt-slate-text);
-		font-size: 13px;
-		line-height: 1.55;
-	}
-
-	.newsletter-form {
-		display: grid;
-		grid-template-columns: 24px minmax(0, 1fr) auto;
-		gap: 10px;
-		align-items: center;
-		padding: 8px 8px 8px 14px;
-		border-radius: 14px;
-		background: #ffffff;
-		border: 1px solid rgba(15, 41, 77, 0.1);
-	}
-
-	.newsletter-form input {
-		min-height: 38px;
-		border: 0;
-		outline: 0;
-		background: transparent;
-		font-size: 13px;
-	}
-
-	.newsletter-form button {
-		min-height: 38px;
-		border: 0;
-		border-radius: 10px;
-		padding: 0 14px;
-		background: var(--gt-gold);
-		color: #ffffff;
-		font-size: 12px;
-		font-weight: 900;
-	}
-
-	.home-journal-live-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 12px;
-	}
-
-	.home-journal-mini-card {
-		min-height: 92px;
-		display: grid;
-		align-content: start;
-		gap: 6px;
-		padding: 14px;
-		border-radius: 14px;
-		background: rgba(255, 255, 255, 0.72);
-		border: 1px solid rgba(15, 41, 77, 0.08);
-		color: var(--gt-deep-ocean);
-		text-decoration: none;
-		white-space: normal;
-	}
-
-	.home-journal-mini-card svg {
-		color: var(--gt-primary);
-	}
-
-	.home-journal-mini-card span {
-		color: var(--gt-slate-text);
-		font-size: 10px;
-		font-weight: 900;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-	}
-
-	.home-journal-mini-card strong {
-		display: -webkit-box;
-		overflow: hidden;
-		color: var(--gt-deep-ocean);
-		font-size: 12px;
-		font-weight: 900;
-		line-height: 1.35;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-	}
-
-	.home-journal-mini-card.is-loading {
-		background: linear-gradient(90deg, var(--gt-skeleton-base), var(--gt-skeleton-shine), var(--gt-skeleton-base));
-		background-size: 200% 100%;
-		animation: gtSkeleton 1.2s ease-in-out infinite;
-	}
-
-	.home-journal-mini-card.is-state button {
-		width: fit-content;
-		border: 0;
-		background: transparent;
-		color: var(--gt-primary);
-		font-weight: 900;
-	}
-}
-
-[data-theme='dark'] #pc-wrap {
-	.header-main {
-		background:
-			linear-gradient(180deg, rgba(0, 10, 28, 0.26) 0%, rgba(0, 10, 28, 0.24) 42%, rgba(0, 19, 46, 0.16) 72%, var(--gt-bg) 100%),
-			linear-gradient(90deg, rgba(0, 10, 28, 0.56), rgba(0, 10, 28, 0.18)),
-			url('/img/banner/header2.svg') center top / cover no-repeat;
-	}
-
-	.header-main::after {
-		background: linear-gradient(180deg, rgba(0, 19, 46, 0), var(--gt-bg) 72%);
-	}
-
-	.home-page {
-		background: linear-gradient(180deg, var(--gt-bg) 0%, #061d3c 52%, var(--gt-bg) 100%);
-	}
-
-	.tour-search-panel,
-	.tour-highlight-section .tour-card-premium,
-	.top-agents .top-agent-card,
-	.homepage-newsletter-panel,
-	.home-journal-mini-card {
-		background: rgba(7, 26, 53, 0.82);
-		border-color: rgba(255, 255, 255, 0.12);
-	}
-
-	.tour-search-panel .MuiOutlinedInput-root {
-		background: rgba(255, 255, 255, 0.08) !important;
-	}
-
-	.destination-stitch-heading .section-title,
-	.tour-section-heading .section-title,
-	.top-agents .info-box .left span,
-	.top-agents .agent-name-link,
-	.homepage-newsletter-panel .newsletter-title,
-	.home-journal-mini-card strong {
-		color: var(--gt-heading);
-	}
-
-	.destination-stitch-heading .section-copy,
-	.tour-section-heading .section-copy,
-	.top-agents .info-box .left p,
-	.top-agents .top-agent-card p,
-	.homepage-newsletter-panel .section-copy,
-	.newsletter-unavailable-copy,
-	.home-journal-mini-card span {
-		color: var(--gt-muted);
-	}
-
-	.tour-highlight-section,
-	.top-agents,
-	.guide-cta-newsletter-section {
-		background: var(--gt-bg);
-	}
-}
-
-@media (max-width: 1180px) {
-	#pc-wrap {
-		.header-main .hero-container,
-		.destination-highlight-container,
-		.tour-highlight-container,
-		.top-agents .container,
-		.premium-section-container {
-			width: min(100% - 48px, 1080px);
-		}
-
-		.tour-search-panel .search-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-
-		.tour-search-panel .search-submit.MuiButton-root {
-			grid-column: 1 / -1;
-		}
-
-		.tour-highlight-section .tour-card-grid,
-		.tour-highlight-section .tour-skeleton-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-}
-
-@media (max-width: 860px) {
-	#pc-wrap {
-		.header-main {
-			min-height: 690px;
-		}
-
-		.header-main .hero-container {
-			min-height: 690px;
-			padding-top: 130px;
-		}
-
-		.header-main .hero-copy h1 {
-			font-size: 42px;
-		}
-
-		.destination-stitch-grid,
-		.top-agents .card-wrapper.compact-grid,
-		.review-card-grid,
-		.guide-cta-duo {
-			grid-template-columns: 1fr;
-		}
-
-		.destination-feature-card {
-			height: 330px;
-		}
-	}
-}
 
 /* MCP Stitch convergence layer. This is shared by active public, mypage, and admin-adjacent surfaces. */
 #pc-wrap {
@@ -3211,13 +2609,12 @@ body::-webkit-scrollbar {
 		-webkit-backdrop-filter: blur(18px) saturate(145%);
 	}
 
+	.location-highlights-section,
 	.tour-highlight-section,
-	.destination-highlight-section,
+	.why-gotrip-section,
 	.top-agents,
 	.community-board,
-	.homepage-notices-section,
-	.traveler-reviews-section,
-	.guide-cta-newsletter-section {
+	.become-guide-section {
 		padding-top: 96px;
 		padding-bottom: 104px;
 	}
@@ -3626,8 +3023,8 @@ body::-webkit-scrollbar {
 		box-shadow: 0 18px 54px rgba(0, 0, 0, 0.28);
 	}
 
+	/* .join-box excluded — the primary action keeps its accent fill in both themes (§4.1). */
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box,
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box,
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .notification-pill,
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user,
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .theme-toggle {
@@ -3636,9 +3033,7 @@ body::-webkit-scrollbar {
 		box-shadow: var(--gt-shadow-soft);
 	}
 
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div,
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box svg,
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box span {
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div {
 		color: var(--gt-muted);
 	}
 
@@ -4468,140 +3863,6 @@ body::-webkit-scrollbar {
 				font-style: normal;
 				font-weight: 400;
 				line-height: 26px;
-			}
-		}
-	}
-
-	.chatting {
-		.chat-button {
-			border: none;
-			position: fixed;
-			bottom: 90px;
-			right: 30px;
-			height: 50px;
-			width: 50px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 50%;
-			height: 50px;
-			background: #fff;
-			box-shadow: 0px 0px 10px 0px rgba(50, 50, 50, 0.2);
-			transition: transform 0.3s;
-			z-index: 999;
-			&:hover {
-				cursor: pointer;
-				transform: scale(1.1);
-				background-color: #fff;
-			}
-		}
-		.chat-frame {
-			position: fixed;
-			right: -380px;
-			transition: right 0.7s ease-in-out;
-			width: 380px;
-			height: 500px;
-			display: flex;
-			flex-direction: column;
-			background: rgb(233, 243, 255);
-			border-radius: 34px;
-			box-shadow: 0px 0px 15px 0px rgba(50, 50, 50, 0.3);
-			z-index: 100;
-			bottom: 150px;
-			transition: right 0.7s ease-in-out;
-			&.open {
-				right: 10px;
-			}
-			.chat-top {
-				width: 100%;
-				height: 103px;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				border-bottom: 1px solid rgba(205, 205, 205, 0.83);
-				font-size: 30px;
-				line-height: 54px;
-				color: #000000;
-			}
-			.chat-content {
-				position: relative;
-				padding: 17px;
-				width: 100%;
-				height: 100%;
-				display: flex;
-				flex-direction: column;
-				justify-content: flex-start;
-				overflow: auto;
-				.chat-main {
-					position: relative;
-					width: 100%;
-					display: flex;
-					flex-direction: column;
-					.welcome {
-						margin-left: 10px;
-						padding: 9px;
-						width: auto;
-						height: auto;
-						display: flex;
-						background: #9fa7ac;
-						border-radius: 20px 20px 20px 0px;
-						color: #fff;
-					}
-					.msg-left {
-						margin-left: 10px;
-						padding: 9px;
-						width: auto;
-						height: auto;
-						display: flex;
-						background: #3c96cf;
-						border-radius: 20px 20px 20px 0px;
-						color: #fff;
-					}
-				}
-			}
-			.chat-bott {
-				width: 100%;
-				height: 103px;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				border-top: 1px solid rgba(205, 205, 205, 0.83);
-				.msg-input {
-					padding: 20px;
-					width: 276px;
-					height: 50px;
-					display: flex;
-					flex-direction: column;
-					align-items: center;
-					background: #f7f7f7;
-					border-radius: 28px;
-					border: none;
-					outline-color: #257677;
-					font-family: 'Poppins';
-					font-style: normal;
-					font-weight: 400;
-					font-size: 16px;
-					line-height: 24px;
-				}
-				.send-msg-btn {
-					margin-left: 14px;
-					width: 50px;
-					height: 50px;
-					display: flex;
-					justify-content: center;
-					align-items: center;
-					border-radius: 50%;
-					background: #33c1c1;
-					border: none;
-				}
-			}
-			.msg-right {
-				padding: 9px;
-				width: auto;
-				height: auto;
-				display: flex;
-				background: #d0ece8;
-				border-radius: 20px 20px 0px 20px;
 			}
 		}
 	}
@@ -8582,9 +7843,9 @@ body::-webkit-scrollbar {
    Non-token hex values below are the reference's hero sky/skyline art values. */
 #pc-wrap .header-main.gotrip-sunrise-hero {
 	position: relative;
-	min-height: 100svh;
+	min-height: 88svh;
 	margin: 0;
-	padding: 150px 0 60px;
+	padding: 120px 0 64px;
 	display: flex;
 	align-items: center;
 	overflow: hidden;
@@ -8694,7 +7955,7 @@ body::-webkit-scrollbar {
 #pc-wrap .gotrip-sunrise-hero .sunrise-hero-inner {
 	position: relative;
 	z-index: 2;
-	width: min(1180px, calc(100% - 64px));
+	width: min(1280px, calc(100% - 128px));
 	margin: 0 auto;
 }
 
@@ -8767,43 +8028,6 @@ body::-webkit-scrollbar {
 	color: var(--gt-muted-light);
 }
 
-#pc-wrap .gotrip-sunrise-hero .sunrise-hero-trending {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 10px;
-	margin-top: 24px;
-}
-
-#pc-wrap .gotrip-sunrise-hero .sunrise-hero-trending strong {
-	font-family: var(--gt-font-body);
-	font-size: 0.74rem;
-	font-weight: 700;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: var(--gt-muted-light);
-}
-
-#pc-wrap .gotrip-sunrise-hero .hero-trend-tag {
-	font-family: var(--gt-font-body);
-	font-size: 13px;
-	font-weight: 600;
-	color: #ffffff;
-	padding: 7px 16px;
-	border-radius: var(--gt-radius-pill);
-	border: 1px solid var(--gt-line-light);
-	background: rgba(255, 255, 255, 0.12);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	transition: background 0.3s var(--gt-ease), border-color 0.3s var(--gt-ease), transform 0.3s var(--gt-ease);
-}
-
-#pc-wrap .gotrip-sunrise-hero .hero-trend-tag:hover {
-	background: rgba(255, 106, 77, 0.18);
-	border-color: var(--gt-coral);
-	transform: translateY(-2px);
-}
-
 #pc-wrap .gotrip-sunrise-hero .sunrise-hero-search {
 	width: 100%;
 	margin-top: 36px;
@@ -8841,15 +8065,23 @@ body::-webkit-scrollbar {
 	color: var(--gt-muted-light);
 }
 
-#pc-wrap .gotrip-sunrise-hero .hero-chip {
-	position: absolute;
-	z-index: 2;
+#pc-wrap .gotrip-sunrise-hero .sunrise-hero-side {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-end;
+	gap: 18px;
+	min-width: 0;
+}
+
+#pc-wrap .gotrip-sunrise-hero .hero-side-card {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 12px 16px;
+	gap: 12px;
+	width: min(320px, 100%);
+	padding: 16px 18px;
 	border-radius: 16px;
-	background: rgba(255, 255, 255, 0.12);
+	background: rgba(255, 255, 255, 0.1);
 	border: 1px solid var(--gt-line-light);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
@@ -8857,63 +8089,32 @@ body::-webkit-scrollbar {
 	color: #ffffff;
 	font-family: var(--gt-font-body);
 	font-weight: 700;
-	font-size: 0.92rem;
-	opacity: 0;
-	animation-name: sunriseChipIn, sunriseChipBob;
-	animation-duration: 0.9s, 6s;
-	animation-timing-function: var(--gt-ease), ease-in-out;
-	animation-iteration-count: 1, infinite;
-	animation-fill-mode: forwards, none;
+	font-size: 0.95rem;
 }
 
-#pc-wrap .gotrip-sunrise-hero .hero-chip b {
+#pc-wrap .gotrip-sunrise-hero .hero-side-card b {
 	display: block;
 	line-height: 1.25;
 }
 
-#pc-wrap .gotrip-sunrise-hero .hero-chip small {
+#pc-wrap .gotrip-sunrise-hero .hero-side-card small {
 	display: block;
+	margin-top: 2px;
 	font-weight: 500;
-	font-size: 0.74rem;
+	font-size: 0.78rem;
+	line-height: 1.4;
 	color: var(--gt-muted-light);
 }
 
-#pc-wrap .gotrip-sunrise-hero .hero-chip .ic {
-	width: 34px;
-	height: 34px;
-	border-radius: 10px;
+#pc-wrap .gotrip-sunrise-hero .hero-side-card .ic {
+	flex-shrink: 0;
+	width: 38px;
+	height: 38px;
+	border-radius: 12px;
 	display: grid;
 	place-items: center;
 	background: rgba(255, 106, 77, 0.22);
 	color: var(--gt-coral-2);
-}
-
-#pc-wrap .gotrip-sunrise-hero .hero-chip.chip-1 {
-	top: 26%;
-	right: 5%;
-	animation-delay: 1.2s, 0s;
-}
-
-#pc-wrap .gotrip-sunrise-hero .hero-chip.chip-2 {
-	top: 44%;
-	right: 16%;
-	animation-delay: 1.45s, 0s;
-}
-
-@keyframes sunriseChipIn {
-	to {
-		opacity: 1;
-	}
-}
-
-@keyframes sunriseChipBob {
-	0%,
-	100% {
-		transform: translateY(0);
-	}
-	50% {
-		transform: translateY(-12px);
-	}
 }
 
 #pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue {
@@ -8972,8 +8173,7 @@ body::-webkit-scrollbar {
 		grid-template-columns: 1fr;
 	}
 
-	#pc-wrap .gotrip-sunrise-hero .sunrise-hero-side,
-	#pc-wrap .gotrip-sunrise-hero .hero-chip {
+	#pc-wrap .gotrip-sunrise-hero .sunrise-hero-side {
 		display: none;
 	}
 
@@ -8995,13 +8195,8 @@ body::-webkit-scrollbar {
 
 @media (prefers-reduced-motion: reduce) {
 	#pc-wrap .gotrip-sunrise-hero .sunrise-stars i,
-	#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue .mouse::after,
-	#pc-wrap .gotrip-sunrise-hero .hero-chip {
+	#pc-wrap .gotrip-sunrise-hero .sunrise-scroll-cue .mouse::after {
 		animation: none;
-	}
-
-	#pc-wrap .gotrip-sunrise-hero .hero-chip {
-		opacity: 1;
 	}
 
 	#pc-wrap .gotrip-sunrise-hero .sunrise-route .route-glow {
@@ -9009,3 +8204,87 @@ body::-webkit-scrollbar {
 		stroke-dashoffset: 0;
 	}
 }
+
+/* ============================================================
+   Desktop chrome at narrow widths.
+   Device detection is user-agent based, so a resized desktop window keeps this
+   header all the way down to 375px — it has to degrade instead of colliding.
+   ============================================================ */
+
+@media (max-width: 1024px) {
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container {
+		width: min(1280px, calc(100% - 40px));
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: 16px;
+	}
+
+	/* Keep every destination reachable — scroll them rather than dropping them. */
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box {
+		justify-self: stretch;
+		justify-content: flex-start;
+		gap: 20px;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box::-webkit-scrollbar {
+		display: none;
+	}
+
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .lan-box,
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .theme-toggle {
+		display: none;
+	}
+}
+
+@media (max-width: 720px) {
+	/* Below this the nav row cannot hold five labels and the actions at once; the
+	   footer carries the full link set, so the bar keeps brand + primary action. */
+	/* Flex rather than grid here: `auto` tracks refuse to shrink and pushed the CTA
+	   past the right edge at 375px. */
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .logo-box {
+		flex: 0 1 auto;
+		min-width: 0;
+	}
+
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box {
+		display: none;
+	}
+
+	/* Brand + the single primary action are all that fit; sign-in stays reachable from the
+	   footer and from the join links inside the page body. */
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .signin-box {
+		display: none;
+	}
+
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box {
+		min-width: 0;
+		gap: 8px;
+	}
+
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box {
+		height: 38px;
+		padding: 0 14px;
+		font-size: 0.85rem;
+	}
+
+	#pc-wrap #footer .footer-container .main {
+		grid-template-columns: 1fr;
+		gap: 32px;
+	}
+
+	#pc-wrap #footer .footer-container .bottom {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 28px;
+	}
+}
+
+/* Reference-inspired homepage sections — loaded last to win the cascade. */
+@import '/scss/pc/homepage/home-sections-2';

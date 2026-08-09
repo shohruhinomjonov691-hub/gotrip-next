@@ -33,6 +33,12 @@ export default function Document() {
 					href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
 				/>
 
+				{/* Home page (HTML reference rebuild) fonts — scoped to .gth-root, does not affect other pages */}
+				<link
+					rel="stylesheet"
+					href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Dancing+Script:wght@500;600;700&display=swap"
+				/>
+
 				{/* SEO */}
 				<meta name="keyword" content={'gotrip, travel tours, guided trips, destinations, Korea tours'} />
 				<meta

@@ -4,6 +4,7 @@ import { AccordionDetails, Box, Stack, Typography } from '@mui/material';
 import MuiAccordionSummary, { AccordionSummaryProps } from '@mui/material/AccordionSummary';
 import { styled } from '@mui/material/styles';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
 	({ theme }) => ({
@@ -31,7 +32,6 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const FAQ_CATEGORIES = [
 	{ id: 'tours', label: 'Tours' },
-	{ id: 'booking', label: 'Booking and payment' },
 	{ id: 'travelers', label: 'For travelers' },
 	{ id: 'guides', label: 'For guides' },
 	{ id: 'account', label: 'Account' },
@@ -57,53 +57,31 @@ const FAQ_DATA: Record<FaqCategory, FaqEntry[]> = {
 		{
 			id: 'tour-details',
 			subject: 'What should I check before choosing a tour?',
-			content: 'Review the meeting point, duration, group size, inclusions, exclusions, difficulty, language, and schedule availability before continuing to booking.',
+			content: 'Review the meeting point, duration, group size, inclusions, exclusions, difficulty, and language before contacting the guide.',
 		},
 		{
 			id: 'tour-saved',
 			subject: 'Can I save a tour for later?',
-			content: 'Yes. Signed-in travelers can save tours to their wishlist and return to them from My Page.',
-		},
-	],
-	booking: [
-		{
-			id: 'booking-schedule',
-			subject: 'How do I choose a departure?',
-			content: 'Choose an active schedule with enough remaining seats on the tour detail page before entering traveler details.',
-		},
-		{
-			id: 'booking-payment',
-			subject: 'When is payment information shown?',
-			content: 'Available payment information and booking status are shown during the booking flow. Refer to the tour details and Terms for the current conditions.',
-		},
-		{
-			id: 'booking-records',
-			subject: 'Where can I review a booking or payment record?',
-			content: 'Signed-in travelers can review their booking and payment records from My Page.',
+			content: 'Yes. Signed-in travelers can favorite tours and return to them from My Page.',
 		},
 	],
 	travelers: [
 		{
 			id: 'traveler-preparation',
 			subject: 'What should I prepare before a tour?',
-			content: 'Confirm the departure time, meeting point, group requirements, and the tour operator instructions before you travel.',
+			content: 'Confirm the meeting point, group requirements, and the tour operator instructions before you travel.',
 		},
 		{
 			id: 'traveler-changes',
 			subject: 'What if my plans change?',
-			content: 'Check the booking status and tour details first, then use the available booking controls or send an inquiry for help with your situation.',
-		},
-		{
-			id: 'traveler-destination',
-			subject: 'Can I start with a destination instead of a tour?',
-			content: 'Yes. Destination pages provide local context and link to tours associated with that place.',
+			content: 'Review the tour details first, then send an inquiry to the guide for help with your situation.',
 		},
 	],
 	guides: [
 		{
 			id: 'guide-request',
-			subject: 'How do I request guide access?',
-			content: 'Create a traveler account, then include a guide or operator request during sign-up. Administrators review the request before operator access is granted.',
+			subject: 'How do I become a guide?',
+			content: 'Guide and operator access is granted by an administrator. Reach out through Support to start the process.',
 		},
 		{
 			id: 'guide-tours',
@@ -130,7 +108,7 @@ const FAQ_DATA: Record<FaqCategory, FaqEntry[]> = {
 		{
 			id: 'account-signin',
 			subject: 'Why do I need an account?',
-			content: 'An account lets you save tours, create bookings, manage payments, participate in the community, and track your activity.',
+			content: 'An account lets you save tours, contact guides, participate in the community, and track your activity.',
 		},
 	],
 	community: [
@@ -170,6 +148,7 @@ const FAQ_DATA: Record<FaqCategory, FaqEntry[]> = {
 };
 
 const Faq = () => {
+	const { t } = useTranslation();
 	const [category, setCategory] = useState<FaqCategory>('tours');
 	const [expanded, setExpanded] = useState<string | false>('tour-discovery');
 
@@ -184,7 +163,7 @@ const Faq = () => {
 
 	return (
 		<Stack className={'faq-content'}>
-			<Box className={'categories'} component={'div'} role="tablist" aria-label="Travel help topics">
+			<Box className={'categories'} component={'div'} role="tablist" aria-label={t('Travel help topics') as string}>
 				{FAQ_CATEGORIES.map((item) => (
 					<div
 						key={item.id}
@@ -217,7 +196,7 @@ const Faq = () => {
 								</Typography>
 								<Typography>{item.subject}</Typography>
 							</AccordionSummary>
-							<AccordionDetails id={contentId} aria-labelledby={headerId}>
+							<AccordionDetails>
 								<Stack className={'answer flex-box'}>
 									<Typography className="badge" variant={'h4'} color={'primary'}>
 										A

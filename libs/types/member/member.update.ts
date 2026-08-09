@@ -1,4 +1,4 @@
-import { AgentRequestStatus, MemberStatus, MemberType } from '../../enums/member.enum';
+import { MemberStatus, MemberType } from '../../enums/member.enum';
 
 export interface MemberUpdate {
 	_id: string;
@@ -25,10 +25,4 @@ export interface AdminMemberUpdate {
 	memberAddress?: string;
 	memberDesc?: string;
 	deletedAt?: Date;
-}
-
-export interface AgentRequestReviewInput {
-	memberId: string;
-	agentRequestStatus: AgentRequestStatus;
-	agentRequestMessage?: string;
 }

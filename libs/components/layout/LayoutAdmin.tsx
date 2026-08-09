@@ -24,14 +24,17 @@ import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import { getJwtToken, logOut, updateUserInfo } from '../../auth';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { REACT_APP_API_URL } from '../../config';
+import { getImageUrl } from '../../config';
 import { MemberType } from '../../enums/member.enum';
 import { useColorMode } from '../../theme/ColorModeProvider';
+import GoTripLogo from '../common/GoTripLogo';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const drawerWidth = 280;
 
 const withAdminLayout = (Component: ComponentType) => {
 	return (props: object) => {
+		const { t } = useTranslation();
 		const router = useRouter();
 		const user = useReactiveVar(userVar);
 		const { mode, toggleMode } = useColorMode();
@@ -61,7 +64,7 @@ const withAdminLayout = (Component: ComponentType) => {
 		const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElUser(event.currentTarget);
 		const handleCloseUserMenu = () => setAnchorElUser(null);
 		const isDarkMode = mode === 'dark';
-		const themeToggleLabel = isDarkMode ? 'Switch to light mode' : 'Switch to dark mode';
+		const themeToggleLabel = isDarkMode ? t('Switch to light mode') : t('Switch to dark mode');
 		const logoutHandler = () => {
 			logOut();
 			router.push('/').then();
@@ -70,23 +73,26 @@ const withAdminLayout = (Component: ComponentType) => {
 		if (!user || user?.memberType !== MemberType.ADMIN) return null;
 
 			const drawerContent: React.ReactElement = (
-				<aside className="admin-navigation" aria-label="Platform control navigation">
+				<aside className="admin-navigation" aria-label={t('Platform control navigation') as string}>
 					<Toolbar className="admin-navigation__brand">
-						<img src="/img/logo/logoText.svg" alt="GoTrip" />
+						{/* Was `/img/logo/logoText.svg`, whose wordmark is fill="#FFFFFF" — invisible
+						    on this light sidebar — and which carries a coral (#EB6753) that is not a
+						    GoTrip colour. This is the same component the public header renders. */}
+						<GoTripLogo idSuffix="adm" />
 						{compactLayout && (
-							<IconButton aria-label="Close navigation" onClick={() => setNavOpen(false)} className="admin-navigation__close">
+							<IconButton aria-label={t('Close navigation') as string} onClick={() => setNavOpen(false)} className="admin-navigation__close">
 								<CloseRoundedIcon />
 						</IconButton>
 					)}
 				</Toolbar>
 				<Stack className="admin-navigation__operator" direction="row" alignItems="center" spacing={1.5}>
 					<Avatar
-						src={user.memberImage ? `${REACT_APP_API_URL}/${user.memberImage}` : '/img/profile/defaultUser.svg'}
+						src={getImageUrl(user.memberImage)}
 						alt={user.memberNick}
 						/>
 						<div>
 							<Typography component="strong">{user.memberNick}</Typography>
-							<Typography component="span">Platform administrator</Typography>
+							<Typography component="span">{t('Platform administrator')}</Typography>
 						</div>
 					</Stack>
 					<Divider />
@@ -105,13 +111,13 @@ const withAdminLayout = (Component: ComponentType) => {
 				>
 					<Toolbar className="admin-toolbar">
 						{compactLayout && (
-							<IconButton aria-label="Open navigation" onClick={() => setNavOpen(true)} className="admin-toolbar__menu">
+							<IconButton aria-label={t('Open navigation') as string} onClick={() => setNavOpen(true)} className="admin-toolbar__menu">
 								<MenuRoundedIcon />
 							</IconButton>
 						)}
 							<div className="admin-toolbar__context">
 								<Typography component="span">GoTrip</Typography>
-								<Typography component="strong">Platform Control</Typography>
+								<Typography component="strong">{t('Platform Control')}</Typography>
 							</div>
 							<div className="admin-toolbar__spacer" />
 						<Tooltip title={themeToggleLabel}>
@@ -124,10 +130,10 @@ const withAdminLayout = (Component: ComponentType) => {
 								{isDarkMode ? <WbSunnyRoundedIcon /> : <DarkModeRoundedIcon />}
 							</IconButton>
 						</Tooltip>
-						<Tooltip title="Account menu">
-							<IconButton onClick={handleOpenUserMenu} aria-label="Open account menu" className="admin-toolbar__avatar">
+						<Tooltip title={t('Account menu')}>
+							<IconButton onClick={handleOpenUserMenu} aria-label={t('Open account menu') as string} className="admin-toolbar__avatar">
 								<Avatar
-									src={user.memberImage ? `${REACT_APP_API_URL}/${user.memberImage}` : '/img/profile/defaultUser.svg'}
+									src={getImageUrl(user.memberImage)}
 									alt={user.memberNick}
 								/>
 							</IconButton>
@@ -146,7 +152,7 @@ const withAdminLayout = (Component: ComponentType) => {
 									<Typography component="span">{user.memberPhone}</Typography>
 								</div>
 							<Divider />
-							<MenuItem onClick={logoutHandler}>Log out</MenuItem>
+							<MenuItem onClick={logoutHandler}>{t('Log out')}</MenuItem>
 						</Menu>
 					</Toolbar>
 				</AppBar>

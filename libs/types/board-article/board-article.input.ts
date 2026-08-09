@@ -10,8 +10,11 @@ export interface BoardArticleInput {
 }
 
 interface BAISearch {
-	articleCategory: BoardArticleCategory;
+	// All three are optional on the server (BAISearch in board-article.input.ts) — an
+	// omitted category means "every category".
+	articleCategory?: BoardArticleCategory;
 	text?: string;
+	memberId?: string;
 }
 
 export interface BoardArticlesInquiry {

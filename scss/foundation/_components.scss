@@ -757,7 +757,7 @@
 	position: fixed;
 	inset: 0;
 	background: var(--gt-scrim);
-	z-index: var(--gt-z-overlay);
+	z-index: var(--gt-z-modal);
 	animation: gt-fade var(--gt-duration-standard) var(--gt-ease-out) both;
 }
 
@@ -767,7 +767,7 @@
 	display: grid;
 	place-items: center;
 	padding: var(--gt-space-5);
-	z-index: var(--gt-z-overlay);
+	z-index: var(--gt-z-modal);
 }
 
 .gt-modal__panel {
@@ -793,8 +793,21 @@
 	background: var(--gt-elevated);
 	border-left: 1px solid var(--gt-border);
 	box-shadow: var(--gt-shadow-floating);
-	z-index: var(--gt-z-overlay);
+	z-index: var(--gt-z-modal);
 	animation: gt-slide-left var(--gt-duration-spatial) var(--gt-ease-out) both;
+}
+
+/* SweetAlert2 (delete/rename/error/success confirmations, imported globally
+ * via libs/sweetAlert.ts) injects its own stylesheet at runtime with
+ * `div:where(.swal2-container) { z-index: 1060 }` — zero-specificity, so this
+ * plain-class override always wins regardless of load order. 1060 sits BELOW
+ * the GoTrip AI launcher (--gt-z-nav: 1100, present on every page) and the AI
+ * window (--gt-z-overlay: 1300), which is why delete/rename confirmations
+ * could render behind them. Binding to the same --gt-z-modal token as
+ * .gt-modal/.gt-scrim keeps every blocking dialog — custom or SweetAlert2 —
+ * on one shared topmost layer instead of two independently-guessed values. */
+.swal2-container {
+	z-index: var(--gt-z-modal);
 }
 
 /* Bottom sheet — the mobile counterpart */

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import type { NextPage } from 'next';
 import { Button, MenuItem, Select, TablePagination, Typography } from '@mui/material';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -14,6 +15,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { REMOVE_BOARD_ARTICLE_BY_ADMIN, UPDATE_BOARD_ARTICLE_BY_ADMIN } from '../../../apollo/admin/mutation';
 import { GET_ALL_BOARD_ARTICLES_BY_ADMIN } from '../../../apollo/admin/query';
 import { T } from '../../../libs/types/common';
+import { useTranslation } from '../../../libs/i18n/useTranslation';
 
 type ArticleStatusTab = 'ALL' | BoardArticleStatus;
 
@@ -31,6 +33,7 @@ const defaultInquiry: AllBoardArticlesInquiry = { page: 1, limit: 10, sort: 'cre
 const rowsPerPageOptions: number[] = [10, 20, 40, 60];
 
 const AdminCommunity: NextPage<AdminCommunityProps> = ({ initialInquiry = defaultInquiry }) => {
+	const { t } = useTranslation();
 	const [anchorEl, setAnchorEl] = useState<Record<string, HTMLElement | null>>({});
 	const [communityInquiry, setCommunityInquiry] = useState<AllBoardArticlesInquiry>(initialInquiry);
 	const [articles, setArticles] = useState<BoardArticle[]>([]);
@@ -53,21 +56,21 @@ const AdminCommunity: NextPage<AdminCommunityProps> = ({ initialInquiry = defaul
 	const tabChangeHandler = (nextValue: string) => { setValue(nextValue); const search = { ...communityInquiry.search }; if (nextValue === 'ALL') delete search.articleStatus; else search.articleStatus = nextValue as BoardArticleStatus; setCommunityInquiry({ ...communityInquiry, page: 1, sort: 'createdAt', search }); };
 	const searchTypeHandler = (nextValue: string) => { setSearchType(nextValue); const search = { ...communityInquiry.search }; if (nextValue === 'ALL') delete search.articleCategory; else search.articleCategory = nextValue as BoardArticleCategory; setCommunityInquiry({ ...communityInquiry, page: 1, sort: 'createdAt', search }); };
 	const updateArticleHandler = async (updateData: BoardArticleUpdate) => { try { await updateBoardArticleByAdmin({ variables: { input: updateData } }); menuIconCloseHandler(); await refetch({ input: communityInquiry }); } catch (err: any) { menuIconCloseHandler(); sweetErrorHandling(err).then(); } };
-	const removeArticleHandler = async (id: string) => { try { if (await sweetConfirmAlert('Remove this article?')) { await removeBoardArticleByAdmin({ variables: { input: id } }); await refetch({ input: communityInquiry }); } } catch (err: any) { sweetErrorHandling(err).then(); } };
+	const removeArticleHandler = async (id: string) => { try { if (await sweetConfirmAlert(t('Remove this article?') as string)) { await removeBoardArticleByAdmin({ variables: { input: id } }); await refetch({ input: communityInquiry }); } } catch (err: any) { sweetErrorHandling(err).then(); } };
 
 	const renderHeading = (): React.ReactElement => (
 		<div className="admin-page__heading">
-			<div><Typography component="span">Community governance</Typography><Typography component="h1">Article moderation</Typography><Typography component="p">Keep the public travel journal useful, current, and ready for discovery.</Typography></div>
-			<Typography className="admin-page__count">{articleTotal} articles</Typography>
+			<div><Typography component="span">{t('Community governance')}</Typography><Typography component="h1">{t('Article moderation')}</Typography><Typography component="p">{t('Keep the public travel journal useful, current, and ready for discovery.')}</Typography></div>
+			<Typography className="admin-page__count">{t('{{count}} articles', { count: articleTotal })}</Typography>
 		</div>
 	);
 	const renderFilters = (): React.ReactElement => {
-		const tabButtons: React.ReactElement[] = articleTabs.map((tab) => <Button key={tab.value} role="tab" aria-selected={value === tab.value} className={value === tab.value ? 'is-active' : ''} onClick={() => tabChangeHandler(tab.value)}>{tab.label}</Button>);
-		const categoryItems: React.ReactElement[] = Object.values(BoardArticleCategory).map((category) => <MenuItem key={category} value={category}>{category}</MenuItem>);
-		return <div className="admin-filterbar"><div className="admin-tabs" role="tablist" aria-label="Article status">{tabButtons}</div><div className="admin-search-controls"><Select value={searchType} onChange={(event) => searchTypeHandler(event.target.value)} aria-label="Filter articles by category"><MenuItem value="ALL">All categories</MenuItem>{categoryItems}</Select></div></div>;
+		const tabButtons: React.ReactElement[] = articleTabs.map((tab) => <Button key={tab.value} role="tab" aria-selected={value === tab.value} className={value === tab.value ? 'is-active' : ''} onClick={() => tabChangeHandler(tab.value)}>{t(tab.label)}</Button>);
+		const categoryItems: React.ReactElement[] = Object.values(BoardArticleCategory).map((category) => <MenuItem key={category} value={category}>{t(category)}</MenuItem>);
+		return <div className="admin-filterbar"><div className="admin-tabs" role="tablist" aria-label={t('Article status') as string}>{tabButtons}</div><div className="admin-search-controls"><Select value={searchType} onChange={(event) => searchTypeHandler(event.target.value)} aria-label={t('Filter articles by category') as string}><MenuItem value="ALL">{t('All categories')}</MenuItem>{categoryItems}</Select></div></div>;
 	};
 	const renderContent = (): React.ReactElement => {
-		if (error) return <div className="admin-state admin-state--error"><Typography>We could not load community articles.</Typography><Button onClick={() => refetch({ input: communityInquiry })}>Try again</Button></div>;
+		if (error) return <div className="admin-state admin-state--error"><Typography>{t('We could not load community articles.')}</Typography><Button onClick={() => refetch({ input: communityInquiry })}>{t('Try again')}</Button></div>;
 		return <CommunityArticleList articles={articles} anchorEl={anchorEl} menuIconClickHandler={menuIconClickHandler} menuIconCloseHandler={menuIconCloseHandler} updateArticleHandler={updateArticleHandler} removeArticleHandler={removeArticleHandler} loading={loading && !articles.length} />;
 	};
 	const initialAnimation: MotionTarget = reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 };
@@ -76,5 +79,11 @@ const AdminCommunity: NextPage<AdminCommunityProps> = ({ initialInquiry = defaul
 
 	return <motion.div initial={initialAnimation} animate={animateAnimation} transition={{ duration: 0.22 }}>{pageContent}</motion.div>;
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminCommunity);

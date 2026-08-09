@@ -1,6 +1,18 @@
-import { AgentRequestStatus, MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
+import { MemberAuthType, MemberStatus, MemberType, AgentRequestStatus } from '../../enums/member.enum';
+import { TourCategory, TourLanguage } from '../../enums/tour.enum';
 import { MeLiked, TotalCounter } from '../shared';
 import { MeFollowed } from '../follow/follow';
+import { TranslationEntry } from '../../i18n/localization';
+
+export interface MemberTranslation extends TranslationEntry<Member> {}
+
+export interface MemberSocial {
+	facebook?: string;
+	twitter?: string;
+	linkedin?: string;
+	youtube?: string;
+	instagram?: string;
+}
 
 export interface Member {
 	_id: string;
@@ -12,8 +24,16 @@ export interface Member {
 	memberPassword?: string;
 	memberFullName?: string;
 	memberImage?: string;
+	memberCoverImage?: string;
 	memberAddress?: string;
 	memberDesc?: string;
+	agentExperience?: string;
+	agentRequestStatus?: AgentRequestStatus;
+	agentRequestMessage?: string;
+	memberLanguages?: TourLanguage[];
+	memberSpecialties?: TourCategory[];
+	memberSocial?: MemberSocial;
+	translations?: MemberTranslation[];
 	memberTours: number;
 	memberProperties?: number;
 	memberRank: number;
@@ -26,12 +46,6 @@ export interface Member {
 	memberComments: number;
 	memberWarnings: number;
 	memberBlocks: number;
-	agentRequestStatus?: AgentRequestStatus;
-	agentRequestMessage?: string;
-	agentExperience?: string;
-	agentApprovedAt?: Date;
-	agentRejectedAt?: Date;
-	isVerifiedAgent?: boolean;
 	deletedAt?: Date;
 	createdAt: Date;
 	updatedAt: Date;

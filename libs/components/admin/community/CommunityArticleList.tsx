@@ -24,6 +24,7 @@ import { BoardArticle } from '../../../types/board-article/board-article';
 import { BoardArticleUpdate } from '../../../types/board-article/board-article.update';
 import { REACT_APP_API_URL } from '../../../config';
 import { BoardArticleStatus } from '../../../enums/board-article.enum';
+import { useTranslation } from '../../../i18n/useTranslation';
 
 interface CommunityArticleListProps {
 	articles: BoardArticle[];
@@ -65,18 +66,20 @@ const getAvailableStatuses = (currentStatus: BoardArticleStatus): BoardArticleSt
 	(Object.values(BoardArticleStatus) as BoardArticleStatus[]).filter((status) => status !== currentStatus);
 
 const CommunityArticleLoadingState = (): React.ReactElement => {
+	const { t } = useTranslation();
 	const skeletonRows: React.ReactElement[] = Array.from({ length: 6 }, (_, index) => <span key={index} />);
 
 	return (
-		<div className="admin-table-skeleton" role="status" aria-label="Loading community articles">
+		<div className="admin-table-skeleton" role="status" aria-label={t('Loading community articles') as string}>
 			{skeletonRows}
 		</div>
 	);
 };
 
-const CommunityArticleEmptyState = (): React.ReactElement => (
-	<div className="admin-state admin-state--empty">No community articles match these controls.</div>
-);
+const CommunityArticleEmptyState = (): React.ReactElement => {
+	const { t } = useTranslation();
+	return <div className="admin-state admin-state--empty">{t('No community articles match these controls.')}</div>;
+};
 
 const CommunityArticleStatusActions = ({
 	article,
@@ -88,15 +91,16 @@ const CommunityArticleStatusActions = ({
 	removeArticleHandler,
 	mobile = false,
 }: ArticleStatusActionsProps): React.ReactElement => {
+	const { t } = useTranslation();
 	if (article.articleStatus === BoardArticleStatus.DELETE) {
 		return mobile ? (
 			<Button className="admin-action-button admin-action-button--danger" onClick={() => removeArticleHandler(article._id)}>
-				Remove
+				{t('Remove')}
 			</Button>
 		) : (
 			<Button
 				className="admin-icon-action admin-icon-action--danger"
-				aria-label="Permanently remove article"
+				aria-label={t('Permanently remove article') as string}
 				onClick={() => removeArticleHandler(article._id)}
 			>
 				<DeleteOutlineRoundedIcon />
@@ -107,7 +111,7 @@ const CommunityArticleStatusActions = ({
 	return (
 		<>
 			<Button className={articleStatusClass(article.articleStatus)} onClick={(event: React.MouseEvent<HTMLElement>) => menuIconClickHandler(event, statusKey)}>
-				{article.articleStatus}
+				{t(article.articleStatus)}
 			</Button>
 			{mobile && (
 				<Button
@@ -115,13 +119,13 @@ const CommunityArticleStatusActions = ({
 					href={`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`}
 					className="admin-action-button"
 				>
-					View
+					{t('View')}
 				</Button>
 			)}
 			<Menu anchorEl={anchorEl[statusKey]} open={Boolean(anchorEl[statusKey])} onClose={menuIconCloseHandler}>
 				{getAvailableStatuses(article.articleStatus).map((status) => (
 					<MenuItem key={status} onClick={() => updateArticleHandler({ _id: article._id, articleStatus: status })}>
-						{status}
+						{t(status)}
 					</MenuItem>
 				))}
 			</Menu>
@@ -130,6 +134,7 @@ const CommunityArticleStatusActions = ({
 };
 
 const CommunityArticleTableRow = ({ article, ...actions }: CommunityArticleRowProps): React.ReactElement => {
+	const { t } = useTranslation();
 	const statusKey = `${article._id}-status`;
 	const authorImage = article.memberData?.memberImage
 		? `${REACT_APP_API_URL}/${article.memberData.memberImage}`
@@ -143,11 +148,11 @@ const CommunityArticleTableRow = ({ article, ...actions }: CommunityArticleRowPr
 					<Stack direction="row" spacing={0.75}>
 						<Typography component="span">{article._id}</Typography>
 						{article.articleStatus === BoardArticleStatus.ACTIVE && (
-							<Tooltip title="Open public article">
+							<Tooltip title={t('Open public article')}>
 								<IconButton
 									component={Link}
 									href={`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`}
-									aria-label="Open public article"
+									aria-label={t('Open public article') as string}
 								>
 									<OpenInNewRoundedIcon />
 								</IconButton>
@@ -156,17 +161,17 @@ const CommunityArticleTableRow = ({ article, ...actions }: CommunityArticleRowPr
 					</Stack>
 				</div>
 			</TableCell>
-			<TableCell>{article.articleCategory}</TableCell>
+			<TableCell>{t(article.articleCategory)}</TableCell>
 			<TableCell>
 				<Stack className="admin-person" direction="row" alignItems="center" spacing={1}>
 					<Avatar src={authorImage} alt={article.memberData?.memberNick || 'Article author'} />
-					<Link href={`/member?memberId=${article.memberData?._id}`}>{article.memberData?.memberNick || 'Unknown member'}</Link>
+					<Link href={`/member?memberId=${article.memberData?._id}`}>{article.memberData?.memberNick || t('Unknown member')}</Link>
 				</Stack>
 			</TableCell>
 			<TableCell align="center">
 				<div className="admin-metric-pair">
-					<span>{article.articleViews} views</span>
-					<span>{article.articleLikes} likes</span>
+					<span>{t('{{count}} views', { count: article.articleViews })}</span>
+					<span>{t('{{count}} likes', { count: article.articleLikes })}</span>
 				</div>
 			</TableCell>
 			<TableCell>
@@ -180,6 +185,7 @@ const CommunityArticleTableRow = ({ article, ...actions }: CommunityArticleRowPr
 };
 
 const CommunityArticleMobileCard = ({ article, index, reduceMotion, ...actions }: CommunityArticleMobileCardProps): React.ReactElement => {
+	const { t } = useTranslation();
 	const statusKey = `${article._id}-mobile-status`;
 
 	return (
@@ -191,15 +197,15 @@ const CommunityArticleMobileCard = ({ article, index, reduceMotion, ...actions }
 		>
 			<div className="admin-mobile-card__title">
 				<Typography component="strong">{article.articleTitle}</Typography>
-				<span className={articleStatusClass(article.articleStatus)}>{article.articleStatus}</span>
+				<span className={articleStatusClass(article.articleStatus)}>{t(article.articleStatus)}</span>
 			</div>
 			<Typography component="p">
-				{article.articleCategory} · <Moment format="DD MMM YYYY">{article.createdAt}</Moment>
+				{t(article.articleCategory)} · <Moment format="DD MMM YYYY">{article.createdAt}</Moment>
 			</Typography>
 			<div className="admin-mobile-card__meta">
-				<span>{article.articleViews} views</span>
-				<span>{article.articleLikes} likes</span>
-				<span>{article.memberData?.memberNick || 'Unknown member'}</span>
+				<span>{t('{{count}} views', { count: article.articleViews })}</span>
+				<span>{t('{{count}} likes', { count: article.articleLikes })}</span>
+				<span>{article.memberData?.memberNick || t('Unknown member')}</span>
 			</div>
 			<Stack direction="row" spacing={1}>
 				<CommunityArticleStatusActions article={article} statusKey={statusKey} mobile {...actions} />
@@ -217,6 +223,7 @@ const CommunityArticleContent = ({
 	removeArticleHandler,
 	reduceMotion,
 }: CommunityArticleContentProps): React.ReactElement => {
+	const { t } = useTranslation();
 	const actionHandlers: Omit<ArticleStatusActionsProps, 'article' | 'statusKey' | 'mobile'> = {
 		anchorEl,
 		menuIconClickHandler,
@@ -238,15 +245,15 @@ const CommunityArticleContent = ({
 			transition={{ duration: 0.2 }}
 		>
 			<TableContainer className="admin-data-table">
-				<Table aria-label="Community articles">
+				<Table aria-label={t('Community articles') as string}>
 					<TableHead>
 						<TableRow>
-							<TableCell>Article</TableCell>
-							<TableCell>Category</TableCell>
-							<TableCell>Author</TableCell>
-							<TableCell align="center">Reach</TableCell>
-							<TableCell>Published</TableCell>
-							<TableCell>Status</TableCell>
+							<TableCell>{t('Article')}</TableCell>
+							<TableCell>{t('Categories')}</TableCell>
+							<TableCell>{t('Author')}</TableCell>
+							<TableCell align="center">{t('Reach')}</TableCell>
+							<TableCell>{t('Published')}</TableCell>
+							<TableCell>{t('Status')}</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>{tableRows}</TableBody>

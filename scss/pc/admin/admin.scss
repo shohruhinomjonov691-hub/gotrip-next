@@ -1146,16 +1146,34 @@
 		.MuiButton-root {
 			min-height: 38px;
 			padding: 0 12px;
+			border: 1px solid transparent;
 			border-radius: 8px;
 			color: var(--gt-slate-text);
 			font-size: 13px;
 			font-weight: 700;
 			text-transform: none;
 			white-space: nowrap;
+			transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 
+			&:hover {
+				background: var(--gt-blue-soft) !important;
+				color: var(--gt-primary) !important;
+			}
+			&:focus-visible {
+				outline: 2px solid var(--gt-primary);
+				outline-offset: 2px;
+			}
+
+			/* Same specificity fight as the notice-dialog contained button: main.scss's
+			   shared .status-tabs/.journal-category-tabs/.faq-content pill rule keys its
+			   active look off class `.active` with `!important`, but every admin page
+			   applies `.is-active` instead, so the mismatch left this rule permanently
+			   losing to the generic muted-pill default. !important restores intent. */
 			&.is-active {
-				background: var(--gt-blue-soft);
-				color: var(--gt-primary);
+				background: var(--gt-blue-soft) !important;
+				border-color: var(--gt-primary) !important;
+				color: var(--gt-primary) !important;
+				font-weight: 800;
 			}
 		}
 	}

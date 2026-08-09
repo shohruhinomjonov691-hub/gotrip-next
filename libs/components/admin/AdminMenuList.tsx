@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslation } from '../../i18n/useTranslation';
 import { Collapse, List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import { Bell, CalendarCheck, ChartLineUp, ChatsCircle, CreditCard, Headset, MapPin, User, UserCircleGear } from 'phosphor-react';
+import { Bell, ChartLineUp, ChatsCircle, Headset, User, UserCircleGear } from 'phosphor-react';
 
 interface AdminMenuListProps {
 	onNavigate?: () => void;
@@ -28,13 +29,19 @@ const menuItems: AdminMenuItem[] = [
 		icon: <User size={20} weight="fill" />,
 		children: [
 			{ title: 'All users', url: '/_admin/users' },
-			{ title: 'Agent requests', url: '/_admin/users/agent-requests' },
+			{ title: 'Guide requests', url: '/_admin/guides' },
 		],
 	},
-	{ title: 'Tours', icon: <UserCircleGear size={20} weight="fill" />, children: [{ title: 'Tour inventory', url: '/_admin/tours' }] },
-	{ title: 'Destinations', icon: <MapPin size={20} weight="fill" />, children: [{ title: 'Destination inventory', url: '/_admin/destinations' }] },
-	{ title: 'Bookings', icon: <CalendarCheck size={20} weight="fill" />, children: [{ title: 'Booking operations', url: '/_admin/bookings' }] },
-	{ title: 'Payments', icon: <CreditCard size={20} weight="fill" />, children: [{ title: 'Payment operations', url: '/_admin/payments' }] },
+	{
+		title: 'Catalogue',
+		icon: <UserCircleGear size={20} weight="fill" />,
+		children: [
+			{ title: 'Tour inventory', url: '/_admin/tours' },
+			{ title: 'Destinations', url: '/_admin/destinations' },
+			{ title: 'Categories', url: '/_admin/categories' },
+			{ title: 'Testimonials', url: '/_admin/testimonials' },
+		],
+	},
 	{ title: 'Community', icon: <ChatsCircle size={20} weight="fill" />, children: [{ title: 'Article moderation', url: '/_admin/community' }] },
 	{ title: 'Audit', icon: <Bell size={20} weight="fill" />, children: [{ title: 'Notifications', url: '/_admin/notifications' }, { title: 'Comment moderation', url: '/_admin/comments' }] },
 	{
@@ -45,6 +52,7 @@ const menuItems: AdminMenuItem[] = [
 ];
 
 const AdminMenuList = ({ onNavigate }: AdminMenuListProps) => {
+	const { t } = useTranslation();
 	const router = useRouter();
 	const [expanded, setExpanded] = useState<string>('');
 	const pathname = router.pathname;
@@ -75,11 +83,11 @@ const AdminMenuList = ({ onNavigate }: AdminMenuListProps) => {
 							aria-expanded={hasChildren ? isExpanded : undefined}
 						>
 							<ListItemIcon>{item.icon}</ListItemIcon>
-							<ListItemText primary={item.title} />
+							<ListItemText primary={t(item.title)} />
 							{hasChildren && (isExpanded ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />)}
 						</ListItemButton>
 						{hasChildren && (
-							<Collapse in={isExpanded} timeout={180} unmountOnExit>
+							<Collapse in={isExpanded} timeout={180}>
 								<List disablePadding className="admin-menu-list__children">
 									{item.children.map((child) => {
 										const childActive = pathname === child.url;
@@ -90,7 +98,7 @@ const AdminMenuList = ({ onNavigate }: AdminMenuListProps) => {
 												onClick={() => navigate(child.url)}
 												aria-current={childActive ? 'page' : undefined}
 											>
-												<ListItemText primary={child.title} />
+												<ListItemText primary={t(child.title)} />
 											</ListItemButton>
 										);
 									})}

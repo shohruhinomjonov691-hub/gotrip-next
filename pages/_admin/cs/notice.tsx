@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import type { NextPage } from 'next';
 import {
 	Button,
@@ -29,6 +30,7 @@ import { NoticeCategory, NoticeStatus } from '../../../libs/enums/notice.enum';
 import { Direction } from '../../../libs/enums/common.enum';
 import { sweetConfirmAlert, sweetErrorHandling } from '../../../libs/sweetAlert';
 import { T } from '../../../libs/types/common';
+import { useTranslation } from '../../../libs/i18n/useTranslation';
 
 interface AllNoticesInquiry {
 	page: number;
@@ -118,6 +120,7 @@ const validateNoticeEditor = (editor: NoticeEditor): NoticeEditorErrors => {
 };
 
 const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQUIRY }) => {
+	const { t } = useTranslation();
 	const [inquiry, setInquiry] = useState<AllNoticesInquiry>(initialInquiry);
 	const [notices, setNotices] = useState<Notice[]>([]);
 	const [total, setTotal] = useState(0);
@@ -189,7 +192,7 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 	};
 	const deleteNoticeHandler = async (noticeId: string) => {
 		try {
-			if (!(await sweetConfirmAlert('Delete this notice?'))) return;
+			if (!(await sweetConfirmAlert(t('Delete this notice?') as string))) return;
 			await deleteNoticeByAdmin({ variables: { noticeId } });
 			await refetch({ input: inquiry });
 		} catch (err: unknown) {
@@ -251,7 +254,7 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 				});
 			}
 		} catch (_err: unknown) {
-			setEditorError('We could not save this notice. Please review the fields and try again.');
+			setEditorError(t('We could not save this notice. Please review the fields and try again.'));
 			return;
 		}
 
@@ -266,14 +269,14 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 	const renderHeading = (): React.ReactElement => (
 		<div className="admin-page__heading">
 			<div>
-				<Typography component="span">Help center governance</Typography>
-				<Typography component="h1">Notices</Typography>
-				<Typography component="p">Review and publish platform guidance. FAQ, Terms, and Inquiry are managed as notice categories here.</Typography>
+				<Typography component="span">{t('Help center governance')}</Typography>
+				<Typography component="h1">{t('Notices')}</Typography>
+				<Typography component="p">{t('Review and publish platform guidance. FAQ, Terms, and Inquiry are managed as notice categories here.')}</Typography>
 			</div>
 			<div className="admin-page__heading-actions">
-				<Typography className="admin-page__count">{total} notices</Typography>
+				<Typography className="admin-page__count">{t('{{count}} notices', { count: total })}</Typography>
 				<Button className="admin-primary-action" startIcon={<AddRoundedIcon />} onClick={openCreateEditor}>
-					Create notice
+					{t('Create notice')}
 				</Button>
 			</div>
 		</div>
@@ -282,11 +285,11 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 	const renderSearchAdornment = (): React.ReactElement => (
 		<InputAdornment position="end">
 			{searchText && (
-				<Button className="admin-icon-button" aria-label="Clear notice search" onClick={clearSearchHandler}>
+				<Button className="admin-icon-button" aria-label={t('Clear notice search') as string} onClick={clearSearchHandler}>
 					<CancelRoundedIcon />
 				</Button>
 			)}
-			<Button className="admin-icon-button" aria-label="Search notices" onClick={searchHandler}>
+			<Button className="admin-icon-button" aria-label={t('Search notices') as string} onClick={searchHandler}>
 				<SearchRoundedIcon />
 			</Button>
 		</InputAdornment>
@@ -301,28 +304,28 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 				className={value === tab.value ? 'is-active' : ''}
 				onClick={() => statusHandler(tab.value)}
 			>
-				{tab.label}
+				{t(tab.label)}
 			</Button>
 		));
-		const categoryItems: React.ReactElement[] = NOTICE_CATEGORIES.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>);
+		const categoryItems: React.ReactElement[] = NOTICE_CATEGORIES.map((item) => <MenuItem key={item} value={item}>{t(item)}</MenuItem>);
 
 		return (
 			<div className="admin-filterbar">
-				<div className="admin-tabs" role="tablist" aria-label="Notice status">{tabButtons}</div>
+				<div className="admin-tabs" role="tablist" aria-label={t('Notice status') as string}>{tabButtons}</div>
 				<div className="search-area admin-search-controls">
 					<Select<NoticeCategoryValue>
 						value={category}
 						onChange={(event: SelectChangeEvent<NoticeCategoryValue>) => categoryHandler(event.target.value as NoticeCategoryValue)}
-						aria-label="Filter notices by category"
+						aria-label={t('Filter notices by category') as string}
 					>
-						<MenuItem value="ALL">All categories</MenuItem>
+						<MenuItem value="ALL">{t('All categories')}</MenuItem>
 						{categoryItems}
 					</Select>
 					<OutlinedInput
-						aria-label="Search notices"
+						aria-label={t('Search notices') as string}
 						value={searchText}
 						onChange={(event) => setSearchText(event.target.value)}
-						placeholder="Search notices"
+						placeholder={t('Search notices') as string}
 						onKeyDown={(event) => event.key === 'Enter' && searchHandler()}
 						endAdornment={renderSearchAdornment()}
 					/>
@@ -335,8 +338,8 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 		if (error) {
 			return (
 				<div className="admin-state admin-state--error">
-					<Typography>We could not load platform notices.</Typography>
-					<Button onClick={() => refetch({ input: inquiry })}>Try again</Button>
+					<Typography>{t('We could not load platform notices.')}</Typography>
+					<Button onClick={() => refetch({ input: inquiry })}>{t('Try again')}</Button>
 				</div>
 			);
 		}
@@ -371,8 +374,8 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 		if (!editor) return null;
 
 		const statusOptions = editor.mode === 'create' ? CREATE_NOTICE_STATUSES : NOTICE_STATUSES;
-		const categoryItems: React.ReactElement[] = NOTICE_CATEGORIES.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>);
-		const statusItems: React.ReactElement[] = statusOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>);
+		const categoryItems: React.ReactElement[] = NOTICE_CATEGORIES.map((item) => <MenuItem key={item} value={item}>{t(item)}</MenuItem>);
+		const statusItems: React.ReactElement[] = statusOptions.map((item) => <MenuItem key={item} value={item}>{t(item)}</MenuItem>);
 
 		return (
 			<Dialog
@@ -391,52 +394,52 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 					noValidate
 				>
 					<DialogTitle id="admin-notice-editor-title">
-						{editor.mode === 'create' ? 'Create notice' : 'Edit notice'}
+						{editor.mode === 'create' ? t('Create notice') : t('Edit notice')}
 					</DialogTitle>
 					<DialogContent dividers>
 						<div className="admin-notice-editor">
 							<div className="admin-notice-editor__grid">
 								<TextField
 									select
-									label="Category"
+									label={t('Categories')}
 									value={editor.noticeCategory}
 									onChange={(event) => updateEditor({ noticeCategory: event.target.value as NoticeCategory })}
 									error={Boolean(editorErrors.noticeCategory)}
-									helperText={editorErrors.noticeCategory}
+									helperText={editorErrors.noticeCategory ? t(editorErrors.noticeCategory) : undefined}
 									required
 									fullWidth
 								>
-									<MenuItem value="" disabled>Choose a category</MenuItem>
+									<MenuItem value="" disabled>{t('Choose a category')}</MenuItem>
 									{categoryItems}
 								</TextField>
 								<TextField
 									select
-									label={editor.mode === 'create' ? 'Publication status (optional)' : 'Publication status'}
+									label={editor.mode === 'create' ? t('Publication status (optional)') : t('Publication status')}
 									value={editor.noticeStatus}
 									onChange={(event) => updateEditor({ noticeStatus: event.target.value as NoticeStatus })}
 									required={editor.mode === 'edit'}
 									fullWidth
 								>
-									{editor.mode === 'create' && <MenuItem value="">Use backend default</MenuItem>}
+									{editor.mode === 'create' && <MenuItem value="">{t('Use backend default')}</MenuItem>}
 									{statusItems}
 								</TextField>
 							</div>
 							<TextField
-								label="Title"
+								label={t('Title')}
 								value={editor.noticeTitle}
 								onChange={(event) => updateEditor({ noticeTitle: event.target.value })}
 								error={Boolean(editorErrors.noticeTitle)}
-								helperText={editorErrors.noticeTitle || `${editor.noticeTitle.length}/120`}
+								helperText={editorErrors.noticeTitle ? t(editorErrors.noticeTitle) : `${editor.noticeTitle.length}/120`}
 								inputProps={{ maxLength: 120 }}
 								required
 								fullWidth
 							/>
 							<TextField
-								label="Content"
+								label={t('Content')}
 								value={editor.noticeContent}
 								onChange={(event) => updateEditor({ noticeContent: event.target.value })}
 								error={Boolean(editorErrors.noticeContent)}
-								helperText={editorErrors.noticeContent || `${editor.noticeContent.length}/2000`}
+								helperText={editorErrors.noticeContent ? t(editorErrors.noticeContent) : `${editor.noticeContent.length}/2000`}
 								inputProps={{ maxLength: 2000 }}
 								multiline
 								minRows={7}
@@ -447,9 +450,20 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 						</div>
 					</DialogContent>
 					<DialogActions>
-						<Button type="button" onClick={resetEditor} disabled={editorBusy}>Cancel</Button>
-						<Button type="submit" className="admin-primary-action" disabled={!isEditorValid || editorBusy}>
-							{editorBusy ? 'Saving...' : editor.mode === 'create' ? 'Create notice' : 'Save changes'}
+						<Button type="button" onClick={resetEditor} disabled={editorBusy}>{t('Cancel')}</Button>
+						{/* BUG FIXED HERE (measured in-browser): with a fully valid, enabled
+						    form this button computed rgb(94,108,111) text on rgb(246,251,252) —
+						    a numerically-passing 5.23:1, but visually indistinguishable from a
+						    disabled ghost button, because `variant="contained"` was never set
+						    and it fell back to MUI's default `text` variant despite the
+						    `.admin-primary-action` class intending a filled CTA. */}
+						<Button
+							type="submit"
+							variant="contained"
+							className="admin-primary-action"
+							disabled={!isEditorValid || editorBusy}
+						>
+							{editorBusy ? t('Saving...') : editor.mode === 'create' ? t('Create notice') : t('Save changes')}
 						</Button>
 					</DialogActions>
 				</form>
@@ -477,5 +491,11 @@ const AdminNotice: NextPage<AdminNoticeProps> = ({ initialInquiry = DEFAULT_INQU
 		</motion.div>
 	);
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminNotice);

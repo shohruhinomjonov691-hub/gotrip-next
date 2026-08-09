@@ -47,13 +47,19 @@ const requestJwtToken = async ({
 			fetchPolicy: 'network-only',
 		});
 
-		console.log('---------- login ----------');
 		const { accessToken } = result?.data?.login;
 
 		return { jwtToken: accessToken };
 	} catch (err: any) {
-		console.log('request token err', err.graphQLErrors);
-		switch (err.graphQLErrors[0].message) {
+		// err may be a GraphQL error (err.graphQLErrors), a network/connection
+		// failure (err.networkError, no graphQLErrors at all), a timeout, or some
+		// other unrecognized shape — never index into graphQLErrors unconditionally,
+		// or a non-GraphQL failure crashes here instead of surfacing its real cause.
+		const graphQLErrors = err?.graphQLErrors ?? err?.networkError?.result?.errors ?? [];
+		const firstMessage: string | undefined = graphQLErrors?.[0]?.message;
+		console.log('request token err', err);
+
+		switch (firstMessage) {
 			case 'Definer: login and password do not match':
 				await sweetMixinErrorAlert('Please check your password again');
 				break;
@@ -61,7 +67,7 @@ const requestJwtToken = async ({
 				await sweetMixinErrorAlert('User has been blocked!');
 				break;
 		}
-		throw new Error('token error');
+		throw new Error(firstMessage ?? err?.message ?? 'Login failed. Please try again.');
 	}
 };
 
@@ -84,14 +90,12 @@ const requestSignUpJwtToken = async (input: MemberInput): Promise<{ jwtToken: st
 	const apolloClient = await initializeApollo();
 
 	try {
-		console.log('signup input:', input);
 		const result = await apolloClient.mutate({
 			mutation: SIGN_UP,
 			variables: { input },
 			fetchPolicy: 'network-only',
 		});
 
-		console.log('---------- signup ----------');
 		const { accessToken } = result?.data?.signup;
 
 		return { jwtToken: accessToken };
@@ -119,6 +123,8 @@ export const updateUserInfo = (jwtToken: any) => {
 	userVar({
 		_id: claims._id ?? '',
 		memberType: claims.memberType ?? '',
+		agentRequestStatus: claims.agentRequestStatus ?? 'NONE',
+		agentRequestMessage: claims.agentRequestMessage ?? '',
 		memberStatus: claims.memberStatus ?? '',
 		memberAuthType: claims.memberAuthType,
 		memberPhone: claims.memberPhone ?? '',
@@ -138,12 +144,6 @@ export const updateUserInfo = (jwtToken: any) => {
 		memberViews: claims.memberViews,
 		memberWarnings: claims.memberWarnings,
 		memberBlocks: claims.memberBlocks,
-		agentRequestStatus: claims.agentRequestStatus ?? '',
-		agentRequestMessage: claims.agentRequestMessage ?? '',
-		agentExperience: claims.agentExperience ?? '',
-		agentApprovedAt: claims.agentApprovedAt,
-		agentRejectedAt: claims.agentRejectedAt,
-		isVerifiedAgent: claims.isVerifiedAgent ?? false,
 	});
 };
 
@@ -178,9 +178,5 @@ const deleteUserInfo = () => {
 		memberViews: 0,
 		memberWarnings: 0,
 		memberBlocks: 0,
-		agentRequestStatus: '',
-		agentRequestMessage: '',
-		agentExperience: '',
-		isVerifiedAgent: false,
 	});
 };

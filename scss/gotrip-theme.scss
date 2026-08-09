@@ -1262,8 +1262,10 @@
 		box-shadow: 0 18px 54px rgba(0, 0, 0, 0.28);
 	}
 
+	/* .join-box is deliberately excluded: it is the one primary action in the chrome and must
+	   keep the accent fill in both themes (§4.1). Neutralising it here made it read as a
+	   tertiary glass pill in dark mode. */
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box,
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box,
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .notification-pill,
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .login-user,
 	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .theme-toggle,
@@ -1273,9 +1275,7 @@
 		box-shadow: var(--gt-shadow-soft);
 	}
 
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div,
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box svg,
-	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .user-box .join-box span {
+	#pc-wrap #top .navbar .gotrip-nav.navbar-main .container .router-box div {
 		color: var(--gt-muted);
 	}
 

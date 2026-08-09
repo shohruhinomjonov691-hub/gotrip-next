@@ -1,25 +1,32 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import TourCard from '../../libs/components/tour/TourCard';
-import ReviewCard from '../../libs/components/agent/ReviewCard';
-import { Box, Button, Pagination, Stack, Typography } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
-import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Tour } from '../../libs/types/tour/tour';
-import { Member } from '../../libs/types/member/member';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
-import { userVar } from '../../apollo/store';
-import { ToursInquiry } from '../../libs/types/tour/tour.input';
-import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
-import { Comment } from '../../libs/types/comment/comment';
-import { CommentGroup } from '../../libs/enums/comment.enum';
-import { Messages, REACT_APP_API_URL } from '../../libs/config';
+import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { CREATE_COMMENT, LIKE_TARGET_TOUR } from '../../apollo/user/mutation';
+import moment from 'moment';
+import withLayoutGth from '../../libs/components/layout/LayoutGth';
+import TourCard from '../../libs/components/homepage-html/TourCard';
+import {
+	FacebookIcon,
+	InstagramIcon,
+	LinkedInIcon,
+	XIcon,
+	YouTubeIcon,
+} from '../../libs/components/homepage-html/socialIcons';
 import { GET_COMMENTS, GET_MEMBER, GET_TOURS } from '../../apollo/user/query';
-import { T } from '../../libs/types/common';
+import { CREATE_COMMENT, LIKE_TARGET_MEMBER, LIKE_TARGET_TOUR } from '../../apollo/user/mutation';
+import { Member } from '../../libs/types/member/member';
+import { Tour, Tours } from '../../libs/types/tour/tour';
+import { Comment, Comments } from '../../libs/types/comment/comment';
+import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
+import { CommentGroup } from '../../libs/enums/comment.enum';
+import { Direction, Message } from '../../libs/enums/common.enum';
+import { getImageUrl } from '../../libs/config';
+import { userVar } from '../../apollo/store';
+import { sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { useTranslation } from '../../libs/i18n/useTranslation';
+import { getLocalizedField } from '../../libs/i18n/localization';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -27,297 +34,373 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
-const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) => {
+const SOCIAL_KEYS = [
+	{ key: 'facebook', label: 'Facebook', cls: 'fb', Icon: FacebookIcon },
+	{ key: 'twitter', label: 'X (Twitter)', cls: 'tw', Icon: XIcon },
+	{ key: 'linkedin', label: 'LinkedIn', cls: 'li', Icon: LinkedInIcon },
+	{ key: 'youtube', label: 'YouTube', cls: 'yt', Icon: YouTubeIcon },
+	{ key: 'instagram', label: 'Instagram', cls: 'ig', Icon: InstagramIcon },
+] as const;
+
+const GuideDetailPage: NextPage = () => {
+	const { t } = useTranslation();
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
-	const [agentId, setAgentId] = useState<string | null>(null);
-	const [agent, setAgent] = useState<Member | null>(null);
-	const [searchFilter, setSearchFilter] = useState<ToursInquiry>(initialInput);
-	const [agentTours, setAgentTours] = useState<Tour[]>([]);
-	const [tourTotal, setTourTotal] = useState<number>(0);
-	const [commentInquiry, setCommentInquiry] = useState<CommentsInquiry>(initialComment);
-	const [agentComments, setAgentComments] = useState<Comment[]>([]);
-	const [commentTotal, setCommentTotal] = useState<number>(0);
-	const [insertCommentData, setInsertCommentData] = useState<CommentInput>({
-		commentGroup: CommentGroup.MEMBER,
-		commentContent: '',
-		commentRefId: '',
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+
+	// `router.query` is empty until the router hydrates on a statically-optimised page —
+	// fall back to the URL so a direct load resolves on the first client render.
+	const queryId = router.query.agentId as string | undefined;
+	const agentId =
+		queryId ??
+		(typeof window !== 'undefined'
+			? new URLSearchParams(window.location.search).get('agentId') ?? undefined
+			: undefined);
+
+	const [review, setReview] = useState('');
+	const [commentInput, setCommentInput] = useState<CommentsInquiry>({
+		page: 1,
+		limit: 5,
+		sort: 'createdAt',
+		direction: Direction.DESC,
+		search: { commentGroup: CommentGroup.MEMBER, commentRefId: '' },
 	});
 
-	/** APOLLO REQUESTS **/
 	const [createComment] = useMutation(CREATE_COMMENT);
+	const [likeTargetMember] = useMutation(LIKE_TARGET_MEMBER);
 	const [likeTargetTour] = useMutation(LIKE_TARGET_TOUR);
 
+	// Read straight off `data` — onCompleted is unreliable here (documented on the tour pages).
 	const {
-		loading: getMemberLoading,
-		data: getMemberData,
-		error: getMemberError,
-		refetch: getMemberRefetch,
+		data: memberData,
+		error: memberError,
+		refetch: refetchMember,
 	} = useQuery(GET_MEMBER, {
 		fetchPolicy: 'network-only',
 		variables: { input: agentId },
 		skip: !agentId,
-		onCompleted: (data: T) => {
-			setAgent(data?.getMember);
-			setSearchFilter({
-				...searchFilter,
-				search: {
-					memberId: data?.getMember?._id,
-				},
-			});
-			setCommentInquiry({
-				...commentInquiry,
-				search: {
-					commentGroup: CommentGroup.MEMBER,
-					commentRefId: data?.getMember?._id,
-				},
-			});
-			setInsertCommentData({
-				...insertCommentData,
-				commentRefId: data?.getMember?._id,
-			});
+	});
+	const guide: Member | null = memberData?.getMember ?? null;
+	const locale = router.locale ?? 'en';
+	const localizedGuideDesc = guide ? getLocalizedField(guide, 'memberDesc', locale) : undefined;
+
+	const { data: toursData, refetch: refetchTours } = useQuery<{ getTours: Tours }>(GET_TOURS, {
+		fetchPolicy: 'cache-and-network',
+		skip: !agentId,
+		variables: {
+			input: {
+				page: 1,
+				limit: 6,
+				sort: 'createdAt',
+				direction: Direction.DESC,
+				search: { memberId: agentId },
+			},
 		},
 	});
+	const guideTours: Tour[] = toursData?.getTours?.list ?? [];
+	const tourTotal: number = toursData?.getTours?.metaCounter?.[0]?.total ?? 0;
 
-	const {
-		loading: getToursLoading,
-		data: getToursData,
-		error: getToursError,
-		refetch: getToursRefetch,
-	} = useQuery(GET_TOURS, {
-		fetchPolicy: 'network-only',
-		variables: { input: searchFilter },
-		skip: !searchFilter.search.memberId,
+	const { data: commentsData, refetch: refetchComments } = useQuery<{ getComments: Comments }>(GET_COMMENTS, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: commentInput },
+		skip: !commentInput.search.commentRefId,
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setAgentTours(data?.getTours?.list ?? []);
-			setTourTotal(data?.getTours?.metaCounter[0]?.total ?? 0);
-		},
 	});
-
-	const {
-		loading: getCommentsLoading,
-		data: getCommentsData,
-		error: getCommentsError,
-		refetch: getCommentsRefetch,
-	} = useQuery(GET_COMMENTS, {
-		fetchPolicy: 'network-only',
-		variables: { input: commentInquiry },
-		skip: !commentInquiry.search.commentRefId,
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setAgentComments(data?.getComments?.list);
-			setCommentTotal(data?.getComments?.metaCounter[0]?.total ?? 0);
-		},
-	});
-
-	/** LIFECYCLES **/
-	useEffect(() => {
-		if (router.query.agentId) setAgentId(router.query.agentId as string);
-	}, [router]);
+	const comments: Comment[] = commentsData?.getComments?.list ?? [];
+	const commentTotal: number = commentsData?.getComments?.metaCounter?.[0]?.total ?? 0;
 
 	useEffect(() => {
-		if (searchFilter.search.memberId) {
-			getToursRefetch({ variables: { input: searchFilter } }).then();
-		}
-	}, [searchFilter]);
+		if (agentId)
+			setCommentInput((prev) => ({ ...prev, search: { commentGroup: CommentGroup.MEMBER, commentRefId: agentId } }));
+	}, [agentId]);
 
-	useEffect(() => {
-		if (commentInquiry.search.commentRefId) {
-			getCommentsRefetch({ variables: { input: commentInquiry } }).then();
-		}
-	}, [commentInquiry]);
+	const socials = SOCIAL_KEYS.filter(({ key }) => guide?.memberSocial?.[key]);
+	const languages = guide?.memberLanguages ?? [];
+	const specialties = guide?.memberSpecialties ?? [];
+	const guideName = guide?.memberFullName || guide?.memberNick || (t('GoTrip guide') as string);
+	const firstName = guideName.split(' ')[0];
+	const isSelf = !!user?._id && user._id === agentId;
 
-	/** HANDLERS **/
-	const redirectToMemberPageHandler = async (memberId: string) => {
+	const stats = [
+		{ label: 'Tours', value: guide?.memberTours ?? 0 },
+		{ label: 'Articles', value: guide?.memberArticles ?? 0 },
+		{ label: 'Followers', value: guide?.memberFollowers ?? 0 },
+		{ label: 'Likes', value: guide?.memberLikes ?? 0 },
+	];
+
+	/* Persist tour likes from this page too — the card used to toggle locally
+	   only, so nothing was saved and the heart reset on refresh. */
+	const likeTourHandler = async (tourId: string) => {
 		try {
-			if (memberId === user?._id) await router.push(`/mypage?memberId=${memberId}`);
-			else await router.push(`/member?memberId=${memberId}`);
-		} catch (error) {
-			await sweetErrorHandling(error);
+			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
+			await likeTargetTour({ variables: { tourId } });
+			await refetchTours();
+			await sweetTopSmallSuccessAlert(t('success'), 800);
+		} catch (err) {
+			await sweetErrorHandling(err);
 		}
 	};
 
-	const tourPaginationChangeHandler = async (event: ChangeEvent<unknown>, value: number) => {
-		searchFilter.page = value;
-		setSearchFilter({ ...searchFilter });
-	};
-
-	const commentPaginationChangeHandler = async (event: ChangeEvent<unknown>, value: number) => {
-		commentInquiry.page = value;
-		setCommentInquiry({ ...commentInquiry });
-	};
-
-	const createCommentHandler = async () => {
+	const likeHandler = async () => {
 		try {
-			if (!user._id) throw new Error(Messages.error2);
-			if (user._id === agentId) throw new Error('Connot write a review for yourself');
-
-			await createComment({
-				variables: {
-					input: insertCommentData,
-				},
-			});
-			setInsertCommentData({ ...insertCommentData, commentContent: '' });
-			await getCommentsRefetch({ input: commentInquiry });
-		} catch (err: any) {
-			sweetErrorHandling(err).then();
+			if (!agentId) return;
+			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
+			await likeTargetMember({ variables: { input: agentId } });
+			await refetchMember({ input: agentId });
+			await sweetTopSmallSuccessAlert(t('success'), 800);
+		} catch (err) {
+			await sweetErrorHandling(err);
 		}
 	};
 
-	const likeTourHandler = async (id: string) => {
+	const submitReviewHandler = async () => {
 		try {
-			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetTour({
-				variables: {
-					tourId: id,
-				},
-			});
-			await getToursRefetch({ input: searchFilter });
-			await sweetTopSmallSuccessAlert('success', 800);
-		} catch (err: any) {
-			console.log('ERROR, likeTourHandler:', err.message);
-			sweetMixinErrorAlert(err.message).then();
+			if (!agentId) return;
+			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
+			// Existing rule: a member cannot review their own profile.
+			if (isSelf) throw new Error(t('Cannot write a review for yourself'));
+			const input: CommentInput = {
+				commentGroup: CommentGroup.MEMBER,
+				commentRefId: agentId,
+				commentContent: review,
+			};
+			await createComment({ variables: { input } });
+			setReview('');
+			await refetchComments({ input: commentInput });
+			await sweetTopSmallSuccessAlert(t('Review added'), 900);
+		} catch (err) {
+			await sweetErrorHandling(err);
 		}
 	};
+
+	const paginationHandler = (value: number) => setCommentInput({ ...commentInput, page: value });
+	const commentPages = Math.ceil(commentTotal / commentInput.limit);
+
+	if (!guide && (memberError || (mounted && !agentId))) {
+		return (
+			<section className="pg-sec">
+				<div className="wrap">
+					<div className="pg-state">
+						<h3>{t('Guide could not be loaded')}</h3>
+						<p>{t('This profile may be unavailable or the link is incomplete.')}</p>
+						<Link className="btn btn-sky" href="/agent">
+							{t('Back to guides')}
+						</Link>
+					</div>
+				</div>
+			</section>
+		);
+	}
+
+	if (!guide) {
+		return (
+			<section className="pg-sec">
+				<div className="wrap td-layout">
+					<div className="pg-skeleton" style={{ height: 460 }} />
+					<div className="pg-skeleton" style={{ height: 320 }} />
+				</div>
+			</section>
+		);
+	}
 
 	return (
-			<Stack className={'agent-detail-page'}>
-				<Stack className={'container'}>
-					<Stack className={'agent-info'}>
-						<img
-							src={agent?.memberImage ? `${REACT_APP_API_URL}/${agent?.memberImage}` : '/img/profile/defaultUser.svg'}
-							alt=""
-						/>
-						<Box component={'div'} className={'info'} onClick={() => redirectToMemberPageHandler(agent?._id as string)}>
-							<strong>{agent?.memberFullName ?? agent?.memberNick}</strong>
-							<div>
-								<img src="/img/icons/call.svg" alt="" />
-								<span>{agent?.memberPhone}</span>
-							</div>
-						</Box>
-					</Stack>
-					<Stack className={'agent-home-list'}>
-						<Stack className={'card-wrap'}>
-							{agentTours.map((tour: Tour) => {
-								return (
-									<div className={'wrap-main'} key={tour?._id}>
-										<TourCard tour={tour} onLike={likeTourHandler} />
-									</div>
-								);
-							})}
-						</Stack>
-						<Stack className={'pagination'}>
-							{tourTotal ? (
-								<>
-									<Stack className="pagination-box">
-										<Pagination
-											page={searchFilter.page}
-											count={Math.ceil(tourTotal / searchFilter.limit) || 1}
-											onChange={tourPaginationChangeHandler}
-											shape="circular"
-											color="primary"
-										/>
-									</Stack>
-									<span>
-										Total {tourTotal} tour{tourTotal > 1 ? 's' : ''} available
-									</span>
-								</>
-							) : (
-								<div className={'no-data'}>
-									<img src="/img/icons/icoAlert.svg" alt="" />
-									<p>No tours found!</p>
+		<section className="pg-sec">
+			<div className="wrap td-layout">
+				<div>
+					<div className="gd-head">
+						<div className="gd-cover">
+							{guide.memberCoverImage && <img alt="" src={getImageUrl(guide.memberCoverImage)} />}
+						</div>
+						<div className="gd-id">
+							<img alt={guideName} className="gd-av" src={getImageUrl(guide.memberImage)} />
+							<div className="gd-idtext">
+								<h1 className="tdp-title gd-name">{guideName}</h1>
+								{guide.agentExperience && <p className="gd-role">{guide.agentExperience}</p>}
+								<div className="tdp-submeta gd-meta">
+									{guide.memberAddress && <span>{guide.memberAddress}</span>}
+									<span>{t('{{count}} views', { count: guide.memberViews ?? 0 })}</span>
+									<span>{t('Joined {{date}}', { date: moment(guide.createdAt).format('MMMM YYYY') })}</span>
 								</div>
-							)}
-						</Stack>
-					</Stack>
-					<Stack className={'review-box'}>
-						<Stack className={'main-intro'}>
-							<span>Reviews</span>
-							<p>we are glad to see you again</p>
-						</Stack>
-						{commentTotal !== 0 && (
-							<Stack className={'review-wrap'}>
-								<Box component={'div'} className={'title-box'}>
-									<StarIcon />
-									<span>
-										{commentTotal} review{commentTotal > 1 ? 's' : ''}
-									</span>
-								</Box>
-								{agentComments?.map((comment: Comment) => {
-									return <ReviewCard comment={comment} key={comment?._id} />;
-								})}
-								<Box component={'div'} className={'pagination-box'}>
-									<Pagination
-										page={commentInquiry.page}
-										count={Math.ceil(commentTotal / commentInquiry.limit) || 1}
-										onChange={commentPaginationChangeHandler}
-										shape="circular"
-										color="primary"
-									/>
-								</Box>
-							</Stack>
+							</div>
+						</div>
+					</div>
+
+					{localizedGuideDesc && (
+						<div className="tdp-block">
+							<h2>{t('About {{name}}', { name: firstName })}</h2>
+							<p>{localizedGuideDesc}</p>
+						</div>
+					)}
+
+					{(specialties.length > 0 || languages.length > 0) && (
+						<div className="tdp-block">
+							<h2>{t('Expertise')}</h2>
+							<div className="tdp-duo">
+								{specialties.length > 0 && (
+									<div>
+										<h3 className="pg-panel-title">{t('Specialities')}</h3>
+										<div className="gd-tags">
+											{specialties.map((s) => (
+												<span className="tdp-badge soft" key={s}>
+													{t(s)}
+												</span>
+											))}
+										</div>
+									</div>
+								)}
+								{languages.length > 0 && (
+									<div>
+										<h3 className="pg-panel-title">{t('Languages spoken')}</h3>
+										<div className="gd-tags">
+											{languages.map((l) => (
+												<span className="tdp-badge soft" key={l}>
+													{t(l)}
+												</span>
+											))}
+										</div>
+									</div>
+								)}
+							</div>
+						</div>
+					)}
+
+					<div className="tdp-block">
+						<h2>{t('Tours by {{name}} ({{count}})', { name: firstName, count: tourTotal })}</h2>
+						{guideTours.length === 0 ? (
+							<p>{t('This guide has no published tours yet.')}</p>
+						) : (
+							<div className="pg-grid">
+								{guideTours.map((tour) => (
+									<TourCard key={tour._id} onLike={likeTourHandler} tour={tour} />
+								))}
+							</div>
+						)}
+					</div>
+
+					<div className="tdp-block">
+						<h2>{t('Reviews ({{count}})', { count: commentTotal })}</h2>
+
+						{comments.length === 0 && <p>{t('No reviews yet — be the first to share your experience.')}</p>}
+
+						{comments.map((comment) => (
+							<div className="tdp-review" key={comment._id}>
+								<img alt="" loading="lazy" src={getImageUrl(comment.memberData?.memberImage)} />
+								<div>
+									<b>{comment.memberData?.memberFullName || comment.memberData?.memberNick || t('Traveller')}</b>
+									<time>{moment(comment.createdAt).format('MMMM D, YYYY')}</time>
+									<p>{comment.commentContent}</p>
+								</div>
+							</div>
+						))}
+
+						{commentPages > 1 && (
+							<div className="pg-pager">
+								<button
+									disabled={commentInput.page === 1}
+									onClick={() => paginationHandler(commentInput.page - 1)}
+									type="button"
+								>
+									{t('Prev')}
+								</button>
+								{Array.from({ length: commentPages }, (_, i) => i + 1).map((p) => (
+									<button
+										className={p === commentInput.page ? 'on' : ''}
+										key={p}
+										onClick={() => paginationHandler(p)}
+										type="button"
+									>
+										{p}
+									</button>
+								))}
+								<button
+									disabled={commentInput.page === commentPages}
+									onClick={() => paginationHandler(commentInput.page + 1)}
+									type="button"
+								>
+									{t('Next')}
+								</button>
+							</div>
 						)}
 
-						<Stack className={'leave-review-config'}>
-							<Typography className={'main-title'}>Leave A Review</Typography>
-							<Typography className={'review-title'}>Review</Typography>
-							<textarea
-								aria-label="Write a review for this guide"
-								onChange={({ target: { value } }: any) => {
-									setInsertCommentData({ ...insertCommentData, commentContent: value });
-								}}
-								value={insertCommentData.commentContent}
-							></textarea>
-							<Box className={'submit-btn'} component={'div'}>
-								<Button
-									className={'submit-review'}
-									disabled={insertCommentData.commentContent === '' || user?._id === ''}
-									onClick={createCommentHandler}
-								>
-									<Typography className={'title'}>Submit Review</Typography>
-									<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
-										<g clipPath="url(#clip0_6975_3642)">
-											<path
-												d="M16.1571 0.5H6.37936C6.1337 0.5 5.93491 0.698792 5.93491 0.944458C5.93491 1.19012 6.1337 1.38892 6.37936 1.38892H15.0842L0.731781 15.7413C0.558156 15.915 0.558156 16.1962 0.731781 16.3698C0.818573 16.4566 0.932323 16.5 1.04603 16.5C1.15974 16.5 1.27345 16.4566 1.36028 16.3698L15.7127 2.01737V10.7222C15.7127 10.9679 15.9115 11.1667 16.1572 11.1667C16.4028 11.1667 16.6016 10.9679 16.6016 10.7222V0.944458C16.6016 0.698792 16.4028 0.5 16.1571 0.5Z"
-												fill="#181A20"
-											/>
-										</g>
-										<defs>
-											<clipPath id="clip0_6975_3642">
-												<rect width="16" height="16" fill="white" transform="translate(0.601562 0.5)" />
-											</clipPath>
-										</defs>
-									</svg>
-								</Button>
-							</Box>
-						</Stack>
-					</Stack>
-				</Stack>
-			</Stack>
-		);
+						{!isSelf && (
+							<div className="tdp-reply">
+								<textarea
+									onChange={(e) => setReview(e.target.value)}
+									placeholder={(user?._id ? t('Share your experience with {{name}}…', { name: guideName }) : t('Log in to leave a review')) as string}
+									value={review}
+								/>
+								<button className="btn btn-sky" disabled={!review.trim()} onClick={submitReviewHandler} type="button">
+									{t('Post review')}
+								</button>
+							</div>
+						)}
+					</div>
+				</div>
+
+				<aside className="tdp-side">
+					<div className="tdp-book">
+						<div className="gd-stats">
+							{stats.map((s) => (
+								<div key={s.label}>
+									<b>{s.value}</b>
+									<small>{t(s.label)}</small>
+								</div>
+							))}
+						</div>
+
+						<Link className="btn btn-sky" href={`/member?memberId=${guide._id}`}>
+							{t('View profile')}
+						</Link>
+						{!isSelf && (
+							<button className="btn btn-outline" onClick={likeHandler} type="button">
+								{guide.meLiked?.[0]?.myFavorite ? t('Liked') : t('Like this guide')}
+							</button>
+						)}
+
+						{socials.length > 0 && (
+							<div className="tg-soc gd-soc">
+								{socials.map(({ key, label, cls, Icon }) => (
+									<a
+										aria-label={t(label) as string}
+										className={cls}
+										href={guide.memberSocial?.[key]}
+										key={key}
+										rel="noopener noreferrer"
+										target="_blank"
+									>
+										<Icon />
+									</a>
+								))}
+							</div>
+						)}
+					</div>
+
+					<div className="pg-panel" style={{ marginTop: 22 }}>
+						<h3 className="pg-panel-title">{t('Contact')}</h3>
+						<div className="tdp-rows" style={{ marginTop: 18, marginBottom: 0 }}>
+							{guide.memberPhone && (
+								<div>
+									<span>{t('Phone')}</span>
+									<b>{guide.memberPhone}</b>
+								</div>
+							)}
+							{guide.memberAddress && (
+								<div>
+									<span>{t('Based in')}</span>
+									<b>{guide.memberAddress}</b>
+								</div>
+							)}
+							<div>
+								<span>{t('Member since')}</span>
+								<b>{moment(guide.createdAt).format('MMM YYYY')}</b>
+							</div>
+						</div>
+					</div>
+				</aside>
+			</div>
+		</section>
+	);
 };
 
-AgentDetail.defaultProps = {
-	initialInput: {
-		page: 1,
-		limit: 9,
-		search: {
-			memberId: '',
-		},
-	},
-	initialComment: {
-		page: 1,
-		limit: 5,
-		sort: 'createdAt',
-		direction: 'ASC',
-		search: {
-			commentGroup: CommentGroup.MEMBER,
-			commentRefId: '',
-		},
-	},
-};
-
-export default withLayoutBasic(AgentDetail);
+export default withLayoutGth(GuideDetailPage);

@@ -7,7 +7,7 @@ import { onError } from '@apollo/client/link/error';
 import { getJwtToken } from '../libs/auth';
 import { TokenRefreshLink } from 'apollo-link-token-refresh';
 import { sweetErrorAlert } from '../libs/sweetAlert';
-import { socketVar } from './store';
+import { resolveWsUrl } from '../libs/config';
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
 function getHeaders() {
@@ -38,15 +38,11 @@ class LoggingWebSocket {
 
 	constructor(url: string) {
 		this.socket = new WebSocket(`${url}?token=${getJwtToken()}`);
-		socketVar(this.socket);
-
-		this.socket.onopen = () => {
-			console.log('WebSocket connection!');
-		};
-
-		this.socket.onmessage = (msg) => {
-			console.log('WebSocket message:', msg.data);
-		};
+		/* socketVar is deliberately NOT published here any more.
+		   This wrapper belongs to subscriptions-transport-ws, and the app defines
+		   no GraphQL subscriptions — so that client has nothing to keep alive and
+		   never reconnects after a drop. Messaging owns its own self-healing
+		   socket instead; see libs/messagingSocket.ts. */
 
 		this.socket.onerror = (error) => {
 			console.log('WebSocket, error:', error);
@@ -78,9 +74,13 @@ function createIsomorphicLink() {
 			uri: process.env.REACT_APP_API_GRAPHQL_URL,
 		});
 
-		/* WEBSOCKET SUBSCRIPTION LINK */
+		/* WEBSOCKET SUBSCRIPTION LINK. The app defines no GraphQL subscriptions (see
+		   libs/messagingSocket.ts's doc comment), so this link never actually carries
+		   traffic — the fallback below only needs to be a syntactically valid ws:// URL,
+		   never a real production endpoint. resolveWsUrl() still logs the missing-env-var
+		   case once in production, for consistency with the real chat socket's handling. */
 		const wsLink = new WebSocketLink({
-			uri: process.env.REACT_APP_API_WS ?? 'ws://127.0.0.1:3007',
+			uri: resolveWsUrl() ?? 'ws://127.0.0.1:3007',
 			options: {
 				reconnect: true,
 				timeout: 30000,
@@ -91,17 +91,46 @@ function createIsomorphicLink() {
 			webSocketImpl: LoggingWebSocket,
 		});
 
+		// This backend surfaces auth failures as GraphQL errors over an HTTP 200, never as a
+		// networkError with statusCode 401 — confirmed empirically against the running API: an
+		// invalid/expired token throws inside jwtService.verifyAsync (a raw jsonwebtoken error,
+		// not a mapped NestJS exception), producing extensions.code "INTERNAL_SERVER_ERROR" with
+		// message "jwt expired"/"invalid signature"/etc.; a deleted/blocked member re-checked by
+		// AuthGuard produces Message.NOT_AUTHENTICATED / Message.BLOCKED_USER instead. extensions.code
+		// is therefore not a reliable signal here — detection matches on the actual message text
+		// this backend is known to produce for each case (grep-confirmed unique among every message
+		// in libs/enums/common.enum.ts, so this can't collide with an unrelated business error).
+		const AUTH_INVALIDATION_MESSAGES = [
+			'You are not authenticated, please login first!', // Message.NOT_AUTHENTICATED
+			'You have been blocked!', // Message.BLOCKED_USER
+		];
+		const isAuthInvalidationMessage = (message: string): boolean => {
+			if (AUTH_INVALIDATION_MESSAGES.includes(message)) return true;
+			return /jwt|invalid (token|signature)/i.test(message);
+		};
+
 		const errorLink = onError(({ graphQLErrors, networkError, response }) => {
 			if (graphQLErrors) {
 				graphQLErrors.map(({ message, locations, path, extensions }) => {
 					console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
 					if (!message.includes('input')) sweetErrorAlert(message);
 				});
+
+				// Only clear/redirect if we currently hold a token — i.e. we believed we were
+				// logged in. Login/Signup failures reuse some of these same message strings (e.g.
+				// a blocked user's login attempt also says "You have been blocked!") but never carry
+				// a stored token, so this guard keeps them from being wrongly treated as a session
+				// expiry and also rules out a redirect loop (once cleared, nothing here can re-trigger).
+				const hasInvalidatingError = graphQLErrors.some((error) => isAuthInvalidationMessage(error.message));
+				if (typeof window !== 'undefined' && getJwtToken() && hasInvalidatingError) {
+					localStorage.removeItem('accessToken');
+					window.location.href = '/account/join';
+				}
 			}
 			if (networkError) console.log(`[Network error]: ${networkError}`);
 			if (networkError && 'statusCode' in networkError && networkError.statusCode === 401) {
-				// No refresh-token endpoint exists by design, so a 401 means the session is invalid:
-				// clear the stored token and send the user to the login page. Client-side only (SSR-safe).
+				// Kept as a defensive fallback in case a network-layer 401 is ever introduced
+				// (e.g. a reverse proxy auth check) — this backend itself doesn't produce one today.
 				if (typeof window !== 'undefined') {
 					localStorage.removeItem('accessToken');
 					window.location.href = '/account/join';

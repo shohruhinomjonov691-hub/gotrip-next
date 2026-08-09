@@ -21,7 +21,6 @@ export const GET_ALL_TOURS_BY_ADMIN = gql`
 				tourImages
 				tourDesc
 				memberId
-				destinationId
 				createdAt
 				updatedAt
 				memberData {
@@ -31,68 +30,6 @@ export const GET_ALL_TOURS_BY_ADMIN = gql`
 					memberImage
 					memberTours
 				}
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_AGENT_REQUESTS_BY_ADMIN = gql`
-	query GetAgentRequestsByAdmin($input: MembersInquiry!) {
-		getAgentRequestsByAdmin(input: $input) {
-			list {
-				_id
-				memberType
-				memberStatus
-				memberAuthType
-				memberPhone
-				memberNick
-				memberFullName
-				memberImage
-				memberAddress
-				memberDesc
-				memberTours
-				memberRank
-				memberLikes
-				memberViews
-				agentRequestStatus
-				agentRequestMessage
-				agentExperience
-				agentApprovedAt
-				agentRejectedAt
-				isVerifiedAgent
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_ALL_DESTINATIONS_BY_ADMIN = gql`
-	query GetAllDestinationsByAdmin($input: AllDestinationsInquiry!) {
-		getAllDestinationsByAdmin(input: $input) {
-			list {
-				_id
-				destinationStatus
-				destinationCountry
-				destinationCity
-				destinationAddress
-				destinationTitle
-				destinationDesc
-				destinationImages
-				destinationViews
-				destinationLikes
-				destinationComments
-				destinationRating
-				destinationTours
-				destinationRank
-				createdAt
-				updatedAt
 			}
 			metaCounter {
 				total
@@ -111,76 +48,11 @@ export const GET_ALL_NOTICES_BY_ADMIN = gql`
 				noticeTitle
 				noticeContent
 				memberId
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_ALL_TOUR_SCHEDULES_BY_ADMIN = gql`
-	query GetAllTourSchedulesByAdmin($input: AllTourSchedulesInquiry!) {
-		getAllTourSchedulesByAdmin(input: $input) {
-			list {
-				_id
-				scheduleStatus
-				tourId
-				startDate
-				endDate
-				availableSeats
-				reservedSeats
-				price
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_ALL_BOOKINGS_BY_ADMIN = gql`
-	query GetAllBookingsByAdmin($input: AllBookingsInquiry!) {
-		getAllBookingsByAdmin(input: $input) {
-			list {
-				_id
-				bookingStatus
-				bookingNumber
-				tourId
-				memberId
-				agentId
-				scheduleId
-				peopleCount
-				totalPrice
-				travelerName
-				travelerEmail
-				travelerPhone
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
-export const GET_ALL_PAYMENTS_BY_ADMIN = gql`
-	query GetAllPaymentsByAdmin($input: AllPaymentsInquiry!) {
-		getAllPaymentsByAdmin(input: $input) {
-			list {
-				_id
-				paymentStatus
-				paymentMethod
-				paymentAmount
-				bookingId
-				memberId
-				tourId
-				transactionId
+				translations {
+					locale
+					noticeTitle
+					noticeContent
+				}
 				createdAt
 				updatedAt
 			}
@@ -202,10 +74,7 @@ export const GET_ALL_NOTIFICATIONS_BY_ADMIN = gql`
 				notificationTitle
 				notificationDesc
 				receiverId
-				memberId
 				tourId
-				bookingId
-				paymentId
 				articleId
 				commentId
 				createdAt
@@ -270,6 +139,11 @@ export const GET_ALL_BOARD_ARTICLES_BY_ADMIN = gql`
 				articleTitle
 				articleContent
 				articleImage
+				translations {
+					locale
+					articleTitle
+					articleContent
+				}
 				articleViews
 				articleLikes
 				memberId
@@ -345,6 +219,127 @@ export const GET_COMMENTS = gql`
 					updatedAt
 					accessToken
 				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/** Guide applications. Defaults to PENDING server-side when no status is given. */
+export const GET_AGENT_REQUESTS_BY_ADMIN = gql`
+	query GetAgentRequestsByAdmin($input: MembersInquiry!) {
+		getAgentRequestsByAdmin(input: $input) {
+			list {
+				_id
+				memberType
+				memberStatus
+				memberNick
+				memberFullName
+				memberImage
+				memberPhone
+				memberAddress
+				memberDesc
+				agentRequestStatus
+				agentRequestMessage
+				agentExperience
+				memberTours
+				memberArticles
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *  CATALOGUE MODERATION
+ * Backends for these have existed since the category/destination/testimonial
+ * modules were built; these documents simply expose them to the admin UI.
+ *************************/
+
+export const GET_ALL_TESTIMONIALS_BY_ADMIN = gql`
+	query GetAllTestimonialsByAdmin($input: AllTestimonialsInquiry!) {
+		getAllTestimonialsByAdmin(input: $input) {
+			list {
+				_id
+				testimonialStatus
+				testimonialContent
+				testimonialRating
+				authorName
+				authorRole
+				authorImage
+				memberId
+				tourId
+				testimonialOrder
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_ALL_CATEGORIES_BY_ADMIN = gql`
+	query GetAllCategoriesByAdmin($input: AllCategoriesInquiry!) {
+		getAllCategoriesByAdmin(input: $input) {
+			list {
+				_id
+				categoryType
+				categoryKey
+				categoryStatus
+				categoryName
+				categoryDesc
+				categoryImage
+				categoryIcon
+				categoryOrder
+				translations {
+					locale
+					categoryName
+					categoryDesc
+				}
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_ALL_DESTINATIONS_BY_ADMIN = gql`
+	query GetAllDestinationsByAdmin($input: AllDestinationsInquiry!) {
+		getAllDestinationsByAdmin(input: $input) {
+			list {
+				_id
+				destinationStatus
+				memberId
+				destinationTitle
+				destinationDesc
+				destinationThumbnail
+				destinationCountry
+				destinationCity
+				locationKey
+				translations {
+					locale
+					destinationTitle
+					destinationDesc
+					destinationHighlights
+					destinationSeason
+				}
+				destinationViews
+				destinationLikes
+				destinationRank
+				tourCount
+				createdAt
+				updatedAt
 			}
 			metaCounter {
 				total

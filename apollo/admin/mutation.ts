@@ -22,50 +22,6 @@ export const REMOVE_TOUR_BY_ADMIN = gql`
 	}
 `;
 
-export const REVIEW_AGENT_REQUEST_BY_ADMIN = gql`
-	mutation ReviewAgentRequestByAdmin($input: AgentRequestReviewInput!) {
-		reviewAgentRequestByAdmin(input: $input) {
-			_id
-			memberType
-			agentRequestStatus
-			agentRequestMessage
-			isVerifiedAgent
-			agentApprovedAt
-			agentRejectedAt
-		}
-	}
-`;
-
-export const CREATE_DESTINATION_BY_ADMIN = gql`
-	mutation CreateDestinationByAdmin($input: DestinationInput!) {
-		createDestinationByAdmin(input: $input) {
-			_id
-			destinationStatus
-			destinationTitle
-		}
-	}
-`;
-
-export const UPDATE_DESTINATION_BY_ADMIN = gql`
-	mutation UpdateDestinationByAdmin($input: DestinationUpdate!) {
-		updateDestinationByAdmin(input: $input) {
-			_id
-			destinationStatus
-			destinationTitle
-			updatedAt
-		}
-	}
-`;
-
-export const DELETE_DESTINATION_BY_ADMIN = gql`
-	mutation DeleteDestinationByAdmin($destinationId: String!) {
-		deleteDestinationByAdmin(destinationId: $destinationId) {
-			_id
-			destinationStatus
-		}
-	}
-`;
-
 export const CREATE_NOTICE_BY_ADMIN = gql`
 	mutation CreateNoticeByAdmin($input: NoticeInput!) {
 		createNoticeByAdmin(input: $input) {
@@ -98,72 +54,25 @@ export const DELETE_NOTICE_BY_ADMIN = gql`
 	}
 `;
 
-export const UPDATE_BOOKING_BY_ADMIN = gql`
-	mutation UpdateBookingByAdmin($input: BookingUpdate!) {
-		updateBookingByAdmin(input: $input) {
-			_id
-			bookingStatus
-			updatedAt
-		}
-	}
-`;
-
-export const CANCEL_BOOKING_BY_ADMIN = gql`
-	mutation CancelBookingByAdmin($bookingId: String!, $cancelReason: String!) {
-		cancelBookingByAdmin(bookingId: $bookingId, cancelReason: $cancelReason) {
-			_id
-			bookingStatus
-			cancelReason
-			cancelledAt
-		}
-	}
-`;
-
-export const MARK_PAYMENT_SUCCESS_BY_ADMIN = gql`
-	mutation MarkPaymentSuccessByAdmin($paymentId: String!, $transactionId: String!) {
-		markPaymentSuccessByAdmin(paymentId: $paymentId, transactionId: $transactionId) {
-			_id
-			paymentStatus
-			transactionId
-			paidAt
-		}
-	}
-`;
-
-export const MARK_PAYMENT_FAILED_BY_ADMIN = gql`
-	mutation MarkPaymentFailedByAdmin($paymentId: String!) {
-		markPaymentFailedByAdmin(paymentId: $paymentId) {
-			_id
-			paymentStatus
-		}
-	}
-`;
-
-export const REFUND_PAYMENT_BY_ADMIN = gql`
-	mutation RefundPaymentByAdmin($paymentId: String!) {
-		refundPaymentByAdmin(paymentId: $paymentId) {
-			_id
-			paymentStatus
-			refundedAt
-		}
-	}
-`;
-
-export const CANCEL_PAYMENT_BY_ADMIN = gql`
-	mutation CancelPaymentByAdmin($paymentId: String!) {
-		cancelPaymentByAdmin(paymentId: $paymentId) {
-			_id
-			paymentStatus
-		}
-	}
-`;
-
 /**************************
  *         MEMBER         *
  *************************/
 
+/**
+ * The server argument is `MemberAdminUpdate`, not `MemberUpdate` — the two were
+ * split so a member's self-service update can no longer carry memberType /
+ * memberStatus. Declaring the variable as `MemberUpdate!` made this operation
+ * fail GraphQL *validation* (a variable type that is not usable as the argument
+ * type), so it was rejected before ever reaching the resolver and every role and
+ * status change from the admin UI failed. The resolver itself was always
+ * correct — verified directly against the API with an inline argument.
+ *
+ * NOTE: comments must stay outside the gql`` literal. GraphQL has no /* *\/
+ * comment syntax (it uses #), so putting this inside the template threw a parse
+ * error at module load and rendered a blank admin page.
+ */
 export const UPDATE_MEMBER_BY_ADMIN = gql`
-	mutation UpdateMemberByAdmin($input: MemberUpdate!) {
+	mutation UpdateMemberByAdmin($input: MemberAdminUpdate!) {
 		updateMemberByAdmin(input: $input) {
 			_id
 			memberType
@@ -246,6 +155,113 @@ export const REMOVE_COMMENT_BY_ADMIN = gql`
 			memberId
 			createdAt
 			updatedAt
+		}
+	}
+`;
+
+/**************************
+ *    AGENT (GUIDE) REQUEST
+ *************************/
+
+/** Approving flips memberType to AGENT (existing server-side business rule). */
+export const APPROVE_AGENT_REQUEST_BY_ADMIN = gql`
+	mutation ApproveAgentRequestByAdmin($memberId: String!) {
+		approveAgentRequestByAdmin(memberId: $memberId) {
+			_id
+			memberType
+			agentRequestStatus
+		}
+	}
+`;
+
+export const REJECT_AGENT_REQUEST_BY_ADMIN = gql`
+	mutation RejectAgentRequestByAdmin($memberId: String!) {
+		rejectAgentRequestByAdmin(memberId: $memberId) {
+			_id
+			memberType
+			agentRequestStatus
+		}
+	}
+`;
+
+/**************************
+ *  CATALOGUE MODERATION
+ *************************/
+
+export const APPROVE_TESTIMONIAL_BY_ADMIN = gql`
+	mutation ApproveTestimonialByAdmin($testimonialId: String!) {
+		approveTestimonialByAdmin(testimonialId: $testimonialId) {
+			_id
+			testimonialStatus
+		}
+	}
+`;
+
+export const REJECT_TESTIMONIAL_BY_ADMIN = gql`
+	mutation RejectTestimonialByAdmin($testimonialId: String!) {
+		rejectTestimonialByAdmin(testimonialId: $testimonialId) {
+			_id
+			testimonialStatus
+		}
+	}
+`;
+
+export const DELETE_TESTIMONIAL_BY_ADMIN = gql`
+	mutation DeleteTestimonialByAdmin($testimonialId: String!) {
+		deleteTestimonialByAdmin(testimonialId: $testimonialId) {
+			_id
+		}
+	}
+`;
+
+export const UPDATE_CATEGORY_BY_ADMIN = gql`
+	mutation UpdateCategoryByAdmin($input: CategoryUpdate!) {
+		updateCategoryByAdmin(input: $input) {
+			_id
+			categoryStatus
+			categoryName
+			categoryOrder
+		}
+	}
+`;
+
+export const DELETE_CATEGORY_BY_ADMIN = gql`
+	mutation DeleteCategoryByAdmin($categoryId: String!) {
+		deleteCategoryByAdmin(categoryId: $categoryId) {
+			_id
+		}
+	}
+`;
+
+export const UPDATE_DESTINATION_BY_ADMIN = gql`
+	mutation UpdateDestinationByAdmin($input: DestinationUpdate!) {
+		updateDestinationByAdmin(input: $input) {
+			_id
+			destinationStatus
+			destinationTitle
+		}
+	}
+`;
+
+export const REMOVE_DESTINATION_BY_ADMIN = gql`
+	mutation RemoveDestinationByAdmin($destinationId: String!) {
+		removeDestinationByAdmin(destinationId: $destinationId) {
+			_id
+		}
+	}
+`;
+
+/** categoryKey must match a TourCategory / BoardArticleCategory enum value —
+ *  the server enforces that, so the UI offers those keys as a dropdown. */
+export const CREATE_CATEGORY_BY_ADMIN = gql`
+	mutation CreateCategoryByAdmin($input: CategoryInput!) {
+		createCategoryByAdmin(input: $input) {
+			_id
+			categoryType
+			categoryKey
+			categoryName
+			categoryStatus
+			categoryOrder
 		}
 	}
 `;

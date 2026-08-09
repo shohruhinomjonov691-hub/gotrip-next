@@ -8,12 +8,11 @@ export interface Notification {
 	notificationGroup: NotificationGroup;
 	notificationTitle: string;
 	notificationDesc?: string;
+	/** In-app destination for events with no derivable target id. */
+	notificationLink?: string;
 	authorId?: string;
 	receiverId: string;
-	memberId: string;
 	tourId?: string;
-	bookingId?: string;
-	paymentId?: string;
 	articleId?: string;
 	commentId?: string;
 	createdAt: Date;

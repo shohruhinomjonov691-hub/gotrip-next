@@ -12,8 +12,10 @@ import { useMutation } from '@apollo/client';
 import { CREATE_BOARD_ARTICLE } from '../../../apollo/user/mutation';
 import { Message } from '../../enums/common.enum';
 import { sweetErrorHandling, sweetTopSuccessAlert } from '../../sweetAlert';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const TuiEditor = () => {
+	const { t } = useTranslation();
 	const editorRef = useRef<Editor>(null),
 		token = getJwtToken(),
 		router = useRouter();
@@ -63,7 +65,6 @@ const TuiEditor = () => {
 			});
 
 			const responseImage = response.data.data.imageUploader;
-			console.log('=responseImage: ', responseImage);
 			memoizedValues.articleImage = responseImage;
 
 			return `${REACT_APP_API_URL}/${responseImage}`;
@@ -77,7 +78,6 @@ const TuiEditor = () => {
 	};
 
 	const articleTitleHandler = (e: T) => {
-		console.log(e.target.value);
 		memoizedValues.articleTitle = e.target.value;
 	};
 
@@ -97,7 +97,7 @@ const TuiEditor = () => {
 				},
 			});
 
-			await sweetTopSuccessAlert('Article is created successfully', 700);
+			await sweetTopSuccessAlert(t('Article is created successfully'), 700);
 			await router.push({
 				pathname: '/mypage',
 				query: {
@@ -117,44 +117,48 @@ const TuiEditor = () => {
 
 	return (
 		<Stack className="article-editor-shell">
-			<Stack className="article-editor-fields" direction="row" style={{ margin: '40px' }} justifyContent="space-evenly">
-				<Box component={'div'} className={'form_row article-editor-field'} style={{ width: '300px' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Category
+			{/* Colours come from the stylesheet (design tokens) — the previous
+			    hardcoded `#7f838d` label and `background: white` made these
+			    unreadable in dark mode. */}
+			<Stack className="article-editor-fields" direction="row" justifyContent="space-evenly">
+				<Box component={'div'} className={'form_row article-editor-field'}>
+					<Typography className="article-editor-label" component="label" htmlFor="article-category">
+						{t('Categories')}
 					</Typography>
-					<FormControl sx={{ width: '100%', background: 'white' }}>
+					<FormControl fullWidth>
 						<Select
+							id="article-category"
 							value={articleCategory}
 							onChange={changeCategoryHandler}
 							displayEmpty
-							inputProps={{ 'aria-label': 'Without label' }}
+							inputProps={{ 'aria-label': t('Article category') }}
 						>
 							<MenuItem value={BoardArticleCategory.FREE}>
-								<span>Free</span>
+								<span>{t('Free')}</span>
 							</MenuItem>
-							<MenuItem value={BoardArticleCategory.HUMOR}>Humor</MenuItem>
-							<MenuItem value={BoardArticleCategory.NEWS}>News</MenuItem>
-							<MenuItem value={BoardArticleCategory.RECOMMEND}>Recommendation</MenuItem>
+							<MenuItem value={BoardArticleCategory.HUMOR}>{t('Humor')}</MenuItem>
+							<MenuItem value={BoardArticleCategory.NEWS}>{t('NEWS')}</MenuItem>
+							<MenuItem value={BoardArticleCategory.RECOMMEND}>{t('Recommendation')}</MenuItem>
 						</Select>
 					</FormControl>
 				</Box>
-				<Box component={'div'} className="article-editor-field" style={{ width: '300px', flexDirection: 'column' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Title
+				<Box component={'div'} className="article-editor-field">
+					<Typography className="article-editor-label" component="label" htmlFor="article-title">
+						{t('Title')}
 					</Typography>
 					<TextField
+						fullWidth
+						id="article-title"
 						onChange={articleTitleHandler}
-						id="filled-basic"
-						label="Type Title"
-						style={{ width: '300px', background: 'white' }}
+						placeholder={t('Type a title') as string}
 					/>
 				</Box>
 			</Stack>
 
 				<div className="article-editor-canvas">
 				<Editor
-					initialValue={'Type here'}
-					placeholder={'Type here'}
+					initialValue={t('Type here') as string}
+					placeholder={t('Type here') as string}
 					previewStyle={'vertical'}
 					height={'640px'}
 					// @ts-ignore
@@ -185,7 +189,7 @@ const TuiEditor = () => {
 					style={{ margin: '30px', width: '250px', height: '45px' }}
 					onClick={handleRegisterButton}
 				>
-					Register
+					{t('Register')}
 				</Button>
 			</Stack>
 		</Stack>

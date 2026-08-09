@@ -1,5 +1,6 @@
-import { AgentRequestStatus, MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
+import { MemberAuthType, MemberStatus, MemberType, AgentRequestStatus } from '../../enums/member.enum';
 import { Direction } from '../../enums/common.enum';
+import { TourCategory, TourLanguage } from '../../enums/tour.enum';
 
 export interface MemberInput {
 	memberNick: string;
@@ -7,9 +8,6 @@ export interface MemberInput {
 	memberPhone: string;
 	memberType?: MemberType;
 	memberAuthType?: MemberAuthType;
-	wantsToBecomeAgent?: boolean;
-	agentRequestMessage?: string;
-	agentExperience?: string;
 }
 
 export interface LoginInput {
@@ -19,6 +17,9 @@ export interface LoginInput {
 
 interface AISearch {
 	text?: string;
+	languages?: TourLanguage[];
+	specialties?: TourCategory[];
+	location?: string;
 }
 
 export interface AgentsInquiry {
@@ -32,6 +33,7 @@ export interface AgentsInquiry {
 interface MISearch {
 	memberStatus?: MemberStatus;
 	memberType?: MemberType;
+	/* Backend MISearch already accepts this — used by the admin Guide Requests screen. */
 	agentRequestStatus?: AgentRequestStatus;
 	text?: string;
 }

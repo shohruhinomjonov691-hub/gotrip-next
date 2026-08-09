@@ -5,15 +5,12 @@ export interface CommentInput {
 	commentGroup: CommentGroup;
 	commentContent: string;
 	commentRefId: string;
-	rating?: number;
-	parentCommentId?: string;
 	memberId?: string;
 }
 
 interface CISearch {
 	commentGroup: CommentGroup;
 	commentRefId: string;
-	parentCommentId?: string;
 }
 
 export interface CommentsInquiry {

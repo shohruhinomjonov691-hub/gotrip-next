@@ -1,30 +1,21 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
-import { Box, Button, Chip, Collapse, Divider, MenuItem, Pagination, Stack, TextField, Typography, useMediaQuery } from '@mui/material';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import SortRoundedIcon from '@mui/icons-material/SortRounded';
-import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
-import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { motion, useReducedMotion } from 'framer-motion';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import TourCard from '../../libs/components/tour/TourCard';
-import { GET_TOURS } from '../../apollo/user/query';
-import { LIKE_TARGET_TOUR, TOGGLE_WISHLIST } from '../../apollo/user/mutation';
+import withLayoutGth from '../../libs/components/layout/LayoutGth';
+import TourCard from '../../libs/components/homepage-html/TourCard';
+import { useTranslation } from '../../libs/i18n/useTranslation';
+import { GET_TOURS, GET_DESTINATIONS } from '../../apollo/user/query';
+import { LIKE_TARGET_TOUR } from '../../apollo/user/mutation';
 import { Direction, Message } from '../../libs/enums/common.enum';
-import { TourCategory, TourLocation, WishlistGroup } from '../../libs/enums/tour.enum';
+import { TourCategory, TourLocation } from '../../libs/enums/tour.enum';
 import { Range, ToursInquiry } from '../../libs/types/tour/tour.input';
 import { Tour } from '../../libs/types/tour/tour';
+import { Destination, Destinations } from '../../libs/types/destination/destination';
 import { T } from '../../libs/types/common';
 import { userVar } from '../../apollo/store';
 import { sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
-import { easeOutExpo, staggerContainer, tapPress } from '../../libs/components/homepage/motion';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -34,14 +25,11 @@ export const getStaticProps = async ({ locale }: any) => ({
 
 const initialInput: ToursInquiry = {
 	page: 1,
-	limit: 8,
+	limit: 9,
 	sort: 'createdAt',
 	direction: Direction.DESC,
 	search: {},
 };
-
-const MotionBox = motion(Box);
-const MotionStack = motion(Stack);
 
 const sortOptions = [
 	{ label: 'Newest first', sort: 'createdAt', direction: Direction.DESC },
@@ -51,30 +39,34 @@ const sortOptions = [
 	{ label: 'Price high to low', sort: 'tourPrice', direction: Direction.DESC },
 ];
 
-const skeletonItems = Array.from({ length: 8 }, (_, index) => index);
+const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
 
-const softFadeUp = {
-	hidden: { opacity: 0.98, y: 12 },
-	visible: {
-		opacity: 1,
-		y: 0,
-		transition: { duration: 0.28, ease: easeOutExpo },
-	},
+/** Debounce for the live keyword search — long enough to coalesce typing. */
+const SEARCH_DEBOUNCE_MS = 300;
+
+const DESTINATIONS_INPUT = {
+	page: 1,
+	limit: 50,
+	sort: 'destinationRank',
+	direction: Direction.DESC,
+	search: {},
 };
 
+const CloseIcon = () => (
+	<svg viewBox="0 0 24 24">
+		<path d="M18 6L6 18M6 6l12 12" />
+	</svg>
+);
+
 const TourListPage: NextPage = () => {
+	const { t } = useTranslation();
 	const user = useReactiveVar(userVar);
 	const router = useRouter();
-	const reduceMotion = useReducedMotion();
-	const compactFilters = useMediaQuery('(max-width: 620px)', { noSsr: true });
 	const [input, setInput] = useState<ToursInquiry>(initialInput);
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const [text, setText] = useState<string>('');
-	const [tours, setTours] = useState<Tour[]>([]);
-	const [total, setTotal] = useState<number>(0);
 
 	const [likeTargetTour] = useMutation(LIKE_TARGET_TOUR);
-	const [toggleWishlist] = useMutation(TOGGLE_WISHLIST);
 
 	useEffect(() => {
 		if (!router.isReady) return;
@@ -82,20 +74,80 @@ const TourListPage: NextPage = () => {
 		if (router.query.text) nextSearch.text = router.query.text as string;
 		if (router.query.category) nextSearch.categoryList = [router.query.category as TourCategory];
 		if (router.query.location) nextSearch.locationList = [router.query.location as TourLocation];
-		if (router.query.destinationId) nextSearch.destinationId = router.query.destinationId as string;
+		if (router.query.destination) nextSearch.destinationId = router.query.destination as string;
 		setText((router.query.text as string) ?? '');
 		setInput({ ...initialInput, search: nextSearch });
-	}, [router.isReady, router.query.text, router.query.category, router.query.location, router.query.destinationId]);
+	}, [router.isReady, router.query.text, router.query.category, router.query.location, router.query.destination]);
 
-	const { loading, error, refetch } = useQuery(GET_TOURS, {
+	/*
+	 * `PricesRange` requires both bounds server-side, so a half-filled range is
+	 * completed here with an open sentinel instead of changing the DTO:
+	 *   min only  -> everything at or above min
+	 *   max only  -> everything at or below max
+	 * The UI state keeps only what the user actually typed.
+	 */
+	const queryInput = useMemo(() => {
+		const search: T = { ...input.search };
+		for (const key of ['pricesRange', 'durationRange'] as const) {
+			const range = search[key];
+			if (!range) continue;
+			const hasStart = typeof range.start === 'number' && !Number.isNaN(range.start);
+			const hasEnd = typeof range.end === 'number' && !Number.isNaN(range.end);
+			if (!hasStart && !hasEnd) {
+				delete search[key];
+				continue;
+			}
+			search[key] = {
+				start: hasStart ? range.start : 0,
+				// GraphQL Int is 32-bit signed; this is its ceiling.
+				end: hasEnd ? range.end : 2147483647,
+			};
+		}
+		return { ...input, search };
+	}, [input]);
+
+	// Read straight off `data` rather than mirroring it into state via onCompleted:
+	// with cache-and-network + notifyOnNetworkStatusChange, onCompleted does not fire
+	// reliably, which left the list stuck on its loading skeleton.
+	const { data, loading, error, refetch } = useQuery(GET_TOURS, {
 		fetchPolicy: 'cache-and-network',
-		variables: { input },
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setTours(data?.getTours?.list ?? []);
-			setTotal(data?.getTours?.metaCounter?.[0]?.total ?? 0);
-		},
+		variables: { input: queryInput },
 	});
+
+	const tours: Tour[] = data?.getTours?.list ?? [];
+	const total: number = data?.getTours?.metaCounter?.[0]?.total ?? 0;
+
+	const applyTextSearch = useCallback(
+		(raw: string) => {
+			const normalized = raw.trim();
+			setInput((prev) => {
+				// Nothing changed — skip the state update so Apollo isn't re-queried.
+				if ((prev.search.text ?? '') === normalized) return prev;
+				const nextSearch = { ...prev.search };
+				if (normalized) nextSearch.text = normalized;
+				else delete nextSearch.text;
+				return { ...prev, page: 1, search: nextSearch };
+			});
+		},
+		[],
+	);
+
+	/*
+	 * Live keyword search: every keystroke schedules a single debounced commit, so
+	 * the list updates as you type without a Search button and without firing a
+	 * request per character. Clearing the field restores the full list on the same
+	 * path. Results already fetched stay served from the Apollo cache.
+	 */
+	useEffect(() => {
+		const id = setTimeout(() => applyTextSearch(text), SEARCH_DEBOUNCE_MS);
+		return () => clearTimeout(id);
+	}, [text, applyTextSearch]);
+
+	const { data: destinationsData } = useQuery<{ getDestinations: Destinations }>(GET_DESTINATIONS, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: DESTINATIONS_INPUT },
+	});
+	const destinations: Destination[] = destinationsData?.getDestinations?.list ?? [];
 
 	const activeFilterCount = useMemo(() => {
 		const search = input.search;
@@ -104,8 +156,8 @@ const TourListPage: NextPage = () => {
 			search.categoryList?.[0],
 			search.locationList?.[0],
 			search.destinationId,
-			search.pricesRange?.start || search.pricesRange?.end,
-			search.durationRange?.start || search.durationRange?.end,
+			search.pricesRange,
+			search.durationRange,
 		].filter(Boolean).length;
 	}, [input.search]);
 
@@ -127,19 +179,23 @@ const TourListPage: NextPage = () => {
 		const nextSearch = { ...input.search };
 		const nextRange = { ...((nextSearch as T)[key] ?? {}) };
 		const value = Number(rawValue);
-		if (!rawValue || Number.isNaN(value)) delete nextRange[edge];
+		if (rawValue === '' || Number.isNaN(value)) delete nextRange[edge];
 		else nextRange[edge] = value;
-		if (!nextRange.start && !nextRange.end) delete (nextSearch as T)[key];
+		// Compare against undefined, not falsiness — 0 is a legitimate bound.
+		if (nextRange.start === undefined && nextRange.end === undefined) delete (nextSearch as T)[key];
 		else (nextSearch as T)[key] = nextRange;
 		setInput({ ...input, page: 1, search: nextSearch });
 	};
 
-	const applyTextSearch = () => {
-		const normalized = text.trim();
-		const nextSearch = { ...input.search };
-		if (normalized) nextSearch.text = normalized;
-		else delete nextSearch.text;
-		setInput({ ...input, page: 1, search: nextSearch });
+	/** "$200+", "up to $800", "$200 – $800" */
+	const rangeLabel = (range: Range | undefined, prefix = '', suffix = '') => {
+		if (!range) return '';
+		const has = (v: unknown) => typeof v === 'number' && !Number.isNaN(v);
+		const lo = has(range.start) ? `${prefix}${range.start}${suffix}` : null;
+		const hi = has(range.end) ? `${prefix}${range.end}${suffix}` : null;
+		if (lo && hi) return `${lo} – ${hi}`;
+		if (lo) return `${lo}+`;
+		return t('up to {{value}}', { value: hi });
 	};
 
 	const clearFilter = (key: string) => {
@@ -160,276 +216,275 @@ const TourListPage: NextPage = () => {
 		setInput({ ...input, page: 1, sort: selected.sort, direction: selected.direction });
 	};
 
-	const paginationHandler = (_: ChangeEvent<unknown>, value: number) => setInput({ ...input, page: value });
+	const paginationHandler = (value: number) => {
+		setInput({ ...input, page: value });
+		if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+	};
 
 	const likeHandler = async (tourId: string) => {
 		try {
 			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
 			await likeTargetTour({ variables: { tourId } });
-			await refetch({ input });
-			await sweetTopSmallSuccessAlert('success', 800);
+			await refetch({ input: queryInput });
+			await sweetTopSmallSuccessAlert(t('success'), 800);
 		} catch (err) {
 			await sweetErrorHandling(err);
 		}
 	};
 
-	const saveHandler = async (tourId: string) => {
-		try {
-			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
-			await toggleWishlist({ variables: { input: { wishlistGroup: WishlistGroup.TOUR, wishlistRefId: tourId } } });
-			await sweetTopSmallSuccessAlert('Saved tours updated', 900);
-		} catch (err) {
-			await sweetErrorHandling(err);
-		}
-	};
-
-	const cardContainerVariants = reduceMotion ? undefined : staggerContainer;
-	const cardItemVariants = reduceMotion ? undefined : softFadeUp;
-	const filtersVisible = !compactFilters || filtersOpen;
+	const pageCount = Math.ceil(total / input.limit);
+	const destinationTitle = destinations.find((item) => item._id === input.search.destinationId)?.destinationTitle;
 
 	return (
-		<Stack className="tour-discovery-page">
-			<MotionStack
-				className="tour-discovery-shell"
-				variants={reduceMotion ? undefined : staggerContainer}
-				initial={reduceMotion ? false : 'hidden'}
-				animate="visible"
-			>
-				<MotionStack className="tour-discovery-hero" variants={reduceMotion ? undefined : softFadeUp}>
-					<Stack className="tour-discovery-copy">
-						<Typography className="tour-discovery-kicker">
-							<ExploreRoundedIcon />
-							GoTrip curated collection
-						</Typography>
-						<Typography component="h1" className="tour-discovery-title">
-							Explore premium tours crafted by local experts
-						</Typography>
-						<Typography className="tour-discovery-subtitle">
-							Compare guided journeys, private routes, and destination experiences with clear details before you
-							book.
-						</Typography>
-					</Stack>
-					<Stack className="tour-discovery-stats" direction="row">
-						<div>
-							<strong>{loading && !total ? '...' : total}</strong>
-							<span>Tours found</span>
-						</div>
-						<div>
-							<strong>{activeFilterCount}</strong>
-							<span>Active filters</span>
-						</div>
-					</Stack>
-				</MotionStack>
+		<section className="pg-sec">
+			<div className="wrap pg-layout">
+				{/* ---------------- Filter sidebar ---------------- */}
+				<aside className={filtersOpen ? 'pg-side open' : 'pg-side'}>
+					<button className="btn btn-outline fl-toggle" onClick={() => setFiltersOpen((v) => !v)} type="button">
+						{filtersOpen ? t('Hide filters') : activeFilterCount ? t('Filters ({{count}})', { count: activeFilterCount }) : t('Filters')}
+					</button>
 
-				<MotionStack className="tour-filter-panel gt-glass" variants={reduceMotion ? undefined : softFadeUp}>
-					<Stack className="tour-filter-heading" direction={{ xs: 'column', md: 'row' }}>
-						<Stack>
-							<Typography className="filter-title">
-								<TuneRoundedIcon />
-								Refine your journey
-							</Typography>
-							<Typography className="filter-copy">Search by destination style, city, pace, and budget.</Typography>
-						</Stack>
-						<Stack className="tour-filter-actions" direction="row">
-							{compactFilters && (
-								<Button
-									className="filter-toggle"
-									startIcon={<FilterAltRoundedIcon />}
-									onClick={() => setFiltersOpen((current) => !current)}
-									aria-expanded={filtersOpen}
-								>
-									{filtersOpen ? 'Hide filters' : `Filters${activeFilterCount ? ` (${activeFilterCount})` : ''}`}
-								</Button>
-							)}
-							<motion.div whileTap={tapPress}>
-								<Button className="filter-reset" startIcon={<RestartAltRoundedIcon />} onClick={clearAllFilters}>
-									Clear all
-								</Button>
-							</motion.div>
-						</Stack>
-					</Stack>
-					<Collapse in={filtersVisible} timeout={reduceMotion ? 0 : 180} className="tour-filter-collapse">
-					<Stack className="tour-filter-grid">
-						<TextField
-							fullWidth
-							label="Search tours"
-							value={text}
-							onChange={(event) => setText(event.target.value)}
-							onKeyDown={(event) => {
-								if (event.key === 'Enter') applyTextSearch();
-							}}
-							InputProps={{ startAdornment: <SearchRoundedIcon className="filter-input-icon" /> }}
-						/>
-						<TextField
-							select
-							label="Category"
-							value={(input.search.categoryList?.[0] as string) ?? ''}
-							onChange={(event) => updateSearch('categoryList', event.target.value)}
-						>
-							<MenuItem value="">All categories</MenuItem>
-							{Object.values(TourCategory).map((category) => (
-								<MenuItem key={category} value={category}>
-									{category}
-								</MenuItem>
-							))}
-						</TextField>
-						<TextField
-							select
-							label="Location"
-							value={(input.search.locationList?.[0] as string) ?? ''}
-							onChange={(event) => updateSearch('locationList', event.target.value)}
-						>
-							<MenuItem value="">All locations</MenuItem>
-							{Object.values(TourLocation).map((location) => (
-								<MenuItem key={location} value={location}>
-									{location}
-								</MenuItem>
-							))}
-						</TextField>
-						<TextField
-							type="number"
-							label="Min price"
-							value={input.search.pricesRange?.start ?? ''}
-							onChange={(event) => updateRangeSearch('pricesRange', 'start', event.target.value)}
-						/>
-						<TextField
-							type="number"
-							label="Max price"
-							value={input.search.pricesRange?.end ?? ''}
-							onChange={(event) => updateRangeSearch('pricesRange', 'end', event.target.value)}
-						/>
-						<TextField
-							type="number"
-							label="Max days"
-							value={input.search.durationRange?.end ?? ''}
-							onChange={(event) => updateRangeSearch('durationRange', 'end', event.target.value)}
-							InputProps={{ startAdornment: <CalendarMonthRoundedIcon className="filter-input-icon" /> }}
-						/>
-						<motion.div whileTap={tapPress} className="tour-filter-submit-wrap">
-							<Button className="gt-primary-button tour-filter-submit" onClick={applyTextSearch}>
-								Search tours
-							</Button>
-						</motion.div>
-					</Stack>
+					<div className="pg-panel">
+						<h3 className="pg-panel-title">{t('Refine search')}</h3>
+
+						<div className="fl-field">
+							<label htmlFor="fl-text">{t('Keyword')}</label>
+							<div className="fl-search">
+								<input
+									aria-describedby="fl-text-hint"
+									id="fl-text"
+									onChange={(e) => setText(e.target.value)}
+									// Enter commits immediately rather than waiting out the debounce.
+									onKeyDown={(e) => e.key === 'Enter' && applyTextSearch(text)}
+									placeholder={t('Tour name…') as string}
+									type="search"
+									value={text}
+								/>
+								{text && (
+									<button aria-label={t('Clear keyword') as string} className="fl-search-clear" onClick={() => setText('')} type="button">
+										<CloseIcon />
+									</button>
+								)}
+							</div>
+							<small className="fl-hint" id="fl-text-hint">
+								{t('Results update as you type.')}
+							</small>
+						</div>
+
+						<div className="fl-field">
+							<label htmlFor="fl-cat">{t('Categories')}</label>
+							<select
+								id="fl-cat"
+								onChange={(e) => updateSearch('categoryList', e.target.value)}
+								value={(input.search.categoryList?.[0] as string) ?? ''}
+							>
+								<option value="">{t('All categories')}</option>
+								{Object.values(TourCategory).map((category) => (
+									<option key={category} value={category}>
+										{t(category)}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="fl-field">
+							<label htmlFor="fl-dest">{t('Destination')}</label>
+							<select
+								id="fl-dest"
+								onChange={(e) => updateSearch('destinationId', e.target.value)}
+								value={input.search.destinationId ?? ''}
+							>
+								<option value="">{t('All destinations')}</option>
+								{destinations.map((destination) => (
+									<option key={destination._id} value={destination._id}>
+										{destination.destinationTitle}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="fl-field">
+							<label htmlFor="fl-loc">{t('Locations')}</label>
+							<select
+								id="fl-loc"
+								onChange={(e) => updateSearch('locationList', e.target.value)}
+								value={(input.search.locationList?.[0] as string) ?? ''}
+							>
+								<option value="">{t('All Locations')}</option>
+								{Object.values(TourLocation).map((location) => (
+									<option key={location} value={location}>
+										{t(location)}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="fl-field">
+							<label>{t('Price range ($)')}</label>
+							<div className="fl-duo">
+								<input
+									onChange={(e) => updateRangeSearch('pricesRange', 'start', e.target.value)}
+									placeholder={t('Min') as string}
+									type="number"
+									value={input.search.pricesRange?.start ?? ''}
+								/>
+								<input
+									onChange={(e) => updateRangeSearch('pricesRange', 'end', e.target.value)}
+									placeholder={t('Max') as string}
+									type="number"
+									value={input.search.pricesRange?.end ?? ''}
+								/>
+							</div>
+						</div>
+
+						<div className="fl-field">
+							<label>{t('Duration (days)')}</label>
+							<div className="fl-duo">
+								<input
+									onChange={(e) => updateRangeSearch('durationRange', 'start', e.target.value)}
+									placeholder={t('Min') as string}
+									type="number"
+									value={input.search.durationRange?.start ?? ''}
+								/>
+								<input
+									onChange={(e) => updateRangeSearch('durationRange', 'end', e.target.value)}
+									placeholder={t('Max') as string}
+									type="number"
+									value={input.search.durationRange?.end ?? ''}
+								/>
+							</div>
+						</div>
+
+						<div className="fl-actions">
+							<button className="btn btn-outline" onClick={clearAllFilters} type="button">
+								{t('Reset')}
+							</button>
+						</div>
+					</div>
+				</aside>
+
+				{/* ---------------- Results ---------------- */}
+				<div>
+					<div className="pg-toolbar">
+						<div className="pg-count">
+							{loading && !total ? t('Finding tours…') : <b>{t('{{count}} tours found', { count: total })}</b>}
+							<small>
+								{activeFilterCount
+									? t('{{count}} active filters', { count: activeFilterCount })
+									: t('Browsing every published route')}
+							</small>
+						</div>
+						<div className="pg-sort">
+							<span>{t('Sort by')}</span>
+							<select onChange={(e) => sortHandler(e.target.value)} value={currentSort}>
+								{sortOptions.map((item) => (
+									<option key={item.label} value={item.label}>
+										{t(item.label)}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+
 					{activeFilterCount > 0 && (
-						<Stack className="tour-active-filters" direction="row">
+						<div className="fl-chips">
 							{input.search.text && (
-								<Chip label={`Search: ${input.search.text}`} onDelete={() => clearFilter('text')} deleteIcon={<CloseRoundedIcon />} />
+								<button className="fl-chip" onClick={() => clearFilter('text')} type="button">
+									“{input.search.text}” <CloseIcon />
+								</button>
 							)}
 							{input.search.categoryList?.[0] && (
-								<Chip
-									label={`Category: ${input.search.categoryList[0]}`}
-									onDelete={() => clearFilter('categoryList')}
-									deleteIcon={<CloseRoundedIcon />}
-								/>
-							)}
-							{input.search.locationList?.[0] && (
-								<Chip
-									label={`Location: ${input.search.locationList[0]}`}
-									onDelete={() => clearFilter('locationList')}
-									deleteIcon={<CloseRoundedIcon />}
-								/>
+								<button className="fl-chip" onClick={() => clearFilter('categoryList')} type="button">
+									{t(input.search.categoryList[0])} <CloseIcon />
+								</button>
 							)}
 							{input.search.destinationId && (
-								<Chip
-									label={`Destination: ${input.search.destinationId.slice(0, 8)}...`}
-									onDelete={() => clearFilter('destinationId')}
-									deleteIcon={<CloseRoundedIcon />}
-								/>
+								<button className="fl-chip" onClick={() => clearFilter('destinationId')} type="button">
+									{destinationTitle ?? t('Destination')} <CloseIcon />
+								</button>
+							)}
+							{input.search.locationList?.[0] && (
+								<button className="fl-chip" onClick={() => clearFilter('locationList')} type="button">
+									{t(input.search.locationList[0])} <CloseIcon />
+								</button>
 							)}
 							{input.search.pricesRange && (
-								<Chip label="Price range" onDelete={() => clearFilter('pricesRange')} deleteIcon={<CloseRoundedIcon />} />
+								<button className="fl-chip" onClick={() => clearFilter('pricesRange')} type="button">
+									{rangeLabel(input.search.pricesRange, '$')} <CloseIcon />
+								</button>
 							)}
 							{input.search.durationRange && (
-								<Chip label="Duration" onDelete={() => clearFilter('durationRange')} deleteIcon={<CloseRoundedIcon />} />
+								<button className="fl-chip" onClick={() => clearFilter('durationRange')} type="button">
+									{rangeLabel(input.search.durationRange, '', ` ${t('days')}`)} <CloseIcon />
+								</button>
 							)}
-						</Stack>
+						</div>
 					)}
-					</Collapse>
-				</MotionStack>
 
-				<MotionStack className="tour-results-toolbar" variants={reduceMotion ? undefined : softFadeUp}>
-					<Stack>
-						<Typography className="results-eyebrow">Available experiences</Typography>
-						<Typography className="results-title">
-							{loading && !total ? 'Finding the best tours' : `${total} tour${total === 1 ? '' : 's'} ready to explore`}
-						</Typography>
-					</Stack>
-					<TextField
-						select
-						size="small"
-						className="tour-sort-select"
-						label="Sort"
-						value={currentSort}
-						onChange={(event) => sortHandler(event.target.value)}
-						InputProps={{ startAdornment: <SortRoundedIcon className="filter-input-icon" /> }}
-					>
-						{sortOptions.map((item) => (
-							<MenuItem key={item.label} value={item.label}>
-								{item.label}
-							</MenuItem>
-						))}
-					</TextField>
-				</MotionStack>
+					{error && !loading && tours.length === 0 && (
+						<div className="pg-state">
+							<h3>{t('Tours could not be loaded')}</h3>
+							<p>{t('Please try again in a moment.')}</p>
+							<button className="btn btn-sky" onClick={() => refetch({ input: queryInput })} type="button">
+								{t('Try again')}
+							</button>
+						</div>
+					)}
 
-				<Divider className="tour-results-divider" />
+					{loading && tours.length === 0 && !error && (
+						<div className="pg-grid">
+							{skeletonItems.map((item) => (
+								<div className="pg-skeleton" key={item} />
+							))}
+						</div>
+					)}
 
-				{error && !loading && tours.length === 0 && (
-					<MotionBox className="tour-discovery-state error" variants={reduceMotion ? undefined : softFadeUp}>
-						<Typography className="state-title">Tours could not be loaded</Typography>
-						<Typography className="state-copy">Please try again in a moment.</Typography>
-						<Button className="gt-primary-button" onClick={() => refetch({ input })}>
-							Try again
-						</Button>
-					</MotionBox>
-				)}
+					{!loading && !error && tours.length === 0 && (
+						<div className="pg-state">
+							<h3>{t('No tours match these filters')}</h3>
+							<p>{t('Reset your filters or search for another destination style.')}</p>
+							<button className="btn btn-sky" onClick={clearAllFilters} type="button">
+								{t('Clear filters')}
+							</button>
+						</div>
+					)}
 
-				{loading && tours.length === 0 && (
-					<div className="tour-results-grid">
-						{skeletonItems.map((item) => (
-							<div className="tour-card-skeleton listing" key={item}>
-								<div className="skeleton-media" />
-								<div className="skeleton-line wide" />
-								<div className="skeleton-line" />
-								<div className="skeleton-pills" />
-							</div>
-						))}
-					</div>
-				)}
+					{tours.length > 0 && (
+						<div className="pg-grid">
+							{tours.map((tour) => (
+								<TourCard detailed key={tour._id} onLike={likeHandler} tour={tour} />
+							))}
+						</div>
+					)}
 
-				{!loading && !error && tours.length === 0 && (
-					<MotionBox className="tour-discovery-state" variants={reduceMotion ? undefined : softFadeUp}>
-						<Typography className="state-title">No tours match these filters</Typography>
-						<Typography className="state-copy">Reset your filters or search for another destination style.</Typography>
-						<Button className="gt-primary-button" startIcon={<RestartAltRoundedIcon />} onClick={clearAllFilters}>
-							Clear filters
-						</Button>
-					</MotionBox>
-				)}
-
-				{tours.length > 0 && (
-					<MotionBox
-						className="tour-results-grid"
-						variants={cardContainerVariants}
-						initial={reduceMotion ? false : 'hidden'}
-						animate="visible"
-					>
-						{tours.map((tour) => (
-							<MotionBox key={tour._id} variants={cardItemVariants}>
-								<TourCard tour={tour} onLike={likeHandler} onSave={saveHandler} />
-							</MotionBox>
-						))}
-					</MotionBox>
-				)}
-
-				{total > input.limit && (
-					<Stack className="tour-pagination">
-						<Pagination count={Math.ceil(total / input.limit)} page={input.page} onChange={paginationHandler} />
-					</Stack>
-				)}
-			</MotionStack>
-		</Stack>
+					{pageCount > 1 && (
+						<div className="pg-pager">
+							<button disabled={input.page === 1} onClick={() => paginationHandler(input.page - 1)} type="button">
+								{t('Prev')}
+							</button>
+							{Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
+								<button
+									className={page === input.page ? 'on' : ''}
+									key={page}
+									onClick={() => paginationHandler(page)}
+									type="button"
+								>
+									{page}
+								</button>
+							))}
+							<button
+								disabled={input.page === pageCount}
+								onClick={() => paginationHandler(input.page + 1)}
+								type="button"
+							>
+								{t('Next')}
+							</button>
+						</div>
+					)}
+				</div>
+			</div>
+		</section>
 	);
 };
 
-export default withLayoutBasic(TourListPage);
+export default withLayoutGth(TourListPage);

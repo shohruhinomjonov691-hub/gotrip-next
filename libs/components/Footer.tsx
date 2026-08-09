@@ -1,28 +1,21 @@
-import FacebookOutlinedIcon from '@mui/icons-material/FacebookOutlined';
-import InstagramIcon from '@mui/icons-material/Instagram';
-import TelegramIcon from '@mui/icons-material/Telegram';
-import TwitterIcon from '@mui/icons-material/Twitter';
 import Link from 'next/link';
 import { Stack, Box } from '@mui/material';
 import moment from 'moment';
 import { ReactNode, useState } from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 
-const FooterLink = ({ href, children }: { href?: string; children: ReactNode }) =>
-	href ? (
-		<Link className="footer-link" href={href}>
-			{children}
-		</Link>
-	) : (
-		<span className="footer-unavailable" aria-disabled="true">
-			{children}
-		</span>
-	);
+const FooterLink = ({ href, children }: { href: string; children: ReactNode }) => (
+	<Link className="footer-link" href={href}>
+		{children}
+	</Link>
+);
 
 const FooterBrand = () => {
+	const { t } = useTranslation();
 	const [logoFailed, setLogoFailed] = useState(false);
 
 	return (
-		<Link href="/" className="footer-brand-link" aria-label="GoTrip home">
+		<Link href="/" className="footer-brand-link" aria-label={t('GoTrip home') as string}>
 			{logoFailed ? (
 				<span className="footer-brand-fallback">
 					<span className="footer-brand-mark" aria-hidden="true">
@@ -37,44 +30,50 @@ const FooterBrand = () => {
 	);
 };
 
-const FooterNavigation = () => (
-	<Box component={'div'} className={'bottom'}>
-		<div className="footer-column">
-			<strong>Company</strong>
-			<FooterLink href="/about">About GoTrip</FooterLink>
-			<FooterLink href="/tour">Explore tours</FooterLink>
-			<FooterLink href="/destination">Destinations</FooterLink>
-			<FooterLink href="/community?articleCategory=FREE">Journal</FooterLink>
-		</div>
-		<div className="footer-column">
-			<strong>Support</strong>
-			<FooterLink href="/cs?tab=inquiry">Contact</FooterLink>
-			<FooterLink href="/cs?tab=faq">FAQ</FooterLink>
-			<FooterLink href="/cs?tab=terms">Terms</FooterLink>
-			<FooterLink href="/cs?tab=notice">Notices</FooterLink>
-		</div>
-		<div className="footer-column footer-column--global">
-			<strong>Global</strong>
-			<span>Traveler support</span>
-			<p>+82 10 4867 2909</p>
-			<span>Concierge regions</span>
-			<FooterLink>Seoul</FooterLink>
-			<FooterLink>Busan</FooterLink>
-			<FooterLink>Jeju</FooterLink>
-		</div>
-	</Box>
-);
+/**
+ * Four columns, every link real. The brief asked for a separate "Contact" column, but the
+ * only contact surface that exists is the support inquiry form — so contact lives under
+ * Support rather than padding a column with placeholder details.
+ */
+const FooterNavigation = () => {
+	const { t } = useTranslation();
 
-const FooterSocial = () => (
-	<div className={'media-box'} aria-hidden="true">
-		<FacebookOutlinedIcon />
-		<TelegramIcon />
-		<InstagramIcon />
-		<TwitterIcon />
-	</div>
-);
+	return (
+		<Box component={'div'} className={'bottom'}>
+			<div className="footer-column">
+				<strong>{t('Explore')}</strong>
+				<FooterLink href="/tour">{t('Tours')}</FooterLink>
+				<FooterLink href="/agent">{t('Guides')}</FooterLink>
+				<FooterLink href="/community">{t('Community')}</FooterLink>
+			</div>
+			<div className="footer-column">
+				<strong>{t('Company')}</strong>
+				<FooterLink href="/about">{t('About GoTrip')}</FooterLink>
+				<FooterLink href="/account/join">{t('Become a guide')}</FooterLink>
+				<FooterLink href="/cs?tab=terms">{t('Terms')}</FooterLink>
+			</div>
+			<div className="footer-column">
+				<strong>{t('Support')}</strong>
+				<FooterLink href="/cs?tab=faq">{t('FAQ')}</FooterLink>
+				<FooterLink href="/cs?tab=inquiry">{t('Contact us')}</FooterLink>
+				<FooterLink href="/cs?tab=notice">{t('Notices')}</FooterLink>
+			</div>
+			<div className="footer-column">
+				<strong>{t('Top destinations')}</strong>
+				<FooterLink href="/tour?location=SEOUL">{t('Seoul')}</FooterLink>
+				<FooterLink href="/tour?location=BUSAN">{t('Busan')}</FooterLink>
+				<FooterLink href="/tour?location=JEJU">{t('Jeju')}</FooterLink>
+				<FooterLink href="/tour?location=PARIS">{t('Paris')}</FooterLink>
+				<FooterLink href="/tour?location=DUBAI">{t('Dubai')}</FooterLink>
+				<FooterLink href="/tour?location=SAMARKAND">{t('Samarkand')}</FooterLink>
+			</div>
+		</Box>
+	);
+};
 
 const Footer = () => {
+	const { t } = useTranslation();
+
 	return (
 		<Stack className={'footer-container'}>
 			<Stack className={'main'}>
@@ -82,9 +81,8 @@ const Footer = () => {
 					<Box component={'div'} className={'footer-box footer-brand-box'}>
 						<FooterBrand />
 						<p className="footer-brand-copy">
-							Redefining luxury travel through curated tours, personal guide support, and destination-led discovery.
+							{t('Live tours from trusted local guides — browse, ask, and travel with people who know the place.')}
 						</p>
-						<FooterSocial />
 					</Box>
 				</Stack>
 				<Stack className={'right'}>
@@ -92,9 +90,10 @@ const Footer = () => {
 				</Stack>
 			</Stack>
 			<Stack className={'second'}>
-				<span>© {moment().year()} GoTrip Luxury Travel Concierge.</span>
+				<span>{t('© {{year}} GoTrip. All rights reserved.', { year: moment().year() })}</span>
 				<span>
-					<FooterLink href="/cs?tab=terms">Terms</FooterLink> · <FooterLink>Privacy</FooterLink> · <FooterLink>Sitemap</FooterLink>
+					<FooterLink href="/cs?tab=terms">{t('Terms')}</FooterLink> ·{' '}
+					<FooterLink href="/cs?tab=notice">{t('Notices')}</FooterLink>
 				</span>
 			</Stack>
 		</Stack>

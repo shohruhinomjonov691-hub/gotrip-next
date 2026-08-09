@@ -6,7 +6,7 @@ import Top from '../Top';
 import Footer from '../Footer';
 import { Stack } from '@mui/material';
 import { getJwtToken, updateUserInfo } from '../../auth';
-import Chat from '../Chat';
+import GoTripAI from '../gotripAI/GoTripAI';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { useTranslation } from 'next-i18next';
@@ -38,16 +38,6 @@ const withLayoutBasic = (Component: any) => {
 					title = 'Guides';
 					desc = 'Meet local guides and tour operators.';
 					bgImage = '/img/banner/agents.webp';
-					break;
-				case '/destination':
-					title = 'Destinations';
-					desc = 'Explore places and continue into curated tours.';
-					bgImage = '/img/banner/header3.svg';
-					break;
-				case '/destination/detail':
-					title = 'Destination';
-					desc = 'Tours, local context, and traveler activity.';
-					bgImage = '/img/banner/header3.svg';
 					break;
 				case '/agent/detail':
 					title = 'Guide Page';
@@ -119,6 +109,8 @@ const withLayoutBasic = (Component: any) => {
 						<Stack id={'footer'}>
 							<Footer />
 						</Stack>
+
+						<GoTripAI />
 					</Stack>
 				</>
 			);
@@ -160,7 +152,7 @@ const withLayoutBasic = (Component: any) => {
 							<Component {...props} />
 						</Stack>
 
-						<Chat />
+						<GoTripAI />
 
 						<Stack id={'footer'}>
 							<Footer />

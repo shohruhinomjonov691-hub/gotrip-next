@@ -1,99 +1,322 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NextPage } from 'next';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Button, Pagination, Stack, Typography } from '@mui/material';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import CommunityCard from '../../libs/components/common/CommunityCard';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { BoardArticle } from '../../libs/types/board-article/board-article';
-import { T } from '../../libs/types/common';
+import { useQuery, useReactiveVar } from '@apollo/client';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import withLayoutGth from '../../libs/components/layout/LayoutGth';
+import ArticleCard from '../../libs/components/homepage-html/ArticleCard';
+import { useTranslation } from '../../libs/i18n/useTranslation';
+import { getLocalizedField } from '../../libs/i18n/localization';
+import { GET_BOARD_ARTICLES } from '../../apollo/user/query';
+import { BoardArticle, BoardArticles } from '../../libs/types/board-article/board-article';
 import { BoardArticlesInquiry } from '../../libs/types/board-article/board-article.input';
 import { BoardArticleCategory } from '../../libs/enums/board-article.enum';
-import { LIKE_TARGET_BOARD_ARTICLE } from '../../apollo/user/mutation';
-import { useMutation, useQuery } from '@apollo/client';
-import { GET_BOARD_ARTICLES } from '../../apollo/user/query';
-import { Message } from '../../libs/enums/common.enum';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { Direction } from '../../libs/enums/common.enum';
+import { T } from '../../libs/types/common';
+import { userVar } from '../../apollo/store';
+import { ARTICLE_CATEGORY_LABELS } from '../../libs/constants/articleCategory';
 
-export const getStaticProps = async ({ locale }: any) => ({ props: { ...(await serverSideTranslations(locale, ['common'])) } });
+export const getStaticProps = async ({ locale }: any) => ({
+	props: { ...(await serverSideTranslations(locale, ['common'])) },
+});
 
-const categories = [
-	{ value: BoardArticleCategory.FREE, label: 'Traveler notes' },
-	{ value: BoardArticleCategory.RECOMMEND, label: 'Recommendations' },
-	{ value: BoardArticleCategory.NEWS, label: 'Journal news' },
-	{ value: BoardArticleCategory.HUMOR, label: 'Light moments' },
+const CATEGORY_TABS: { value: BoardArticleCategory | ''; label: string }[] = [
+	{ value: '', label: 'All' },
+	{ value: BoardArticleCategory.FREE, label: ARTICLE_CATEGORY_LABELS[BoardArticleCategory.FREE] },
+	{ value: BoardArticleCategory.RECOMMEND, label: ARTICLE_CATEGORY_LABELS[BoardArticleCategory.RECOMMEND] },
+	{ value: BoardArticleCategory.NEWS, label: ARTICLE_CATEGORY_LABELS[BoardArticleCategory.NEWS] },
+	{ value: BoardArticleCategory.HUMOR, label: ARTICLE_CATEGORY_LABELS[BoardArticleCategory.HUMOR] },
 ];
-const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
-const Community: NextPage = ({ initialInput }: T) => {
+const sortOptions = [
+	{ label: 'Newest first', sort: 'createdAt', direction: Direction.DESC },
+	{ label: 'Oldest first', sort: 'createdAt', direction: Direction.ASC },
+	{ label: 'Most liked', sort: 'articleLikes', direction: Direction.DESC },
+	{ label: 'Most viewed', sort: 'articleViews', direction: Direction.DESC },
+];
+
+/** Debounce for the live keyword search — long enough to coalesce typing. */
+const SEARCH_DEBOUNCE_MS = 300;
+
+const CloseIcon = () => (
+	<svg viewBox="0 0 24 24">
+		<path d="M18 6L6 18M6 6l12 12" />
+	</svg>
+);
+
+const initialInput: BoardArticlesInquiry = {
+	page: 1,
+	limit: 9,
+	sort: 'createdAt',
+	direction: Direction.DESC,
+	search: {},
+};
+
+// Popular sidebar list — same query, different sort, so no new backend operation.
+const POPULAR_INPUT: BoardArticlesInquiry = {
+	page: 1,
+	limit: 4,
+	sort: 'articleViews',
+	direction: Direction.DESC,
+	search: {},
+};
+
+const skeletonItems = Array.from({ length: 6 }, (_, i) => i);
+
+const CommunityPage: NextPage = () => {
+	const { t } = useTranslation();
 	const router = useRouter();
-	const shouldReduceMotion = useReducedMotion();
-	const routeCategory = router.query.articleCategory as BoardArticleCategory | undefined;
-	const activeCategory = categories.some((category) => category.value === routeCategory) ? routeCategory! : BoardArticleCategory.FREE;
-	const [searchCommunity, setSearchCommunity] = useState<BoardArticlesInquiry>({ ...initialInput, search: { articleCategory: activeCategory } });
-	const [boardArticles, setBoardArticles] = useState<BoardArticle[]>([]);
-	const [totalCount, setTotalCount] = useState(0);
-	const [likeTargetBoardArticle] = useMutation(LIKE_TARGET_BOARD_ARTICLE);
+	const locale = router.locale ?? 'en';
+	const user = useReactiveVar(userVar);
+	const writeArticleHref = user?._id
+		? '/mypage?category=writeArticle'
+		: '/account/join?referrer=/mypage?category=writeArticle';
+	const [input, setInput] = useState<BoardArticlesInquiry>(initialInput);
+	const [text, setText] = useState('');
 
 	useEffect(() => {
-		setSearchCommunity((current) => ({ ...current, page: current.search.articleCategory === activeCategory ? current.page : 1, search: { articleCategory: activeCategory } }));
-		if (!routeCategory) router.replace({ pathname: '/community', query: { articleCategory: BoardArticleCategory.FREE } }, undefined, { shallow: true });
-	}, [activeCategory, routeCategory]);
+		if (!router.isReady) return;
+		const nextSearch: T = {};
+		const cat = router.query.articleCategory as BoardArticleCategory | undefined;
+		if (cat && CATEGORY_TABS.some((tab) => tab.value === cat)) nextSearch.articleCategory = cat;
+		if (router.query.text) nextSearch.text = router.query.text as string;
+		setText((router.query.text as string) ?? '');
+		setInput({ ...initialInput, search: nextSearch });
+	}, [router.isReady, router.query.articleCategory, router.query.text]);
 
-	const { loading, error, refetch } = useQuery(GET_BOARD_ARTICLES, {
+	// Read straight off `data` — onCompleted is unreliable with cache-and-network.
+	const { data, loading, error, refetch } = useQuery<{ getBoardArticles: BoardArticles }>(GET_BOARD_ARTICLES, {
 		fetchPolicy: 'cache-and-network',
-		variables: { input: searchCommunity },
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setBoardArticles(data?.getBoardArticles?.list ?? []);
-			setTotalCount(data?.getBoardArticles?.metaCounter?.[0]?.total ?? 0);
-		},
+		variables: { input },
 	});
+	const articles: BoardArticle[] = data?.getBoardArticles?.list ?? [];
+	const total: number = data?.getBoardArticles?.metaCounter?.[0]?.total ?? 0;
 
-	const itemMotion = { hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 18 }, visible: { opacity: 1, y: 0, transition: { duration: shouldReduceMotion ? 0.18 : 0.38, ease: easeOutExpo } } };
-	const listMotion = { hidden: {}, visible: { transition: { staggerChildren: shouldReduceMotion ? 0 : 0.06, delayChildren: shouldReduceMotion ? 0 : 0.06 } } };
-	const activeLabel = useMemo(() => categories.find((category) => category.value === activeCategory)?.label ?? 'Traveler notes', [activeCategory]);
+	const { data: popularData } = useQuery<{ getBoardArticles: BoardArticles }>(GET_BOARD_ARTICLES, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: POPULAR_INPUT },
+	});
+	const popular: BoardArticle[] = popularData?.getBoardArticles?.list ?? [];
 
-	const tabChangeHandler = async (value: BoardArticleCategory) => {
-		setSearchCommunity((current) => ({ ...current, page: 1, search: { articleCategory: value } }));
-		await router.push({ pathname: '/community', query: { articleCategory: value } }, undefined, { shallow: true });
+	const activeCategory = (input.search.articleCategory as string) ?? '';
+
+	const currentSort = useMemo(() => {
+		const m = sortOptions.find((o) => o.sort === input.sort && o.direction === input.direction);
+		return m?.label ?? sortOptions[0].label;
+	}, [input.sort, input.direction]);
+
+	const selectCategory = (value: string) => {
+		const next = { ...input.search };
+		if (!value) delete next.articleCategory;
+		else next.articleCategory = value as BoardArticleCategory;
+		setInput({ ...input, page: 1, search: next });
 	};
-	const paginationHandler = (event: React.ChangeEvent<unknown>, page: number) => setSearchCommunity((current) => ({ ...current, page }));
-	const likeArticleHandler = async (event: React.MouseEvent, user: T, id: string) => {
-		try {
-			event.stopPropagation();
-			if (!id) return;
-			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
-			await likeTargetBoardArticle({ variables: { input: id } });
-			await refetch({ input: searchCommunity });
-			await sweetTopSmallSuccessAlert('success', 800);
-		} catch (err: any) { sweetMixinErrorAlert(err.message).then(); }
+
+	const applyTextSearch = useCallback((raw: string) => {
+		const normalized = raw.trim();
+		setInput((prev) => {
+			// Unchanged text — skip the update so Apollo isn't re-queried.
+			if ((prev.search.text ?? '') === normalized) return prev;
+			const next = { ...prev.search };
+			if (normalized) next.text = normalized;
+			else delete next.text;
+			return { ...prev, page: 1, search: next };
+		});
+	}, []);
+
+	/*
+	 * Live keyword search: each keystroke schedules one debounced commit, so the
+	 * list filters as you type without a Search button and without a request per
+	 * character. Clearing the field restores every article on the same path.
+	 */
+	useEffect(() => {
+		const id = setTimeout(() => applyTextSearch(text), SEARCH_DEBOUNCE_MS);
+		return () => clearTimeout(id);
+	}, [text, applyTextSearch]);
+
+	const sortHandler = (label: string) => {
+		const s = sortOptions.find((o) => o.label === label);
+		if (!s) return;
+		setInput({ ...input, page: 1, sort: s.sort, direction: s.direction });
 	};
+
+	const goToPage = (page: number) => {
+		setInput({ ...input, page });
+		if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+	};
+
+	const pageCount = Math.ceil(total / input.limit);
 
 	return (
-		<div id="community-list-page" className="journal-page">
-			<section className="journal-hero"><div className="journal-hero-image" /><div className="journal-hero-content">
-				<Typography className="journal-kicker">GoTrip Journal</Typography><Typography component="h1" className="journal-title">Curated chronicles</Typography>
-				<Typography className="journal-lede">Travel intelligence, field notes, and personal stories from the places that stay with you.</Typography>
-			</div></section>
-			<main className="journal-shell">
-				<motion.header className="journal-list-heading" variants={itemMotion} initial="hidden" animate="visible"><div><Typography className="journal-section-label">{activeLabel}</Typography><Typography component="h2" className="journal-section-title">Stories worth carrying forward</Typography></div>
-					<Button className="journal-write-button" startIcon={<AddRoundedIcon />} onClick={() => router.push({ pathname: '/mypage', query: { category: 'writeArticle' } })}>Write a story</Button></motion.header>
-				<div className="journal-category-tabs" role="tablist" aria-label="Journal categories">{categories.map((category) => <button key={category.value} role="tab" aria-selected={activeCategory === category.value} className={activeCategory === category.value ? 'active' : ''} onClick={() => tabChangeHandler(category.value)}>{category.label}</button>)}</div>
-				<AnimatePresence mode="wait"><motion.div key={`${activeCategory}-${searchCommunity.page}`} className="journal-content" variants={listMotion} initial="hidden" animate="visible" exit={{ opacity: 0 }}>
-					{loading && boardArticles.length === 0 && <div className="journal-skeleton-grid" aria-label="Loading journal stories">{[0, 1, 2].map((item) => <div className="journal-skeleton-card" key={item}><span /><strong /><em /></div>)}</div>}
-					{error && boardArticles.length === 0 && <div className="journal-state error" role="alert"><Typography component="h3">The journal could not load</Typography><Typography>Please refresh the latest stories and try again.</Typography><Button startIcon={<RefreshRoundedIcon />} onClick={() => refetch({ input: searchCommunity })}>Refresh stories</Button></div>}
-					{!loading && !error && boardArticles.length === 0 && <div className="journal-state"><Typography component="h3">No stories in this collection yet</Typography><Typography>Be the first traveler to leave a thoughtful note.</Typography><Button startIcon={<AddRoundedIcon />} onClick={() => router.push({ pathname: '/mypage', query: { category: 'writeArticle' } })}>Write a story</Button></div>}
-					{boardArticles.length > 0 && <motion.div className="journal-article-grid" variants={listMotion}>{boardArticles.map((article, index) => <motion.div key={article._id} variants={itemMotion} className={index === 0 ? 'journal-featured-wrap' : ''}><CommunityCard boardArticle={article} likeArticleHandler={likeArticleHandler} journal featured={index === 0} /></motion.div>)}</motion.div>}
-				</motion.div></AnimatePresence>
-				{totalCount > 0 && <div className="journal-pagination"><Pagination count={Math.ceil(totalCount / searchCommunity.limit)} page={searchCommunity.page} shape="rounded" color="primary" onChange={paginationHandler} /><Typography>{totalCount} stories in this collection</Typography></div>}
-			</main>
-		</div>
+		<section className="pg-sec">
+			<div className="wrap">
+				{/* Toolbar: tabs + search + write */}
+				<div className="cm-bar">
+					<div className="cm-tabs">
+						{CATEGORY_TABS.map((tab) => (
+							<button
+								className={activeCategory === tab.value ? 'cm-tab on' : 'cm-tab'}
+								key={tab.label}
+								onClick={() => selectCategory(tab.value)}
+								type="button"
+							>
+								{t(tab.label)}
+							</button>
+						))}
+					</div>
+					{/* Existing route — My Page renders WriteArticle for this category. Logged-out
+					    users go through account/join with a referrer so they land back here
+					    instead of being bounced to Home by My Page's auth guard. */}
+					<Link className="btn btn-sky" href={writeArticleHref}>
+						{t('Write article')}
+					</Link>
+				</div>
+
+				<div className="pg-layout cm-layout">
+					<div>
+						<div className="pg-toolbar">
+							<div className="pg-count">
+								{loading && !total ? (
+									t('Loading articles…')
+								) : (
+									<>
+										<b>{total}</b> {total === 1 ? t('article') : t('articles')}
+									</>
+								)}
+								<small>
+									{activeCategory ? t(CATEGORY_TABS.find((tab) => tab.value === activeCategory)?.label ?? '') : t('All categories')}
+								</small>
+							</div>
+							<div className="pg-sort">
+								<span>{t('Sort by')}</span>
+								<select onChange={(e) => sortHandler(e.target.value)} value={currentSort}>
+									{sortOptions.map((o) => (
+										<option key={o.label} value={o.label}>
+											{t(o.label)}
+										</option>
+									))}
+								</select>
+							</div>
+						</div>
+
+						{error && !loading && articles.length === 0 && (
+							<div className="pg-state">
+								<h3>{t('Articles could not be loaded')}</h3>
+								<p>{t('Please try again in a moment.')}</p>
+								<button className="btn btn-sky" onClick={() => refetch({ input })} type="button">
+									{t('Try again')}
+								</button>
+							</div>
+						)}
+
+						{loading && articles.length === 0 && !error && (
+							<div className="pg-grid">
+								{skeletonItems.map((i) => (
+									<div className="pg-skeleton" key={i} style={{ height: 330 }} />
+								))}
+							</div>
+						)}
+
+						{!loading && !error && articles.length === 0 && (
+							<div className="pg-state">
+								<h3>{t('No articles here yet')}</h3>
+								<p>{t('Be the first to share a story with the community.')}</p>
+								<Link className="btn btn-sky" href={writeArticleHref}>
+									{t('Write an article')}
+								</Link>
+							</div>
+						)}
+
+						{articles.length > 0 && (
+							<div className="pg-grid">
+								{articles.map((article) => (
+									<ArticleCard article={article} key={article._id} />
+								))}
+							</div>
+						)}
+
+						{pageCount > 1 && (
+							<div className="pg-pager">
+								<button disabled={input.page === 1} onClick={() => goToPage(input.page - 1)} type="button">
+									{t('Prev')}
+								</button>
+								{Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
+									<button className={p === input.page ? 'on' : ''} key={p} onClick={() => goToPage(p)} type="button">
+										{p}
+									</button>
+								))}
+								<button disabled={input.page === pageCount} onClick={() => goToPage(input.page + 1)} type="button">
+									{t('Next')}
+								</button>
+							</div>
+						)}
+					</div>
+
+					{/* Sidebar */}
+					<aside className="pg-side cm-side">
+						<div className="pg-panel">
+							<h3 className="pg-panel-title">{t('Search')}</h3>
+							<div className="fl-field">
+								<div className="fl-search">
+									<input
+										aria-describedby="cm-text-hint"
+										aria-label={t('Search articles') as string}
+										onChange={(e) => setText(e.target.value)}
+										onKeyDown={(e) => e.key === 'Enter' && applyTextSearch(text)}
+										placeholder={t('Article title…')}
+										type="search"
+										value={text}
+									/>
+									{text && (
+										<button aria-label={t('Clear search') as string} className="fl-search-clear" onClick={() => setText('')} type="button">
+											<CloseIcon />
+										</button>
+									)}
+								</div>
+								<small className="fl-hint" id="cm-text-hint">
+									{t('Results update as you type.')}
+								</small>
+							</div>
+						</div>
+
+						<div className="pg-panel">
+							<h3 className="pg-panel-title">{t('Popular articles')}</h3>
+							<div className="cm-pop">
+								{popular.map((article) => (
+									<Link
+										className="cm-pop-item"
+										href={`/community/detail?id=${article._id}&articleCategory=${article.articleCategory}`}
+										key={article._id}
+									>
+										<span>{getLocalizedField(article, 'articleTitle', locale)}</span>
+										<small>{t('{{count}} views', { count: article.articleViews ?? 0 })}</small>
+									</Link>
+								))}
+								{popular.length === 0 && <p style={{ color: 'var(--muted)', margin: 0 }}>{t('Nothing yet.')}</p>}
+							</div>
+						</div>
+
+						<div className="pg-panel">
+							<h3 className="pg-panel-title">{t('Categories')}</h3>
+							<div className="cm-cats">
+								{CATEGORY_TABS.filter((tab) => tab.value).map((tab) => (
+									<button
+										className={activeCategory === tab.value ? 'cm-cat on' : 'cm-cat'}
+										key={tab.label}
+										onClick={() => selectCategory(tab.value)}
+										type="button"
+									>
+										{t(tab.label)}
+									</button>
+								))}
+							</div>
+						</div>
+					</aside>
+				</div>
+			</div>
+		</section>
 	);
 };
 
-Community.defaultProps = { initialInput: { page: 1, limit: 6, sort: 'createdAt', direction: 'ASC', search: { articleCategory: BoardArticleCategory.FREE } } };
-export default withLayoutBasic(Community);
+export default withLayoutGth(CommunityPage);

@@ -19,6 +19,5 @@ export interface TourUpdate {
 	tourMeetingPoint?: string;
 	tourLanguage?: TourLanguage;
 	tourDifficulty?: TourDifficulty;
-	destinationId?: string;
 	deletedAt?: Date;
 }

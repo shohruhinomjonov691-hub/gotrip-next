@@ -1,399 +1,239 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import type { NextPage } from 'next';
+import { useMutation, useQuery } from '@apollo/client';
 import {
+	Avatar,
 	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	InputAdornment,
+	Chip,
 	MenuItem,
-	OutlinedInput,
 	Select,
-	TablePagination,
-	TextField,
+	Stack,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
 	Typography,
 } from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import { motion, useReducedMotion } from 'framer-motion';
-import { useMutation, useQuery } from '@apollo/client';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
-import { DestinationList } from '../../../libs/components/admin/destinations/DestinationList';
 import { GET_ALL_DESTINATIONS_BY_ADMIN } from '../../../apollo/admin/query';
-import {
-	CREATE_DESTINATION_BY_ADMIN,
-	DELETE_DESTINATION_BY_ADMIN,
-	UPDATE_DESTINATION_BY_ADMIN,
-} from '../../../apollo/admin/mutation';
-import { Destination } from '../../../libs/types/destination/destination';
-import { AllDestinationsInquiry, DestinationInput } from '../../../libs/types/destination/destination.input';
+import { REMOVE_DESTINATION_BY_ADMIN, UPDATE_DESTINATION_BY_ADMIN } from '../../../apollo/admin/mutation';
+import { DestinationStatus } from '../../../libs/enums/destination.enum';
 import { Direction } from '../../../libs/enums/common.enum';
-import { DestinationStatus } from '../../../libs/enums/tour.enum';
-import { sweetConfirmAlert, sweetErrorHandling } from '../../../libs/sweetAlert';
-import { T } from '../../../libs/types/common';
+import { Destination } from '../../../libs/types/destination/destination';
+import { getImageUrl } from '../../../libs/config';
+import { sweetConfirmAlert, sweetErrorHandling, sweetMixinSuccessAlert } from '../../../libs/sweetAlert';
+import { useTranslation } from '../../../libs/i18n/useTranslation';
 
-interface AdminDestinationsProps {
-	initialInquiry?: AllDestinationsInquiry;
-}
+/**
+ * Destination catalogue.
+ *
+ * Publish / hide is the existing destinationStatus field driven through
+ * updateDestinationByAdmin — no new status concept is introduced.
+ */
 
-interface DestinationEditor {
-	mode: 'create' | 'edit';
-	destinationId?: string;
-	destinationStatus: DestinationStatus;
-	destinationCountry: string;
-	destinationCity: string;
-	destinationAddress: string;
-	destinationTitle: string;
-	destinationDesc: string;
-	destinationImagesText: string;
-}
+const LIMIT = 20;
+const STATUSES = Object.values(DestinationStatus);
 
-interface DestinationEditorErrors {
-	destinationCountry?: string;
-	destinationCity?: string;
-	destinationAddress?: string;
-	destinationTitle?: string;
-	destinationDesc?: string;
-	destinationImagesText?: string;
-}
+const AdminDestinations: NextPage = () => {
+	const { t } = useTranslation();
+	const [status, setStatus] = useState<DestinationStatus | ''>('');
+	const [page, setPage] = useState(1);
 
-interface DestinationUpdateInput {
-	_id: string;
-	destinationStatus?: DestinationStatus;
-	destinationCountry?: string;
-	destinationCity?: string;
-	destinationAddress?: string | null;
-	destinationTitle?: string;
-	destinationDesc?: string | null;
-	destinationImages?: string[];
-}
+	const input = {
+		page,
+		limit: LIMIT,
+		sort: 'destinationRank',
+		direction: Direction.DESC,
+		search: status ? { destinationStatus: status } : {},
+	};
 
-interface DestinationPageMotionTarget {
-	opacity: number;
-	y?: number;
-}
-
-type DestinationStatusFilter = 'ALL' | DestinationStatus;
-
-const DEFAULT_INQUIRY: AllDestinationsInquiry = {
-	page: 1,
-	limit: 10,
-	sort: 'createdAt',
-	direction: Direction.DESC,
-	search: {},
-};
-const DESTINATION_STATUSES: readonly DestinationStatus[] = Object.values(DestinationStatus) as DestinationStatus[];
-const ROWS_PER_PAGE_OPTIONS: number[] = [10, 20, 40, 60];
-
-const createEmptyEditor = (): DestinationEditor => ({
-	mode: 'create',
-	destinationStatus: DestinationStatus.ACTIVE,
-	destinationCountry: '',
-	destinationCity: '',
-	destinationAddress: '',
-	destinationTitle: '',
-	destinationDesc: '',
-	destinationImagesText: '',
-});
-
-const createEditorForDestination = (destination: Destination): DestinationEditor => ({
-	mode: 'edit',
-	destinationId: destination._id,
-	destinationStatus: destination.destinationStatus,
-	destinationCountry: destination.destinationCountry,
-	destinationCity: destination.destinationCity,
-	destinationAddress: destination.destinationAddress ?? '',
-	destinationTitle: destination.destinationTitle,
-	destinationDesc: destination.destinationDesc ?? '',
-	destinationImagesText: (destination.destinationImages ?? []).join('\n'),
-});
-
-const parseDestinationImages = (value: string): string[] => value.split('\n').map((image) => image.trim()).filter(Boolean);
-
-const validateDestinationEditor = (editor: DestinationEditor): DestinationEditorErrors => {
-	const errors: DestinationEditorErrors = {};
-	const countryLength = editor.destinationCountry.trim().length;
-	const cityLength = editor.destinationCity.trim().length;
-	const addressLength = editor.destinationAddress.trim().length;
-	const titleLength = editor.destinationTitle.trim().length;
-	const descriptionLength = editor.destinationDesc.trim().length;
-
-	if (countryLength < 2 || countryLength > 80) errors.destinationCountry = 'Country must be between 2 and 80 characters.';
-	if (cityLength < 2 || cityLength > 80) errors.destinationCity = 'City must be between 2 and 80 characters.';
-	if (addressLength && (addressLength < 2 || addressLength > 150)) errors.destinationAddress = 'Address must be between 2 and 150 characters.';
-	if (titleLength < 3 || titleLength > 100) errors.destinationTitle = 'Title must be between 3 and 100 characters.';
-	if (descriptionLength && (descriptionLength < 5 || descriptionLength > 700)) errors.destinationDesc = 'Description must be between 5 and 700 characters.';
-	if (!parseDestinationImages(editor.destinationImagesText).length) errors.destinationImagesText = 'Add at least one image path or URL.';
-
-	return errors;
-};
-
-const AdminDestinations: NextPage<AdminDestinationsProps> = ({ initialInquiry = DEFAULT_INQUIRY }) => {
-	const [inquiry, setInquiry] = useState<AllDestinationsInquiry>(initialInquiry);
-	const [destinations, setDestinations] = useState<Destination[]>([]);
-	const [total, setTotal] = useState(0);
-	const [status, setStatus] = useState<DestinationStatusFilter>('ALL');
-	const [country, setCountry] = useState('');
-	const [city, setCity] = useState('');
-	const [searchText, setSearchText] = useState('');
-	const [editor, setEditor] = useState<DestinationEditor | null>(null);
-	const [editorErrors, setEditorErrors] = useState<DestinationEditorErrors>({});
-	const [editorError, setEditorError] = useState('');
-	const reduceMotion = Boolean(useReducedMotion());
-	const [createDestinationByAdmin, { loading: creatingDestination }] = useMutation(CREATE_DESTINATION_BY_ADMIN);
-	const [updateDestinationByAdmin, { loading: updatingDestination }] = useMutation(UPDATE_DESTINATION_BY_ADMIN);
-	const [deleteDestinationByAdmin] = useMutation(DELETE_DESTINATION_BY_ADMIN);
-	const { loading, error, refetch } = useQuery(GET_ALL_DESTINATIONS_BY_ADMIN, {
+	const { data, loading, error, refetch } = useQuery(GET_ALL_DESTINATIONS_BY_ADMIN, {
 		fetchPolicy: 'network-only',
-		variables: { input: inquiry },
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setDestinations(data?.getAllDestinationsByAdmin?.list ?? []);
-			setTotal(data?.getAllDestinationsByAdmin?.metaCounter?.[0]?.total ?? 0);
-		},
+		variables: { input },
 	});
 
-	const editorBusy = creatingDestination || updatingDestination;
-	const currentEditorErrors = editor ? validateDestinationEditor(editor) : {};
-	const isEditorValid = Boolean(editor) && Object.keys(currentEditorErrors).length === 0;
+	const rows: Destination[] = data?.getAllDestinationsByAdmin?.list ?? [];
+	const total: number = data?.getAllDestinationsByAdmin?.metaCounter?.[0]?.total ?? 0;
+	const pages = Math.ceil(total / LIMIT) || 1;
 
-	const changePageHandler = async (_: unknown, newPage: number) => {
-		const next = { ...inquiry, page: newPage + 1 };
-		setInquiry(next);
-		await refetch({ input: next });
-	};
-	const changeRowsPerPageHandler = async (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-		const next = { ...inquiry, page: 1, limit: parseInt(event.target.value, 10) };
-		setInquiry(next);
-		await refetch({ input: next });
-	};
-	const statusHandler = (nextStatus: DestinationStatusFilter) => {
-		setStatus(nextStatus);
-		const search = { ...inquiry.search };
-		if (nextStatus === 'ALL') delete search.destinationStatus;
-		else search.destinationStatus = nextStatus;
-		setInquiry({ ...inquiry, page: 1, search });
-	};
-	const applySearchHandler = () => {
-		setInquiry((current) => ({
-			...current,
-			page: 1,
-			search: {
-				...current.search,
-				country: country.trim() || undefined,
-				city: city.trim() || undefined,
-				text: searchText.trim() || undefined,
-			},
-		}));
-	};
-	const clearSearchHandler = () => {
-		setCountry('');
-		setCity('');
-		setSearchText('');
-		setInquiry((current) => {
-			const search = { ...current.search };
-			delete search.country;
-			delete search.city;
-			delete search.text;
-			return { ...current, page: 1, search };
-		});
-	};
-	const resetEditor = () => {
-		setEditor(null);
-		setEditorErrors({});
-		setEditorError('');
-	};
-	const openCreateEditor = () => {
-		setEditor(createEmptyEditor());
-		setEditorErrors({});
-		setEditorError('');
-	};
-	const openEditEditor = (destination: Destination) => {
-		setEditor(createEditorForDestination(destination));
-		setEditorErrors({});
-		setEditorError('');
-	};
-	const updateEditor = (updates: Partial<DestinationEditor>) => {
-		setEditor((current) => current ? { ...current, ...updates } : current);
-		setEditorErrors({});
-		setEditorError('');
-	};
-	const saveDestinationHandler = async () => {
-		if (!editor) return;
+	const [update, { loading: updating }] = useMutation(UPDATE_DESTINATION_BY_ADMIN);
+	const [remove, { loading: removing }] = useMutation(REMOVE_DESTINATION_BY_ADMIN);
+	const busy = updating || removing;
 
-		const validationErrors = validateDestinationEditor(editor);
-		setEditorErrors(validationErrors);
-		if (Object.keys(validationErrors).length) return;
-
-		const destinationCountry = editor.destinationCountry.trim();
-		const destinationCity = editor.destinationCity.trim();
-		const destinationAddress = editor.destinationAddress.trim();
-		const destinationTitle = editor.destinationTitle.trim();
-		const destinationDesc = editor.destinationDesc.trim();
-		const destinationImages = parseDestinationImages(editor.destinationImagesText);
-
+	const setStatusHandler = async (_id: string, destinationStatus: DestinationStatus) => {
 		try {
-			if (editor.mode === 'create') {
-				const input: DestinationInput = {
-					destinationCountry,
-					destinationCity,
-					destinationTitle,
-					destinationImages,
-					...(destinationAddress ? { destinationAddress } : {}),
-					...(destinationDesc ? { destinationDesc } : {}),
-				};
-				await createDestinationByAdmin({ variables: { input } });
-			} else {
-				const input: DestinationUpdateInput = {
-					_id: editor.destinationId as string,
-					destinationStatus: editor.destinationStatus,
-					destinationCountry,
-					destinationCity,
-					destinationAddress: destinationAddress || null,
-					destinationTitle,
-					destinationDesc: destinationDesc || null,
-					destinationImages,
-				};
-				await updateDestinationByAdmin({ variables: { input } });
-			}
-		} catch (_err: unknown) {
-			setEditorError('We could not save this destination. Please review the fields and try again.');
-			return;
-		}
-
-		resetEditor();
-		try {
-			await refetch({ input: inquiry });
-		} catch (err: unknown) {
-			sweetErrorHandling(err).then();
-		}
-	};
-	const deleteDestinationHandler = async (destinationId: string) => {
-		try {
-			if (!(await sweetConfirmAlert('Delete this destination?'))) return;
-			await deleteDestinationByAdmin({ variables: { destinationId } });
-			await refetch({ input: inquiry });
-		} catch (err: unknown) {
-			sweetErrorHandling(err).then();
+			await update({ variables: { input: { _id, destinationStatus } } });
+			await refetch({ input });
+			await sweetMixinSuccessAlert(t('Destination set to {{status}}.', { status: t(destinationStatus) }));
+		} catch (err) {
+			await sweetErrorHandling(err);
 		}
 	};
 
-	const renderHeading = (): React.ReactElement => (
-		<div className="admin-page__heading">
-			<div>
-				<Typography component="span">Place management</Typography>
-				<Typography component="h1">Destinations</Typography>
-				<Typography component="p">Maintain the places travelers discover before choosing a GoTrip experience.</Typography>
-			</div>
-			<div className="admin-page__heading-actions">
-				<Typography className="admin-page__count">{total} destinations</Typography>
-				<Button className="admin-primary-action" startIcon={<AddRoundedIcon />} onClick={openCreateEditor}>
-					Create destination
-				</Button>
-			</div>
-		</div>
-	);
+	const removeHandler = async (destinationId: string) => {
+		if (!(await sweetConfirmAlert(t('Remove this destination?') as string))) return;
+		try {
+			await remove({ variables: { destinationId } });
+			await refetch({ input });
+			await sweetMixinSuccessAlert(t('Destination removed.'));
+		} catch (err) {
+			await sweetErrorHandling(err);
+		}
+	};
 
-	const renderSearchAdornment = (): React.ReactElement => (
-		<InputAdornment position="end">
-			{(country || city || searchText) && (
-				<Button className="admin-icon-button" aria-label="Clear destination filters" onClick={clearSearchHandler}>
-					<CancelRoundedIcon />
-				</Button>
-			)}
-			<Button className="admin-icon-button" aria-label="Search destinations" onClick={applySearchHandler}>
-				<SearchRoundedIcon />
-			</Button>
-		</InputAdornment>
-	);
+	return (
+		<Stack className="admin-page content admin-table-cards">
+			<Stack className="admin-page__heading">
+				<Typography className="admin-kicker">{t('Platform control')}</Typography>
+				<Typography className="admin-title" component="h1">
+					{t('Destinations')}
+				</Typography>
+				<Typography className="admin-copy">
+					{t('The destination catalogue behind the Home rail and tour filters. Status controls public visibility.')}
+				</Typography>
+			</Stack>
 
-	const renderFilters = (): React.ReactElement => {
-		const statusItems: React.ReactElement[] = DESTINATION_STATUSES.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>);
-		return (
-			<div className="admin-filterbar admin-filterbar--destinations">
-				<Select<DestinationStatusFilter>
+			<Stack alignItems="center" className="admin-filters" direction="row" spacing={2}>
+				<Typography className="admin-cell-copy">{t('Status')}</Typography>
+				<Select
+					onChange={(e) => {
+						setStatus(e.target.value as DestinationStatus | '');
+						setPage(1);
+					}}
+					size="small"
 					value={status}
-					onChange={(event: SelectChangeEvent<DestinationStatusFilter>) => statusHandler(event.target.value as DestinationStatusFilter)}
-					aria-label="Filter destinations by status"
 				>
-					<MenuItem value="ALL">All statuses</MenuItem>
-					{statusItems}
+					<MenuItem value="">{t('All statuses')}</MenuItem>
+					{STATUSES.map((s) => (
+						<MenuItem key={s} value={s}>
+							{t(s)}
+						</MenuItem>
+					))}
 				</Select>
-				<div className="admin-search-controls admin-destination-filters">
-					<OutlinedInput aria-label="Filter destinations by country" placeholder="Country" value={country} onChange={(event) => setCountry(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && applySearchHandler()} />
-					<OutlinedInput aria-label="Filter destinations by city" placeholder="City" value={city} onChange={(event) => setCity(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && applySearchHandler()} />
-					<OutlinedInput aria-label="Search destinations" placeholder="Search destinations" value={searchText} onChange={(event) => setSearchText(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && applySearchHandler()} endAdornment={renderSearchAdornment()} />
+				<Typography className="admin-page__count">
+					{loading && rows.length === 0 ? t('Loading…') : t('{{count}} destinations', { count: total })}
+				</Typography>
+			</Stack>
+
+			{error && rows.length === 0 && !loading && (
+				<div className="admin-empty">
+					{t('Could not load destinations.')}
+					<Button onClick={() => refetch({ input })}>{t('Retry')}</Button>
 				</div>
-			</div>
-		);
-	};
+			)}
 
-	const renderResults = (): React.ReactElement => {
-		if (error) {
-			return (
-				<div className="admin-state admin-state--error">
-					<Typography>We could not load destination inventory.</Typography>
-					<Button onClick={() => refetch({ input: inquiry })}>Try again</Button>
-				</div>
-			);
-		}
+			{!loading && !error && rows.length === 0 && <div className="admin-empty">{t('No destinations found.')}</div>}
 
-		return <DestinationList destinations={destinations} loading={loading && !destinations.length} onEditDestination={openEditEditor} onDeleteDestination={deleteDestinationHandler} />;
-	};
+			{rows.length > 0 && (
+				<TableContainer>
+					<Table>
+						<TableHead>
+							<TableRow>
+								<TableCell>{t('Destination')}</TableCell>
+								<TableCell>{t('Location')}</TableCell>
+								<TableCell align="right">{t('Tours')}</TableCell>
+								<TableCell align="right">{t('Views')}</TableCell>
+								<TableCell align="right">{t('Likes')}</TableCell>
+								<TableCell>{t('Status')}</TableCell>
+								<TableCell align="right">{t('Actions')}</TableCell>
+							</TableRow>
+						</TableHead>
+						<TableBody>
+							{rows.map((d) => (
+								<TableRow key={d._id}>
+									{/* data-label drives the mobile card layout — see Categories. */}
+									<TableCell data-col="identity" data-label={t('Destination')}>
+										<Stack alignItems="center" direction="row" spacing={1.5}>
+											<Avatar alt={d.destinationTitle} src={getImageUrl(d.destinationThumbnail)} variant="rounded" />
+											<div>
+												<strong>{d.destinationTitle}</strong>
+												<Typography className="admin-cell-copy" variant="body2">
+													{d.locationKey ? t(d.locationKey) : '—'}
+												</Typography>
+											</div>
+										</Stack>
+									</TableCell>
+									<TableCell data-label={t('Location')}>
+										<Typography className="admin-cell-copy" variant="body2">
+											{d.destinationCity}, {d.destinationCountry}
+										</Typography>
+									</TableCell>
+									<TableCell align="right" data-label={t('Tours')}>
+										{d.tourCount ?? 0}
+									</TableCell>
+									<TableCell align="right" data-label={t('Views')}>
+										{d.destinationViews}
+									</TableCell>
+									<TableCell align="right" data-label={t('Likes')}>
+										{d.destinationLikes}
+									</TableCell>
+									<TableCell data-label={t('Status')}>
+										<Chip
+											color={d.destinationStatus === DestinationStatus.ACTIVE ? 'success' : 'warning'}
+											label={t(d.destinationStatus)}
+											size="small"
+										/>
+									</TableCell>
+									<TableCell align="right" data-col="actions" data-label={t('Actions')}>
+										<Stack direction="row" justifyContent="flex-end" spacing={1}>
+											{d.destinationStatus === DestinationStatus.ACTIVE ? (
+												<Button
+													className="admin-action-button admin-action-button--neutral"
+													disabled={busy}
+													onClick={() => setStatusHandler(d._id, DestinationStatus.PAUSED)}
+												>
+													{t('Hide')}
+												</Button>
+											) : (
+												<Button
+													className="admin-action-button admin-action-button--success"
+													disabled={busy}
+													onClick={() => setStatusHandler(d._id, DestinationStatus.ACTIVE)}
+												>
+													{t('Publish')}
+												</Button>
+											)}
+											<Button
+												className="admin-action-button admin-action-button--danger"
+												disabled={busy}
+												onClick={() => removeHandler(d._id)}
+											>
+												{t('Remove')}
+											</Button>
+										</Stack>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</TableContainer>
+			)}
 
-	const renderPagination = (): React.ReactElement => (
-		<TablePagination rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS} component="div" count={total} rowsPerPage={inquiry.limit} page={inquiry.page - 1} onPageChange={changePageHandler} onRowsPerPageChange={changeRowsPerPageHandler} />
+			{pages > 1 && (
+				<Stack alignItems="center" className="admin-pager" direction="row" justifyContent="center" spacing={1}>
+					<Button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+						{t('Prev')}
+					</Button>
+					<Typography className="admin-cell-copy">
+						{t('Page {{page}} of {{pages}}', { page, pages })}
+					</Typography>
+					<Button disabled={page >= pages} onClick={() => setPage(page + 1)}>
+						{t('Next')}
+					</Button>
+				</Stack>
+			)}
+		</Stack>
 	);
-
-	const renderEditor = (): React.ReactElement | null => {
-		if (!editor) return null;
-
-		const statusItems: React.ReactElement[] = DESTINATION_STATUSES.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>);
-		return (
-			<Dialog open onClose={() => !editorBusy && resetEditor()} className="admin-destination-dialog" fullWidth maxWidth="md" aria-labelledby="admin-destination-editor-title">
-				<form onSubmit={(event) => { event.preventDefault(); saveDestinationHandler().then(); }} noValidate>
-					<DialogTitle id="admin-destination-editor-title">{editor.mode === 'create' ? 'Create destination' : 'Edit destination'}</DialogTitle>
-					<DialogContent dividers>
-						<div className="admin-destination-editor">
-							<div className="admin-destination-editor__grid">
-								<TextField label="Country" value={editor.destinationCountry} onChange={(event) => updateEditor({ destinationCountry: event.target.value })} error={Boolean(editorErrors.destinationCountry)} helperText={editorErrors.destinationCountry} inputProps={{ maxLength: 80 }} required fullWidth />
-								<TextField label="City" value={editor.destinationCity} onChange={(event) => updateEditor({ destinationCity: event.target.value })} error={Boolean(editorErrors.destinationCity)} helperText={editorErrors.destinationCity} inputProps={{ maxLength: 80 }} required fullWidth />
-							</div>
-							<TextField label="Destination title" value={editor.destinationTitle} onChange={(event) => updateEditor({ destinationTitle: event.target.value })} error={Boolean(editorErrors.destinationTitle)} helperText={editorErrors.destinationTitle || `${editor.destinationTitle.length}/100`} inputProps={{ maxLength: 100 }} required fullWidth />
-							{editor.mode === 'edit' && <TextField select label="Status" value={editor.destinationStatus} onChange={(event) => updateEditor({ destinationStatus: event.target.value as DestinationStatus })} fullWidth>{statusItems}</TextField>}
-							<TextField label="Address" value={editor.destinationAddress} onChange={(event) => updateEditor({ destinationAddress: event.target.value })} error={Boolean(editorErrors.destinationAddress)} helperText={editorErrors.destinationAddress || `${editor.destinationAddress.length}/150 (optional)`} inputProps={{ maxLength: 150 }} fullWidth />
-							<TextField label="Description" value={editor.destinationDesc} onChange={(event) => updateEditor({ destinationDesc: event.target.value })} error={Boolean(editorErrors.destinationDesc)} helperText={editorErrors.destinationDesc || `${editor.destinationDesc.length}/700 (optional)`} inputProps={{ maxLength: 700 }} multiline minRows={5} fullWidth />
-							<TextField label="Image paths or URLs" value={editor.destinationImagesText} onChange={(event) => updateEditor({ destinationImagesText: event.target.value })} error={Boolean(editorErrors.destinationImagesText)} helperText={editorErrors.destinationImagesText || 'Use one existing image path or URL per line.'} multiline minRows={4} required fullWidth />
-							{editorError && <p className="admin-destination-editor__error" role="alert">{editorError}</p>}
-						</div>
-					</DialogContent>
-					<DialogActions>
-						<Button type="button" onClick={resetEditor} disabled={editorBusy}>Cancel</Button>
-						<Button type="submit" className="admin-primary-action" disabled={!isEditorValid || editorBusy}>{editorBusy ? 'Saving...' : editor.mode === 'create' ? 'Create destination' : 'Save changes'}</Button>
-					</DialogActions>
-				</form>
-			</Dialog>
-		);
-	};
-
-	const initialAnimation: DestinationPageMotionTarget = reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 };
-	const animateAnimation: DestinationPageMotionTarget = { opacity: 1, y: 0 };
-	const pageContent: React.ReactElement = (
-		<section className="content admin-page">
-			{renderHeading()}
-			<div className="table-wrap admin-surface">
-				{renderFilters()}
-				{renderResults()}
-				{renderPagination()}
-			</div>
-			{renderEditor()}
-		</section>
-	);
-
-	return <motion.div initial={initialAnimation} animate={animateAnimation} transition={{ duration: 0.22 }}>{pageContent}</motion.div>;
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminDestinations);

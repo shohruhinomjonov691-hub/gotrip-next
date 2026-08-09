@@ -1,33 +1,65 @@
-import React, { useState } from 'react';
+import React from 'react';
+import Link from 'next/link';
 import { useQuery } from '@apollo/client';
-import { Stack, Typography } from '@mui/material';
-import TourCard from '../tour/TourCard';
+import TourCard from '../homepage-html/TourCard';
 import { GET_VISITED_TOURS } from '../../../apollo/user/query';
 import { Tour } from '../../types/tour/tour';
-import { T } from '../../types/common';
+import { useTranslation } from '../../i18n/useTranslation';
+
+const input = { page: 1, limit: 12 };
 
 const RecentlyViewedTours = () => {
-	const [tours, setTours] = useState<Tour[]>([]);
-	const input = { page: 1, limit: 12 };
-
-	useQuery(GET_VISITED_TOURS, {
+	const { t } = useTranslation();
+	const { data, loading, error, refetch } = useQuery(GET_VISITED_TOURS, {
 		fetchPolicy: 'cache-and-network',
+		notifyOnNetworkStatusChange: true,
 		variables: { input },
-		onCompleted: (data: T) => setTours(data?.getVisited?.list ?? []),
 	});
+	const tours: Tour[] = data?.getVisited?.list ?? [];
+	const total = data?.getVisited?.metaCounter?.[0]?.total ?? tours.length;
 
 	return (
-		<Stack spacing={2} sx={{ p: 2 }}>
-			<Typography fontSize={28} fontWeight={800}>
-				Recently Viewed Tours
-			</Typography>
-			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-				{tours.map((tour) => (
-					<TourCard key={tour._id} tour={tour} />
-				))}
+		<div className="acc-panel">
+			<div className="pg-toolbar acc-toolbar">
+				<div className="pg-count">{t('{{count}} tours viewed', { count: total })}</div>
 			</div>
-			{tours.length === 0 && <Typography color="text.secondary">No recently viewed tours yet.</Typography>}
-		</Stack>
+
+			{loading && tours.length === 0 && (
+				<div className="pg-grid">
+					{Array.from({ length: 6 }, (_, i) => (
+						<div className="pg-skeleton" key={i} style={{ height: 330 }} />
+					))}
+				</div>
+			)}
+
+			{error && tours.length === 0 && !loading && (
+				<div className="pg-state">
+					<h3>{t('Could not load your history')}</h3>
+					<p>{t('Please try again in a moment.')}</p>
+					<button className="btn btn-sky" onClick={() => refetch({ input })} type="button">
+						{t('Try again')}
+					</button>
+				</div>
+			)}
+
+			{!loading && !error && tours.length === 0 && (
+				<div className="pg-state">
+					<h3>{t('Nothing viewed yet')}</h3>
+					<p>{t('Tours you open will appear here so you can find them again.')}</p>
+					<Link className="btn btn-sky" href="/tour">
+						{t('Start exploring')}
+					</Link>
+				</div>
+			)}
+
+			{tours.length > 0 && (
+				<div className="pg-grid">
+					{tours.map((tour) => (
+						<TourCard detailed key={tour._id} tour={tour} />
+					))}
+				</div>
+			)}
+		</div>
 	);
 };
 

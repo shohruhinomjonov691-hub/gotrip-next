@@ -18,7 +18,6 @@ export interface TourInput {
 	tourMeetingPoint?: string;
 	tourLanguage?: TourLanguage;
 	tourDifficulty?: TourDifficulty;
-	destinationId?: string;
 }
 
 export interface Range {
@@ -33,9 +32,9 @@ export interface PeriodsRange {
 
 interface TISearch {
 	memberId?: string;
-	destinationId?: string;
 	locationList?: TourLocation[];
 	categoryList?: TourCategory[];
+	destinationId?: string;
 	pricesRange?: Range;
 	periodsRange?: PeriodsRange;
 	durationRange?: Range;
