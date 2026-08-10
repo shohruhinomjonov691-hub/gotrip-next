@@ -110,12 +110,13 @@ const Join: NextPage = () => {
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
 			console.error('login form error:', err);
-			setFormError(err.message ?? t('Login failed. Please check your details and try again.'));
-			await sweetMixinErrorAlert(err.message);
+			const message = err.message ?? 'Login failed. Please check your details and try again.';
+			setFormError(t(message));
+			await sweetMixinErrorAlert(message);
 		} finally {
 			setSubmitting(false);
 		}
-	}, [input, router]);
+	}, [input, router, t]);
 
 	const buildSignupInput = useCallback((): MemberInput => {
 		return {

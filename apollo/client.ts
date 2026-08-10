@@ -109,11 +109,17 @@ function createIsomorphicLink() {
 			return /jwt|invalid (token|signature)/i.test(message);
 		};
 
-		const errorLink = onError(({ graphQLErrors, networkError, response }) => {
+		const errorLink = onError(({ graphQLErrors, networkError, response, operation }) => {
 			if (graphQLErrors) {
+				// The Login mutation shows its own safe, enumeration-proof message
+				// (libs/auth/index.ts requestJwtToken) — this generic path would otherwise
+				// also fire here with the raw backend message (e.g. "No member with that
+				// member nick!" vs "Wrong password, try again!"), undoing that safety by
+				// revealing which part of the credentials was wrong.
+				const isLogin = operation.operationName === 'Login';
 				graphQLErrors.map(({ message, locations, path, extensions }) => {
 					console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
-					if (!message.includes('input')) sweetErrorAlert(message);
+					if (!isLogin && !message.includes('input')) sweetErrorAlert(message);
 				});
 
 				// Only clear/redirect if we currently hold a token — i.e. we believed we were

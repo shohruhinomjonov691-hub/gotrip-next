@@ -17,19 +17,30 @@ export function setJwtToken(token: string) {
 }
 
 export const logIn = async (nick: string, password: string): Promise<void> => {
-	try {
-		const { jwtToken } = await requestJwtToken({ nick, password });
+	// No try/catch here: a failed login never had a session to begin with, so
+	// there is nothing to log out of. Let the error propagate to the caller
+	// (join.tsx's doLogin), which already displays it — swallowing it here used
+	// to silently reload the page instead, wiping out that error before the
+	// user could read it.
+	const { jwtToken } = await requestJwtToken({ nick, password });
 
-		if (jwtToken) {
-			updateStorage({ jwtToken }); // LocalStorage > BACKEND
-			updateUserInfo(jwtToken); // ReactiveVariable > FRONTEND
-		}
-	} catch (err) {
-		console.warn('login err', err);
-		logOut();
-		// throw new Error('Login Err');
+	if (jwtToken) {
+		updateStorage({ jwtToken }); // LocalStorage > BACKEND
+		updateUserInfo(jwtToken); // ReactiveVariable > FRONTEND
 	}
 };
+
+// Backend messages this maps from (apps/gotrip-api/.../member.service.ts login(),
+// libs/enums/common.enum.ts Message enum) — kept as literal strings since the
+// frontend has no shared import of the backend enum.
+const NO_MEMBER_NICK = 'No member with that member nick!';
+const WRONG_PASSWORD = 'Wrong password, try again!';
+const BLOCKED_USER = 'You have been blocked!';
+
+// Translation keys already present (and translated in en/ko/ru/uz) in common.json —
+// reused as-is rather than introducing new keys.
+const INVALID_CREDENTIALS_MESSAGE = 'Login failed. Please check your details and try again.';
+const GENERIC_ERROR_MESSAGE = 'Something went wrong!';
 
 const requestJwtToken = async ({
 	nick,
@@ -59,15 +70,26 @@ const requestJwtToken = async ({
 		const firstMessage: string | undefined = graphQLErrors?.[0]?.message;
 		console.log('request token err', err);
 
+		// NO_MEMBER_NICK and WRONG_PASSWORD are genuinely distinct on the backend,
+		// but must collapse into the same user-facing message here — telling the
+		// client which one it was would let an attacker enumerate which nicknames
+		// are registered.
+		let safeMessage: string;
 		switch (firstMessage) {
-			case 'Definer: login and password do not match':
-				await sweetMixinErrorAlert('Please check your password again');
+			case NO_MEMBER_NICK:
+			case WRONG_PASSWORD:
+				safeMessage = INVALID_CREDENTIALS_MESSAGE;
 				break;
-			case 'Definer: user has been blocked!':
-				await sweetMixinErrorAlert('User has been blocked!');
+			case BLOCKED_USER:
+				safeMessage = BLOCKED_USER;
 				break;
+			default:
+				// Any other GraphQL error, or a genuine network/server failure with no
+				// graphQLErrors at all — never surface raw backend/network detail here.
+				safeMessage = GENERIC_ERROR_MESSAGE;
 		}
-		throw new Error(firstMessage ?? err?.message ?? 'Login failed. Please try again.');
+
+		throw new Error(safeMessage);
 	}
 };
 
