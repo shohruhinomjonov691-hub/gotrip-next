@@ -172,11 +172,19 @@ const NotificationsCenter = () => {
 		return BUCKET_ORDER.filter((b) => map[b]?.length).map((b) => ({ bucket: b, items: map[b] }));
 	}, [visible]);
 
-	/** HANDLERS **/
+	/**
+	 * HANDLERS
+	 *
+	 * The header bell (NotificationBell) and this list each run their own
+	 * GET_MY_NOTIFICATIONS query with different `limit` variables, so they're
+	 * separate Apollo cache entries — a plain local refetch() here only updated
+	 * this list, leaving the bell's count stale until a full page reload. Naming
+	 * the query in refetchQueries instead refreshes every active instance of it
+	 * (this list AND the bell) in one round trip, which is what keeps them in sync.
+	 */
 	const markReadHandler = async (notificationId: string) => {
 		try {
-			await markNotificationRead({ variables: { notificationId } });
-			await refetch({ input });
+			await markNotificationRead({ variables: { notificationId }, refetchQueries: ['GetMyNotifications'] });
 		} catch (err) {
 			await sweetErrorHandling(err);
 		}
@@ -184,8 +192,7 @@ const NotificationsCenter = () => {
 
 	const markAllHandler = async () => {
 		try {
-			await markAllNotificationsRead();
-			await refetch({ input });
+			await markAllNotificationsRead({ refetchQueries: ['GetMyNotifications'] });
 			await sweetTopSmallSuccessAlert(t('Notifications updated'), 900);
 		} catch (err) {
 			await sweetErrorHandling(err);
@@ -194,8 +201,7 @@ const NotificationsCenter = () => {
 
 	const deleteHandler = async (notificationId: string) => {
 		try {
-			await deleteNotification({ variables: { notificationId } });
-			await refetch({ input });
+			await deleteNotification({ variables: { notificationId }, refetchQueries: ['GetMyNotifications'] });
 		} catch (err) {
 			await sweetErrorHandling(err);
 		}

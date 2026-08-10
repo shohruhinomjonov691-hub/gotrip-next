@@ -29,7 +29,11 @@ const PREVIEW_INPUT = {
 	limit: PREVIEW_LIMIT,
 	sort: 'createdAt',
 	direction: Direction.DESC,
-	search: {},
+	/* The bell is an unread inbox, not a history — NotificationsCenter (My
+	   Page) is the one place read notifications remain visible. Filtering
+	   server-side means a read notification simply stops matching this
+	   query on the next refetch, rather than needing local hide-logic. */
+	search: { notificationStatus: NotificationStatus.WAIT },
 };
 
 /** Only the five types the backend actually emits. */
@@ -100,7 +104,7 @@ const NotificationBell = () => {
 	const [open, setOpen] = useState(false);
 	const wrapRef = useRef<HTMLDivElement>(null);
 
-	const { data, refetch } = useQuery(GET_MY_NOTIFICATIONS, {
+	const { data } = useQuery(GET_MY_NOTIFICATIONS, {
 		fetchPolicy: 'cache-and-network',
 		skip: !user?._id,
 		variables: { input: PREVIEW_INPUT },
@@ -138,8 +142,11 @@ const NotificationBell = () => {
 		setOpen(false);
 		if (n.notificationStatus === NotificationStatus.WAIT) {
 			try {
-				await markRead({ variables: { notificationId: n._id } });
-				await refetch({ input: PREVIEW_INPUT });
+				// Naming the query (rather than a local refetch()) also refreshes
+				// NotificationsCenter's own GET_MY_NOTIFICATIONS instance on My Page —
+				// it runs with a different `limit`, so it's a separate cache entry that
+				// a local refetch here would never have touched.
+				await markRead({ variables: { notificationId: n._id }, refetchQueries: ['GetMyNotifications'] });
 			} catch {
 				/* Non-blocking: navigation below still happens. */
 			}
@@ -152,8 +159,7 @@ const NotificationBell = () => {
 
 	const markAllHandler = async () => {
 		try {
-			await markAll();
-			await refetch({ input: PREVIEW_INPUT });
+			await markAll({ refetchQueries: ['GetMyNotifications'] });
 		} catch {
 			/* Silent — the panel simply keeps its current state. */
 		}
