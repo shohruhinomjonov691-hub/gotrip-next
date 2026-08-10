@@ -77,7 +77,10 @@ export const useLocaleSwitch = () => {
 			} catch {
 				/* non-fatal */
 			}
-			await router.push(router.asPath, router.asPath, { locale: nextLang });
+			// scroll: false — a locale switch is not a real navigation (same path, same
+			// content), but router.push scrolls to top by default like any other
+			// route change would. Without this the page jumps to the top every time.
+			await router.push(router.asPath, router.asPath, { locale: nextLang, scroll: false });
 		},
 		[router],
 	);

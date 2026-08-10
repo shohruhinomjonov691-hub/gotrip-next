@@ -3,16 +3,27 @@ import { useRouter } from 'next/router';
 
 /**
  * Restores exact scroll position on back/forward navigation across the app,
- * while every other kind of navigation (Link click, router.push, direct
- * load) always starts at the top.
+ * and on a language switch (same page, new locale), while every other kind
+ * of navigation (Link click, router.push to a different page, direct load)
+ * always starts at the top.
  *
- * These two cases must be told apart explicitly — `router.beforePopState`
- * fires only for browser Back/Forward (it does not fire for `router.push`),
- * so it flags a navigation as "pop" before `routeChangeStart`/`Complete` run
- * for it. Without that flag, restoring "wherever this path was last left"
- * on every arrival means clicking Home after having previously scrolled the
+ * These cases must be told apart explicitly — `router.beforePopState` fires
+ * only for browser Back/Forward (it does not fire for `router.push`), so it
+ * flags a navigation as "pop" before `routeChangeStart`/`Complete` run for
+ * it. Without that flag, restoring "wherever this path was last left" on
+ * every arrival means clicking Home after having previously scrolled the
  * Home page lands mid-page instead of at the Hero — which is the bug this
  * hook exists to avoid.
+ *
+ * A language switch is a `router.push` to the *same* page under a different
+ * locale (`useLocaleSwitch` calls `router.push(asPath, asPath, { locale })`),
+ * so it is never a pop and would otherwise hit the "always starts at the
+ * top" branch below, undoing the scroll position mid-read. It's told apart
+ * from a real navigation by comparing the locale-stripped pathname before
+ * and after: `/ru` vs `/` both strip to `/`, so switching locale on the
+ * Home page is recognized as "same page" even though Next.js's own
+ * `url`/`asPath` values carry a locale prefix (`/ru`) that a real navigation
+ * to a different page would not share.
  *
  * The scroll position itself is saved to sessionStorage (keyed by path) on
  * every route change, regardless of navigation kind, since a push away is
@@ -70,6 +81,16 @@ const savePosition = (key: string, y: number) => {
 	writeMap(map);
 };
 
+/** `/ru` -> `/`, `/ru/tour` -> `/tour`, `/tour` -> `/tour` (default locale has no prefix). */
+const stripLocale = (path: string, locales: readonly string[] | string[] | undefined): string => {
+	if (!locales) return path;
+	for (const locale of locales) {
+		if (path === `/${locale}`) return '/';
+		if (path.startsWith(`/${locale}/`)) return path.slice(locale.length + 1);
+	}
+	return path;
+};
+
 export const useScrollRestoration = () => {
 	const router = useRouter();
 	const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -123,15 +144,23 @@ export const useScrollRestoration = () => {
 			clearRestoreTimer();
 
 			const key = url.split('#')[0];
+			const prevPath = currentPath.current;
 			currentPath.current = key;
 
-			if (!wasPopNavigation) {
+			/* Locale switches land here as `wasPopNavigation === false` (they're a
+			 * router.push, never a pop) but are "the same page" once the locale
+			 * prefix is stripped, so they get restored like a pop instead of
+			 * reset to the top — see the module comment above. */
+			const isLocaleOnlySwitch =
+				!wasPopNavigation && stripLocale(prevPath, router.locales) === stripLocale(key, router.locales);
+
+			if (!wasPopNavigation && !isLocaleOnlySwitch) {
 				window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 				return;
 			}
 
 			const map = readMap();
-			const saved = map[key] ?? map[url];
+			const saved = isLocaleOnlySwitch ? (map[prevPath] ?? map[key] ?? map[url]) : (map[key] ?? map[url]);
 			if (typeof saved === 'number' && saved > 0) {
 				attemptRestore(saved, RESTORE_ATTEMPTS);
 			} else {
