@@ -808,6 +808,81 @@
  * on one shared topmost layer instead of two independently-guessed values. */
 .swal2-container {
 	z-index: var(--gt-z-modal);
+	background: var(--gt-scrim);
+}
+
+/* Everything below re-skins the popup itself with the same surface/typography
+ * tokens .gt-modal__panel uses, so a SweetAlert2 dialog (error, success,
+ * confirm, the login-required prompt) reads as part of the same product
+ * instead of the library's unstyled default — plain white, no radius, no
+ * shared font — which is what made these look broken/empty against the rest
+ * of the dark-navy UI. Every property here is a straight recolor/retype; none
+ * of it changes SweetAlert2's own layout, animation or behavior. */
+.swal2-popup {
+	background: var(--gt-elevated);
+	color: var(--gt-text);
+	font-family: var(--gt-font-body);
+	border-radius: var(--gt-radius-surface);
+	box-shadow: var(--gt-shadow-floating);
+	border: 1px solid var(--gt-border);
+}
+
+.swal2-title {
+	color: var(--gt-text);
+	font-family: var(--gt-font-heading);
+	font-weight: var(--gt-weight-semibold);
+}
+
+.swal2-html-container,
+.swal2-content {
+	color: var(--gt-text-2);
+}
+
+.swal2-actions .swal2-styled {
+	border-radius: var(--gt-radius-control);
+	font-family: var(--gt-font-body);
+	font-weight: var(--gt-weight-semibold);
+	box-shadow: none;
+}
+
+.swal2-confirm.swal2-styled {
+	background: var(--gt-accent);
+	color: var(--gt-accent-contrast);
+}
+
+.swal2-cancel.swal2-styled {
+	background: transparent;
+	color: var(--gt-text-2);
+	border: 1px solid var(--gt-border-strong);
+}
+
+.swal2-icon.swal2-error {
+	border-color: var(--gt-error);
+	color: var(--gt-error);
+}
+.swal2-icon.swal2-warning {
+	border-color: var(--gt-warning);
+	color: var(--gt-warning);
+}
+.swal2-icon.swal2-info,
+.swal2-icon.swal2-question {
+	border-color: var(--gt-info);
+	color: var(--gt-info);
+}
+.swal2-icon.swal2-success {
+	border-color: var(--gt-success);
+	color: var(--gt-success);
+
+	[class^='swal2-success-line'] {
+		background-color: var(--gt-success);
+	}
+	.swal2-success-ring {
+		border-color: rgba(21, 128, 61, 0.3);
+	}
+}
+
+.swal2-timer-progress-bar {
+	background: var(--gt-accent);
 }
 
 /* Bottom sheet — the mobile counterpart */

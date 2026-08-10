@@ -1,5 +1,3 @@
-version: '3.3'
-
 services:
   gotrip-next:
     container_name: gotrip-next

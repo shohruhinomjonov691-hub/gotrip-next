@@ -69,6 +69,14 @@ const withAdminLayout = (Component: ComponentType) => {
 			logOut();
 			router.push('/').then();
 		};
+		/* The only way in is My Page's own admin-only "Admin panel" link
+		   (libs/components/mypage/MyMenu.tsx), which opens this in a new tab —
+		   so once here there was no way back except closing the tab. Mirrors
+		   that My Page link's own destination/query shape. */
+		const goToMyPageHandler = () => {
+			handleCloseUserMenu();
+			router.push('/mypage?category=myProfile').then();
+		};
 
 		if (!user || user?.memberType !== MemberType.ADMIN) return null;
 
@@ -152,6 +160,7 @@ const withAdminLayout = (Component: ComponentType) => {
 									<Typography component="span">{user.memberPhone}</Typography>
 								</div>
 							<Divider />
+							<MenuItem onClick={goToMyPageHandler}>{t('My Page')}</MenuItem>
 							<MenuItem onClick={logoutHandler}>{t('Log out')}</MenuItem>
 						</Menu>
 					</Toolbar>
