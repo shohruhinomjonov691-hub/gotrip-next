@@ -1,0 +1,28 @@
+version: '3.3'
+
+services:
+  gotrip-next:
+    container_name: gotrip-next
+    restart: always
+    image: node:20.10.0
+    ports:
+      - 4000:3000
+    environment:
+      - PORT=3000
+
+    volumes:
+      - ./:/usr/src/gotrip-next
+    working_dir: /usr/src/gotrip-next
+
+    networks:
+      - client-network
+
+    # FOR PRODUCTION
+    command: bash -c "yarn && yarn run build && yarn run start"
+
+networks:
+  client-network:
+    driver: bridge
+# gotrip-next:  loclalhost:4000 => container:3000
+# gotrip-api:   loclalhost:4001 => container:3007
+# gotrip-batch: loclalhost:4002 => container:3008
