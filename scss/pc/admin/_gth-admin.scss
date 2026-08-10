@@ -57,24 +57,12 @@
 	--gt-error: #a8331c;
 	--gt-warning: #8a5a12;
 
-	/* The panel now sits on the same backdrop as the Home page's "Most Popular
-	   Tours" section: --sky-soft plus the shared doodle artwork. The doodle is
-	   painted on a ::before rather than a markup element (the section uses a
-	   <div class="doodle">) so no admin page markup changes, and it is fixed +
-	   non-interactive so it never scrolls over content or eats clicks. */
+	/* The panel sits on the same ambient wash as the Home page's "Most Popular
+	   Tours" section (--sky-soft); the doodle artwork itself is scoped to
+	   #bunker below, not the whole shell — see that rule for why. */
 	background: var(--sky-soft) !important;
 	color: var(--ink);
 	position: relative;
-
-	&::before {
-		content: '';
-		position: fixed;
-		inset: 0;
-		pointer-events: none;
-		z-index: 0;
-		opacity: 0.85;
-		@include gt-doodle-backdrop;
-	}
 
 	/* Everything real sits above the backdrop. */
 	> * {
@@ -276,8 +264,32 @@
 
 	/* ------------------------------------------------------------ content */
 	#bunker {
+		position: relative;
 		padding: 92px 30px 60px;
 		min-height: 100vh;
+
+		/* The Home page's "Most Popular Tours" backdrop (gt-doodle-backdrop,
+		   see scss/pc/homepage-html/_tokens.scss), scoped to the admin main
+		   content container specifically — not the whole #pc-wrap.admin shell,
+		   which also contains the sidebar and navbar. This used to live on
+		   #pc-wrap.admin as a `position: fixed` ::before, which is
+		   viewport-relative and so didn't scroll with #bunker's own (often
+		   taller-than-viewport) content: only whatever fragment of the pattern
+		   happened to overlap the viewport at a given scroll position was ever
+		   visible. `position: absolute` + `inset: 0` here ties the artwork to
+		   #bunker's own box instead, so it grows and scrolls with the
+		   container like a real background would. Negative z-index keeps it
+		   behind #bunker's own (non-positioned) content regardless of paint
+		   order, without needing to touch that content's markup or styles. */
+		&::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			z-index: -1;
+			opacity: 0.85;
+			@include gt-doodle-backdrop;
+		}
 	}
 
 	.admin-kicker {
