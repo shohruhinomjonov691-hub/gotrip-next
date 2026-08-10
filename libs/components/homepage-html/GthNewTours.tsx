@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import TourCard from './TourCard';
 import GthSectionState from './GthSectionState';
 import { GET_TOURS } from '../../../apollo/user/query';
+import { LIKE_TARGET_TOUR } from '../../../apollo/user/mutation';
 import { Tour, Tours } from '../../types/tour/tour';
-import { Direction } from '../../enums/common.enum';
+import { Direction, Message } from '../../enums/common.enum';
 import { useTranslation } from '../../i18n/useTranslation';
+import { userVar } from '../../../apollo/store';
+import { sweetErrorHandling } from '../../sweetAlert';
 
 const TOURS_INPUT = {
 	page: 1,
@@ -26,11 +29,26 @@ const GthNewTours = () => {
 	const [grabbing, setGrabbing] = useState(false);
 	const dragRef = useRef({ down: false, sx: 0, sl: 0, moved: 0, captured: false });
 
-	const { loading, error, data } = useQuery<{ getTours: Tours }>(GET_TOURS, {
+	const user = useReactiveVar(userVar);
+	const [likeTargetTour] = useMutation(LIKE_TARGET_TOUR);
+
+	const { loading, error, data, refetch } = useQuery<{ getTours: Tours }>(GET_TOURS, {
 		fetchPolicy: 'cache-and-network',
 		variables: { input: TOURS_INPUT },
 	});
 	const tours: Tour[] = data?.getTours?.list ?? [];
+
+	/** Same persist-through-GraphQL pattern as the Tour list page — see TourCard's
+	 *  onLike doc comment. Without this the heart only toggled local state here. */
+	const likeHandler = async (tourId: string) => {
+		try {
+			if (!user?._id) throw new Error(Message.NOT_AUTHENTICATED);
+			await likeTargetTour({ variables: { tourId } });
+			await refetch({ input: TOURS_INPUT });
+		} catch (err) {
+			await sweetErrorHandling(err);
+		}
+	};
 
 	const step = useCallback(() => {
 		const el = scrollRef.current;
@@ -157,7 +175,7 @@ const GthNewTours = () => {
 						emptyText={t('No tours published yet — check back soon.')}
 					/>
 					{tours.map((tour) => (
-						<TourCard key={tour._id} tour={tour} />
+						<TourCard key={tour._id} onLike={likeHandler} tour={tour} />
 					))}
 				</div>
 				{tours.length > 0 && (
