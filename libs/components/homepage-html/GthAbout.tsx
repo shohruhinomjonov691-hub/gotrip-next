@@ -70,7 +70,7 @@ const GthAbout = () => {
 	];
 
 	return (
-		<section className="ab-sec">
+		<section className="ab-sec" id="about-us">
 			<div className="doodle" />
 			<div className="wrap ab-grid">
 				{/* Imagery */}

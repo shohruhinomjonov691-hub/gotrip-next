@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useTranslation } from '../../i18n/useTranslation';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, YouTubeIcon } from './socialIcons';
 
+/* "About Us" points at the existing #about-us section on the Home page
+   (GthAbout.tsx) rather than a route of its own. */
+const ABOUT_US_HREF = '/#about-us';
+
 const USEFUL_LINKS = [
 	{ label: 'Home', href: '/' },
-	{ label: 'About Us', href: '/community' },
+	{ label: 'About Us', href: ABOUT_US_HREF },
 	{ label: 'All Tours', href: '/tour' },
 	{ label: 'Become a Guide', href: '/mypage' },
 	{ label: 'FAQ', href: '/cs' },
@@ -23,8 +28,19 @@ const INSTA_IMAGES = [
 
 const GthFooter = () => {
 	const { t } = useTranslation();
+	const router = useRouter();
 	const [email, setEmail] = useState('');
 	const [showTop, setShowTop] = useState(false);
+
+	/** Already on the Home page: scroll directly instead of round-tripping
+	 *  through a hash-only route change. Mirrors GthHero's own #our-services
+	 *  handler. From any other page the plain href navigates to `/#about-us`,
+	 *  where LayoutHome's scroll-on-mount effect takes over. */
+	const scrollToAboutUs = (e: React.MouseEvent<HTMLAnchorElement>) => {
+		if (router.pathname !== '/') return;
+		e.preventDefault();
+		document.getElementById('about-us')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	};
 
 	useEffect(() => {
 		const onScroll = () => setShowTop(window.scrollY > 600);
@@ -146,7 +162,7 @@ const GthFooter = () => {
 					<ul>
 						{USEFUL_LINKS.map((link) => (
 							<li key={link.label}>
-								<Link href={link.href}>
+								<Link href={link.href} onClick={link.href === ABOUT_US_HREF ? scrollToAboutUs : undefined}>
 									<svg viewBox="0 0 24 24">
 										<path d="M9 6l6 6-6 6" />
 									</svg>{' '}

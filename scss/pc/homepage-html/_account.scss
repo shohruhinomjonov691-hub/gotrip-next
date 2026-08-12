@@ -214,10 +214,12 @@
 		box-shadow: var(--shadow);
 		transition: background 0.35s, border-color 0.35s;
 
-		/* Messages supplies its own frame. */
+		/* Messages supplies its own frame. Overflow stays visible (not hidden)
+		   so the conversation-list popover, anchored to .ms-topbar, can float
+		   over the chat instead of being clipped at this container's edge. */
 		&.bare {
 			padding: 0;
-			overflow: hidden;
+			overflow: visible;
 		}
 	}
 	.acc-toolbar {
@@ -1979,37 +1981,56 @@
  * ========================================================================== */
 .gth-root {
 	.ms-wrap {
-		display: grid;
-		grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
-		gap: 0;
+		display: flex;
+		flex-direction: column;
 		height: min(72vh, 720px);
 		border: 1px solid var(--line);
 		border-radius: 18px;
 		background: var(--paper);
 		box-shadow: var(--pop);
-		overflow: hidden;
+		/* Visible, not hidden: .ms-list-popover is anchored to .ms-topbar and
+		   needs to float over .ms-chat rather than be clipped at this box's
+		   edge. Each child below owns its own corner radius instead. */
+		overflow: visible;
 	}
 
-	/* ------------------------------------------------------------- left pane */
-	.ms-side {
+	/* ---------------------------------------------------------------- top bar
+	 * Replaces the old always-visible sidebar. Search stays inline and always
+	 * reachable; the toggle opens .ms-list-popover with the same search
+	 * results + conversation list markup the sidebar used to render inline —
+	 * nothing about that markup or its data source changed, only where it's
+	 * mounted. */
+	.ms-topbar {
+		position: relative;
 		display: flex;
-		flex-direction: column;
-		min-width: 0;
-		border-right: 1px solid var(--line);
+		align-items: center;
+		gap: 8px;
+		flex: 0 0 auto;
+		padding: 10px 12px;
+		border-bottom: 1px solid var(--line);
 		background: var(--paper-soft);
+		border-radius: 18px 18px 0 0;
 	}
 
 	.ms-search {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		padding: 14px 16px;
-		border-bottom: 1px solid var(--line);
+		flex: 1 1 auto;
+		min-width: 0;
+		padding: 9px 14px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--paper);
+		transition: border-color 0.18s ease;
 
+		&:focus-within {
+			border-color: var(--sky);
+		}
 		svg {
-			width: 18px;
-			height: 18px;
-			flex: 0 0 18px;
+			width: 17px;
+			height: 17px;
+			flex: 0 0 17px;
 			fill: none;
 			stroke: var(--muted);
 			stroke-width: 2;
@@ -2025,15 +2046,122 @@
 			font-family: inherit;
 			font-size: 0.9rem;
 
+			/* main.scss applies `#pc-wrap input:focus-visible { outline: 3px
+			   solid var(--gt-blue) }`, which outranks the outline:none above
+			   by specificity (ID beats class) and paints a detached blue
+			   rectangle inside this pill. The wrapper's own
+			   `.ms-search:focus-within` border-color change above already
+			   gives focus a visible, on-brand indicator, so this only needs
+			   to cancel the intrusive outline, not replace it. */
+			&:focus,
+			&:focus-visible {
+				outline: none !important;
+				box-shadow: none !important;
+			}
+
 			&::placeholder {
 				color: var(--muted);
 			}
 		}
 	}
 
+	/* Compact conversations toggle — deliberately a chat-bubble glyph, not a
+	   three-dot menu, so its purpose (open the people/conversation list) reads
+	   at a glance. */
+	.ms-list-toggle {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 40px;
+		height: 40px;
+		flex: 0 0 40px;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: var(--paper);
+		cursor: pointer;
+		transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+
+		svg {
+			width: 19px;
+			height: 19px;
+			fill: none;
+			stroke: var(--body);
+			stroke-width: 1.9;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+		&:hover,
+		&[aria-expanded='true'] {
+			border-color: var(--sky);
+			background: var(--sky-soft);
+
+			svg {
+				stroke: var(--sky);
+			}
+		}
+		&:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--sky);
+		}
+	}
+
+	.ms-list-toggle-badge {
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		min-width: 17px;
+		height: 17px;
+		padding: 0 4px;
+		border: 2px solid var(--paper);
+	}
+
+	/* ------------------------------------------------------------- popover */
+	.ms-list-popover {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 12px;
+		right: 12px;
+		z-index: 20;
+		display: flex;
+		flex-direction: column;
+		max-height: min(60vh, 460px);
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		background: var(--paper);
+		box-shadow: var(--pop);
+		overflow: hidden;
+		animation: msListIn 0.16s ease;
+	}
+	@keyframes msListIn {
+		from {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.ms-list-popover-head {
+		flex: 0 0 auto;
+		padding: 12px 16px;
+		border-bottom: 1px solid var(--line);
+
+		span {
+			font-family: 'Sora', sans-serif;
+			font-size: 0.86rem;
+			font-weight: 700;
+			color: var(--ink);
+		}
+	}
+
 	.ms-results {
+		flex: 0 0 auto;
 		border-bottom: 1px solid var(--line);
 		padding: 8px 0;
+		max-height: 45%;
+		overflow-y: auto;
 	}
 	.ms-results-title {
 		display: block;
@@ -2359,21 +2487,29 @@
 	}
 }
 
-/* Mobile / tablet: one pane at a time — the thread takes over once a
-   conversation is open, which is the standard messaging pattern. */
+/* Mobile / tablet: the conversation list is now a popover on every size (not
+   just narrow ones), so the only thing left to adjust here is giving the
+   chat itself more of the viewport, since there's no permanent sidebar
+   competing for height any more. */
 @media (max-width: 900px) {
 	.gth-root {
 		.ms-wrap {
-			grid-template-columns: minmax(0, 1fr);
-			height: min(78vh, 640px);
-		}
-		.ms-side {
-			border-right: 0;
-			border-bottom: 1px solid var(--line);
-			max-height: 42%;
+			height: min(82vh, 680px);
 		}
 		.ms-bubble {
 			max-width: 88%;
+		}
+	}
+}
+
+/* Narrow phones: same absolutely-positioned popover (it's already anchored
+   to .ms-topbar and inset from both edges, so it can't overflow the
+   viewport horizontally at any width) — just a slightly shorter max-height
+   so it never crowds out the chat beneath it on a ~320–430px screen. */
+@media (max-width: 520px) {
+	.gth-root {
+		.ms-list-popover {
+			max-height: min(58vh, 420px);
 		}
 	}
 }
@@ -2493,7 +2629,6 @@
 	.ms-wrap {
 		min-height: 0;
 	}
-	.ms-side,
 	.ms-chat {
 		min-height: 0;
 	}
@@ -2511,8 +2646,8 @@
 /* ----------------------------------------------------------------------------
  * Messages — conversation wallpaper.
  *
- * Only .ms-thread gets the image (never .ms-side / .ms-list / the composer),
- * so the sidebar and conversation list stay on the plain paper surface. Bubbles
+ * Only .ms-thread gets the image (never .ms-topbar / .ms-list / the composer),
+ * so the conversation popover and composer stay on the plain paper surface. Bubbles
  * are opaque (see the .ms-bubble rule above) and carry their own shadow, so
  * legibility does not depend on the scrim alone — the scrim just keeps the
  * empty space between bubbles from competing with them, the same role a
