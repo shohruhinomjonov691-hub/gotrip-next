@@ -10,6 +10,7 @@ import { MARK_CONVERSATION_READ, SEND_MESSAGE } from '../../../apollo/user/mutat
 import { getImageUrl } from '../../config';
 import { getJwtToken } from '../../auth';
 import { ensureMessagingSocket } from '../../messagingSocket';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { Conversation, Message, MessageAttachment } from '../../types/message/message';
 import { Member } from '../../types/member/member';
 
@@ -102,6 +103,12 @@ const MessagesCenter = () => {
 	const [draft, setDraft] = useState('');
 	const [search, setSearch] = useState('');
 	const listEndRef = useRef<HTMLDivElement>(null);
+	/* The conversation list now opens as a popover instead of sitting
+	   permanently above the chat — same list/search markup and data, just
+	   shown on demand so the chat gets the available height. */
+	const [listOpen, setListOpen] = useState(false);
+	const topbarRef = useRef<HTMLDivElement>(null);
+	useClickOutside(topbarRef, listOpen, () => setListOpen(false));
 	/* Attachments: paths already returned by imagesUploader, ready to send. */
 	const [pendingImages, setPendingImages] = useState<string[]>([]);
 	/* Documents: full metadata already returned by documentsUploader — the
@@ -124,6 +131,13 @@ const MessagesCenter = () => {
 		skip: !user?._id,
 	});
 	const conversations: Conversation[] = convData?.getMyConversations?.list ?? [];
+	/* Surfaced on the toggle button so unread messages stay visible even while
+	   the list itself is collapsed — the per-row badges inside the popover are
+	   unchanged. */
+	const totalUnread = useMemo(
+		() => conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0),
+		[conversations],
+	);
 
 	/* Directory search only fires once the box has enough to be meaningful. */
 	const { data: searchData } = useQuery(SEARCH_MEMBERS, {
@@ -495,10 +509,19 @@ const MessagesCenter = () => {
 		}
 	};
 
+	/* Opening any conversation — from the list or from search — closes the
+	   popover so the chat takes over, matching the pre-popover behaviour where
+	   picking a row already showed the full thread. */
+	const selectConversation = (id: string) => {
+		setActiveId(id);
+		setListOpen(false);
+	};
+
 	/* Starting a chat from search. sendMessage creates the conversation on the
 	   server, so there is no separate "create" round trip. */
 	const openWithMember = async (partner: Member) => {
 		setSearch('');
+		setListOpen(false);
 		const existing = conversations.find((c) => c.partner?._id === partner._id);
 		if (existing) return setActiveId(existing._id);
 		try {
@@ -517,7 +540,7 @@ const MessagesCenter = () => {
 
 	return (
 		<div className="ms-wrap">
-			<aside className="ms-side">
+			<div className="ms-topbar" ref={topbarRef}>
 				<div className="ms-search">
 					<svg viewBox="0 0 24 24">
 						<circle cx="11" cy="11" r="7" />
@@ -525,56 +548,83 @@ const MessagesCenter = () => {
 					</svg>
 					<input
 						aria-label={t('Search people to message') as string}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e) => {
+							setSearch(e.target.value);
+							if (e.target.value.trim()) setListOpen(true);
+						}}
+						onFocus={() => setListOpen(true)}
 						placeholder={t('Search people…') as string}
 						value={search}
 					/>
 				</div>
 
-				{search.trim().length >= 2 && (
-					<div className="ms-results">
-						<span className="ms-results-title">{t('People')}</span>
-						{foundMembers.length === 0 && <p className="ms-empty-mini">{t('No members found.')}</p>}
-						{foundMembers.map((m) => (
-							<button className="ms-row" key={m._id} onClick={() => openWithMember(m)} type="button">
-								<img alt="" className="ms-av" src={getImageUrl(m.memberImage)} />
-								<span className="ms-row-body">
-									<b>{m.memberNick}</b>
-									<small>{t(m.memberType)}</small>
-								</span>
-							</button>
-						))}
+				<button
+					aria-expanded={listOpen}
+					aria-label={listOpen ? (t('Close conversations') as string) : (t('Open conversations') as string)}
+					className="ms-list-toggle"
+					onClick={() => setListOpen((v) => !v)}
+					type="button"
+				>
+					<svg viewBox="0 0 24 24">
+						<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+					</svg>
+					{totalUnread > 0 && (
+						<i className="ms-badge ms-list-toggle-badge">{totalUnread > 9 ? '9+' : totalUnread}</i>
+					)}
+				</button>
+
+				{listOpen && (
+					<div className="ms-list-popover">
+						<div className="ms-list-popover-head">
+							<span>{t('Conversations')}</span>
+						</div>
+
+						{search.trim().length >= 2 && (
+							<div className="ms-results">
+								<span className="ms-results-title">{t('People')}</span>
+								{foundMembers.length === 0 && <p className="ms-empty-mini">{t('No members found.')}</p>}
+								{foundMembers.map((m) => (
+									<button className="ms-row" key={m._id} onClick={() => openWithMember(m)} type="button">
+										<img alt="" className="ms-av" src={getImageUrl(m.memberImage)} />
+										<span className="ms-row-body">
+											<b>{m.memberNick}</b>
+											<small>{t(m.memberType)}</small>
+										</span>
+									</button>
+								))}
+							</div>
+						)}
+
+						<div className="ms-list">
+							{loadingConversations && conversations.length === 0 && <p className="ms-empty-mini">{t('Loading…')}</p>}
+							{!loadingConversations && conversations.length === 0 && (
+								<div className="ms-empty">
+									<b>{t('No conversations yet')}</b>
+									<span>{t('Search for a member above to start chatting.')}</span>
+								</div>
+							)}
+							{conversations.map((c) => (
+								<button
+									className={c._id === activeId ? 'ms-row is-active' : 'ms-row'}
+									key={c._id}
+									onClick={() => selectConversation(c._id)}
+									type="button"
+								>
+									<img alt="" className="ms-av" src={getImageUrl(c.partner?.memberImage)} />
+									<span className="ms-row-body">
+										<b>{c.partner?.memberNick ?? t('Member')}</b>
+										<small>{c.lastMessageText || t('No messages yet')}</small>
+									</span>
+									<span className="ms-row-meta">
+										{c.lastMessageAt && <time>{moment(c.lastMessageAt).format('HH:mm')}</time>}
+										{c.unreadCount > 0 && <i className="ms-badge">{c.unreadCount > 9 ? '9+' : c.unreadCount}</i>}
+									</span>
+								</button>
+							))}
+						</div>
 					</div>
 				)}
-
-				<div className="ms-list">
-					{loadingConversations && conversations.length === 0 && <p className="ms-empty-mini">{t('Loading…')}</p>}
-					{!loadingConversations && conversations.length === 0 && (
-						<div className="ms-empty">
-							<b>{t('No conversations yet')}</b>
-							<span>{t('Search for a member above to start chatting.')}</span>
-						</div>
-					)}
-					{conversations.map((c) => (
-						<button
-							className={c._id === activeId ? 'ms-row is-active' : 'ms-row'}
-							key={c._id}
-							onClick={() => setActiveId(c._id)}
-							type="button"
-						>
-							<img alt="" className="ms-av" src={getImageUrl(c.partner?.memberImage)} />
-							<span className="ms-row-body">
-								<b>{c.partner?.memberNick ?? t('Member')}</b>
-								<small>{c.lastMessageText || t('No messages yet')}</small>
-							</span>
-							<span className="ms-row-meta">
-								{c.lastMessageAt && <time>{moment(c.lastMessageAt).format('HH:mm')}</time>}
-								{c.unreadCount > 0 && <i className="ms-badge">{c.unreadCount > 9 ? '9+' : c.unreadCount}</i>}
-							</span>
-						</button>
-					))}
-				</div>
-			</aside>
+			</div>
 
 			<section className="ms-chat">
 				{!active && (
