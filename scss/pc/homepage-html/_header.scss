@@ -375,30 +375,18 @@
 		}
 		.tools {
 			margin-left: auto;
-			gap: 4px;
+			gap: 8px;
 		}
 		.auth,
-		.account .mypage span,
-		.lang-btn span:not(.flag) {
+		.theme-btn,
+		.lang,
+		.account .mypage {
 			display: none;
 		}
-		.lang-btn {
-			padding: 8px 8px;
-			gap: 3px;
-		}
-		.theme-btn,
-		.account .mypage img,
 		.account .bell {
 			width: 34px;
 			height: 34px;
 			flex: 0 0 34px;
-		}
-		.account {
-			gap: 4px;
-		}
-		.account .mypage {
-			padding: 3px;
-			gap: 0;
 		}
 		.brand .logo {
 			width: 40px;
@@ -407,6 +395,12 @@
 		}
 		.burger {
 			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 34px;
+			height: 34px;
+			flex: 0 0 34px;
+			padding: 0;
 		}
 		.mobile-nav-drawer {
 			position: absolute;
@@ -428,6 +422,59 @@
 				color: var(--ink);
 				&:hover {
 					background: var(--sky-soft);
+				}
+			}
+			.mobile-nav-prefs {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				padding: 10px 6px;
+				border-top: 1px solid var(--line);
+
+				> button {
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					background: none;
+					border: none;
+					padding: 0;
+					font-weight: 600;
+					font-size: 0.9rem;
+					color: var(--ink);
+					cursor: pointer;
+
+					svg {
+						width: 19px;
+						height: 19px;
+						flex: 0 0 19px;
+						stroke: currentColor;
+						fill: none;
+						stroke-width: 1.9;
+						stroke-linecap: round;
+						stroke-linejoin: round;
+					}
+				}
+			}
+			.mobile-nav-langs {
+				display: flex;
+				gap: 6px;
+
+				button {
+					padding: 6px 11px;
+					border-radius: 999px;
+					border: 1.5px solid var(--line);
+					background: none;
+					color: var(--muted);
+					font-weight: 700;
+					font-size: 0.78rem;
+					cursor: pointer;
+
+					&.lang-on {
+						border-color: var(--sky);
+						color: var(--sky);
+						background: var(--sky-soft);
+					}
 				}
 			}
 			.mobile-nav-auth {

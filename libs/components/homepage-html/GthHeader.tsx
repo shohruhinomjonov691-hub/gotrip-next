@@ -156,6 +156,34 @@ const GthHeader = () => {
 							{t(item.labelKey)}
 						</Link>
 					))}
+					<div className="mobile-nav-prefs">
+						<button type="button" aria-pressed={mode === 'dark'} onClick={toggleMode}>
+							{mode === 'dark' ? (
+								<svg viewBox="0 0 24 24">
+									<circle cx="12" cy="12" r="4.6" />
+									<path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" />
+								</svg>
+							) : (
+								<svg viewBox="0 0 24 24">
+									<path d="M20.5 14.7A8.5 8.5 0 1110.3 3.6a6.7 6.7 0 0010.2 11.1z" />
+								</svg>
+							)}
+							<span>{mode === 'dark' ? t('Light mode') : t('Dark mode')}</span>
+						</button>
+						<div className="mobile-nav-langs" role="group" aria-label={t('Language') as string}>
+							{LOCALES.map((locale) => (
+								<button
+									key={locale.id}
+									type="button"
+									className={locale.id === lang ? 'lang-on' : ''}
+									aria-pressed={locale.id === lang}
+									onClick={() => changeLang(locale.id)}
+								>
+									{locale.code}
+								</button>
+							))}
+						</div>
+					</div>
 					{!isAuth ? (
 						<div className="mobile-nav-auth">
 							<Link href="/account/join">{t('Log in')}</Link>
