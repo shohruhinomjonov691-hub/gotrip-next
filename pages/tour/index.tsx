@@ -5,6 +5,7 @@ import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import withLayoutGth from '../../libs/components/layout/LayoutGth';
 import TourCard from '../../libs/components/homepage-html/TourCard';
+import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import { useTranslation } from '../../libs/i18n/useTranslation';
 import { GET_TOURS, GET_DESTINATIONS } from '../../apollo/user/query';
 import { LIKE_TARGET_TOUR } from '../../apollo/user/mutation';
@@ -58,8 +59,24 @@ const CloseIcon = () => (
 	</svg>
 );
 
+/** Mobile-only pagination: first page, last page, current page and its
+ *  immediate neighbors, with an 'ellipsis' marker filling any gap —
+ *  e.g. current=5, total=20 -> [1, 'ellipsis', 4, 5, 6, 'ellipsis', 20].
+ *  Desktop keeps the full unconditional page list untouched. */
+const getPaginationItems = (current: number, total: number): (number | 'ellipsis')[] => {
+	const items: (number | 'ellipsis')[] = [];
+	const neighbors = new Set([1, total, current - 1, current, current + 1].filter((p) => p >= 1 && p <= total));
+	const sorted = Array.from(neighbors).sort((a, b) => a - b);
+	sorted.forEach((page, i) => {
+		if (i > 0 && page - sorted[i - 1] > 1) items.push('ellipsis');
+		items.push(page);
+	});
+	return items;
+};
+
 const TourListPage: NextPage = () => {
 	const { t } = useTranslation();
+	const device = useDeviceDetect();
 	const user = useReactiveVar(userVar);
 	const router = useRouter();
 	const [input, setInput] = useState<ToursInquiry>(initialInput);
@@ -462,16 +479,23 @@ const TourListPage: NextPage = () => {
 							<button disabled={input.page === 1} onClick={() => paginationHandler(input.page - 1)} type="button">
 								{t('Prev')}
 							</button>
-							{Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
-								<button
-									className={page === input.page ? 'on' : ''}
-									key={page}
-									onClick={() => paginationHandler(page)}
-									type="button"
-								>
-									{page}
-								</button>
-							))}
+							{(device === 'mobile' ? getPaginationItems(input.page, pageCount) : Array.from({ length: pageCount }, (_, i) => i + 1)).map(
+								(page, i) =>
+									page === 'ellipsis' ? (
+										<span aria-hidden="true" className="pg-pager-ellipsis" key={`ellipsis-${i}`}>
+											…
+										</span>
+									) : (
+										<button
+											className={page === input.page ? 'on' : ''}
+											key={page}
+											onClick={() => paginationHandler(page)}
+											type="button"
+										>
+											{page}
+										</button>
+									),
+							)}
 							<button
 								disabled={input.page === pageCount}
 								onClick={() => paginationHandler(input.page + 1)}

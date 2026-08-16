@@ -449,6 +449,18 @@
 				cursor: not-allowed;
 			}
 		}
+
+		.pg-pager-ellipsis {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 24px;
+			height: 42px;
+			color: var(--muted);
+			font-weight: 600;
+			font-size: 0.92rem;
+			user-select: none;
+		}
 	}
 
 	/* ======================================================================
