@@ -49,6 +49,17 @@ export default function MyTours() {
 		}
 	};
 
+	/** Same fix as AddNewTour's numberChangeHandler: a native number input pre-filled
+	 *  with 0 doesn't select its text on click, so the first keystroke inserts before
+	 *  the existing "0" instead of replacing it (typing "100" produced "0100"). Select
+	 *  the field on focus (primary fix) and strip any leading zero here as a second
+	 *  layer, so a paste or fast keystroke sequence still resolves to a clean number. */
+	const numberChangeHandler = (key: keyof TourUpdate, raw: string) => {
+		if (!editTour) return;
+		const cleaned = raw.replace(/^0+(?=\d)/, '');
+		setEditTour({ ...editTour, [key]: cleaned === '' ? 0 : Number(cleaned) });
+	};
+
 	const openEditor = (tour: Tour) =>
 		setEditTour({
 			_id: tour._id,
@@ -176,9 +187,10 @@ export default function MyTours() {
 								<label htmlFor="et-price">{t('Price ($)')}</label>
 								<input
 									id="et-price"
-									onChange={(e) => setEditTour({ ...editTour, tourPrice: Number(e.target.value) })}
+									onChange={(e) => numberChangeHandler('tourPrice', e.target.value)}
+									onFocus={(e) => e.target.select()}
 									type="number"
-									value={editTour.tourPrice || 0}
+									value={editTour.tourPrice}
 								/>
 							</div>
 						</div>
