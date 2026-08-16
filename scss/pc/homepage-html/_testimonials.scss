@@ -141,9 +141,11 @@
 		display: flex;
 		align-items: stretch;
 		overflow-x: auto;
+		overflow-y: hidden;
 		overscroll-behavior-x: contain;
 		scroll-snap-type: x mandatory;
 		scroll-behavior: smooth;
+		touch-action: pan-x;
 		cursor: grab;
 		padding: 4px 0 8px;
 		gap: var(--tsgap);
