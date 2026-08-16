@@ -102,6 +102,15 @@
 	white-space: nowrap;
 }
 
+/* Compact swap-in for .gt-ai-launcher-label below 599px — see that breakpoint. */
+.gt-ai-launcher-label-short {
+	display: none;
+	position: relative;
+	font-family: var(--gt-font-body);
+	font-weight: var(--gt-weight-semibold);
+	letter-spacing: 0.02em;
+}
+
 @keyframes gt-ai-pulse {
 	0% {
 		transform: scale(1);
@@ -867,11 +876,20 @@
 		right: 16px;
 		bottom: 96px; /* clears #mobile-wrap .mobile-bottom-nav (bottom:12px, ~70px tall) */
 		--gt-ai-launcher-size: 48px;
-		gap: 8px;
-		padding: 0 16px 0 0;
+		gap: 6px;
+		padding: 0 14px 0 0;
 	}
+	/* Compact "AI" swaps in for the full "GoTrip AI" label — the full label
+	   made the pill wide enough to sit over page content near the bottom-right
+	   at common mobile widths. Icon-only was tried before (see the comment
+	   above this block) and reverted for being unrecognizable as an AI
+	   assistant, so this keeps short text rather than dropping it entirely. */
 	.gt-ai-launcher-label {
-		font-size: 0.76rem;
+		display: none;
+	}
+	.gt-ai-launcher-label-short {
+		display: inline;
+		font-size: 0.72rem;
 	}
 
 	.gt-ai-backdrop {

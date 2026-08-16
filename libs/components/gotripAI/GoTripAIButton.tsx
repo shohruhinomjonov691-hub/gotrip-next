@@ -23,7 +23,18 @@ const GoTripAIButton = ({ isOpen, onToggle }: GoTripAIButtonProps) => {
 		>
 			<span className="gt-ai-launcher-pulse" aria-hidden="true" />
 			<span className="gt-ai-launcher-icon">{isOpen ? <CloseIcon fontSize="small" /> : <GoTripAIAvatar size={26} animated />}</span>
-			{!isOpen && <span className="gt-ai-launcher-label">{t('GoTrip AI')}</span>}
+			{!isOpen && (
+				<>
+					<span className="gt-ai-launcher-label">{t('GoTrip AI')}</span>
+					{/* Compact mobile-only label — CSS-swapped for .gt-ai-launcher-label below 599px so
+					    the pill stays recognizable as an AI assistant without the full-width text that
+					    was overlapping page content (see scss/pc/_gotrip-ai.scss for the prior, reverted
+					    icon-only attempt this deliberately avoids repeating). */}
+					<span aria-hidden="true" className="gt-ai-launcher-label-short">
+						AI
+					</span>
+				</>
+			)}
 		</button>
 	);
 };
