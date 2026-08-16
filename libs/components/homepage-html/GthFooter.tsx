@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { SiApplepay, SiMastercard, SiPaypal, SiVisa } from 'react-icons/si';
 import { useTranslation } from '../../i18n/useTranslation';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, YouTubeIcon } from './socialIcons';
 
@@ -233,10 +234,18 @@ const GthFooter = () => {
 					</div>
 					<div className="f-pay">
 						<span style={{ opacity: 0.7, fontSize: '.85rem' }}>{t('We Accept')}</span>
-						<span className="badge">MC</span>
-						<span className="badge">VISA</span>
-						<span className="badge">PayPal</span>
-						<span className="badge">Pay</span>
+						<span aria-label="Mastercard" className="f-pay-badge">
+							<SiMastercard color="#EB001B" />
+						</span>
+						<span aria-label="Visa" className="f-pay-badge">
+							<SiVisa color="#1A1F71" />
+						</span>
+						<span aria-label="PayPal" className="f-pay-badge">
+							<SiPaypal color="#003087" />
+						</span>
+						<span aria-label="Apple Pay" className="f-pay-badge">
+							<SiApplepay color="#000000" />
+						</span>
 					</div>
 				</div>
 			</div>

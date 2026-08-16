@@ -345,9 +345,29 @@
 		margin-top: 34px;
 		padding-top: 22px;
 		border-top: 1.5px solid rgba(22, 163, 200, 0.28);
-		font-size: 1.7rem;
-		line-height: 1;
 		user-select: none;
+	}
+
+	/* Matches the .ab-check icon-chip precedent (_about-services.scss). */
+	.tg-strip-icon {
+		flex: 0 0 28px;
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: var(--sky-soft);
+
+		svg {
+			width: 20px;
+			height: 20px;
+			stroke: var(--sky);
+			fill: none;
+			stroke-width: 1.75;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
 	}
 }
 

@@ -310,17 +310,21 @@
 	.f-pay {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: 10px;
 
-		.badge {
+		.f-pay-badge {
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			background: #fff;
-			border-radius: 5px;
-			padding: 5px 9px;
-			font-weight: 800;
-			font-size: 0.68rem;
-			color: var(--ink-solid);
-			font-family: 'Sora', sans-serif;
-			letter-spacing: 0.3px;
+			border-radius: 8px;
+			width: 46px;
+			height: 30px;
+
+			svg {
+				width: 28px;
+				height: 18px;
+			}
 		}
 	}
 

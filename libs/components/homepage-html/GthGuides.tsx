@@ -6,6 +6,18 @@ import { GET_AGENTS } from '../../../apollo/user/query';
 import { Member, Members } from '../../types/member/member';
 import { Direction } from '../../enums/common.enum';
 import { useTranslation } from '../../i18n/useTranslation';
+import { PinIcon } from './tourCardIcons';
+import {
+	CameraIcon,
+	CompassIcon,
+	GuideHatIcon,
+	LifebuoyIcon,
+	PassportIcon,
+	StarIcon,
+	TicketIcon,
+} from './guideStripIcons';
+
+const TG_STRIP_ICONS = [LifebuoyIcon, GuideHatIcon, CompassIcon, PinIcon, StarIcon, CameraIcon, TicketIcon, PassportIcon];
 
 const AGENTS_INPUT = {
 	page: 1,
@@ -227,14 +239,11 @@ const GthGuides = () => {
 					</div>
 				)}
 				<div className="tg-strip">
-					<span>🛟</span>
-					<span>👒</span>
-					<span>🧭</span>
-					<span>📍</span>
-					<span>⭐</span>
-					<span>📷</span>
-					<span>🎫</span>
-					<span>🛂</span>
+					{TG_STRIP_ICONS.map((Icon, i) => (
+						<span className="tg-strip-icon" key={i}>
+							<Icon />
+						</span>
+					))}
 				</div>
 			</div>
 		</section>
