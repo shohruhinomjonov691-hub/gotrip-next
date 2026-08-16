@@ -2476,6 +2476,16 @@
 		.pg-hero h1 {
 			font-size: 1.75rem;
 		}
+		/* .pg-crumb itself is already a correctly-centered inline-flex row, but its
+		   "Home" link inherits `min-height: 44px` from the sitewide touch-target
+		   rule (scss/mobile/main.scss, `#pc-wrap a, #mobile-wrap a { min-height: 44px }`).
+		   The anchor is still display:block, so its text sits at the top of that
+		   44px box instead of centered in it, while its short siblings (arrow icon,
+		   current page) sit centered in the row — reads as "Home floats above". */
+		.pg-crumb a {
+			display: inline-flex;
+			align-items: center;
+		}
 		.tdp-title {
 			font-size: 1.5rem;
 		}
