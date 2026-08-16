@@ -1889,6 +1889,12 @@
 			gap: 22px;
 			overflow-x: auto;
 			padding: 0 0 6px;
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
 		}
 		.acc-nav-group + .acc-nav-group {
 			margin-top: 0;
@@ -1897,7 +1903,12 @@
 			display: flex;
 			gap: 6px;
 		}
+		/* Base .acc-nav-link sets width:100% for the desktop vertical sidebar —
+		   left unreset here, the now-nowrap text no longer matched its pill's
+		   width, so the last letter(s) spilled past the active .on background. */
 		.acc-nav-link {
+			width: auto;
+			padding: 8px 16px;
 			white-space: nowrap;
 		}
 		.msg-shell {
