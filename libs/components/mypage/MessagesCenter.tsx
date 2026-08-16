@@ -232,13 +232,16 @@ const MessagesCenter = () => {
 		return () => window.removeEventListener('gt-socket-open', onOpen);
 	}, [activeId, refetchConversations, refetchMessages]);
 
-	/* Realtime: the socket signals, the database is re-read. */
+	/* Realtime: the socket signals, the database is re-read.
+	 * 'messagesRead' fires once the *other* participant opens this thread —
+	 * re-reading flips SENT -> READ on our own bubbles' ticks with no extra
+	 * client-side bookkeeping, same as 'messageCreated' already does. */
 	useEffect(() => {
 		if (!socket) return;
 		const handler = (event: MessageEvent) => {
 			try {
 				const data = JSON.parse(event.data);
-				if (data.event !== 'messageCreated') return;
+				if (data.event !== 'messageCreated' && data.event !== 'messagesRead') return;
 				refetchConversations({ input: CONVERSATION_INPUT });
 				if (data.conversationId === activeId) {
 					refetchMessages({ input: { page: 1, limit: MESSAGE_LIMIT, conversationId: activeId } });
@@ -706,7 +709,21 @@ const MessagesCenter = () => {
 											{!!m.messageText && <p>{m.messageText}</p>}
 											<span className="ms-bubble-meta">
 												{moment(m.createdAt).format('HH:mm')}
-												{mine && <i className={m.messageStatus === 'READ' ? 'ms-tick is-read' : 'ms-tick'}>✓✓</i>}
+												{mine && (
+													<span
+														aria-label={(m.messageStatus === 'READ' ? t('Read') : t('Delivered')) as string}
+														className={m.messageStatus === 'READ' ? 'ms-tick is-read' : 'ms-tick'}
+													>
+														<svg className="ms-tick-icon" viewBox="0 0 24 24">
+															<path d="M20 6L9 17l-5-5" />
+														</svg>
+														{m.messageStatus === 'READ' && (
+															<svg className="ms-tick-icon ms-tick-icon--second" viewBox="0 0 24 24">
+																<path d="M20 6L9 17l-5-5" />
+															</svg>
+														)}
+													</span>
+												)}
 											</span>
 										</div>
 									</React.Fragment>

@@ -2379,12 +2379,34 @@
 		color: var(--body);
 	}
 
+	/* Single check (SENT) vs double check (READ) — count is the primary signal;
+	   opacity reinforces it. Deliberately still just an opacity step on the
+	   bubble's own already-tuned meta colour (inherited via currentColor) rather
+	   than a new accent hue: ticks only ever render inside .ms-bubble.is-mine,
+	   whose text colour is hand-measured for AA against that bubble's fill in
+	   both themes (see the "measured contrast repair" block below) — --sky
+	   would sit directly on a --sky-family bubble background in dark mode and
+	   wash out, so introducing a second hue here risked undoing that. */
 	.ms-tick {
-		font-style: normal;
+		display: inline-flex;
+		align-items: center;
 		opacity: 0.55;
 
 		&.is-read {
 			opacity: 1;
+		}
+	}
+	.ms-tick-icon {
+		width: 13px;
+		height: 13px;
+		stroke: currentColor;
+		fill: none;
+		stroke-width: 2.4;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+
+		&--second {
+			margin-left: -6px;
 		}
 	}
 

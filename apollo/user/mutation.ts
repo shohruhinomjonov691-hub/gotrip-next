@@ -405,6 +405,7 @@ export const SEND_MESSAGE = gql`
 				mimeType
 			}
 			messageStatus
+			readAt
 			createdAt
 		}
 	}
