@@ -6,6 +6,7 @@ import { userVar, socketVar } from '../../../apollo/store';
 import { ensureMessagingSocket } from '../../messagingSocket';
 import {
 	SEND_GOTRIP_AI_MESSAGE,
+	SEND_GOTRIP_AI_GUEST_MESSAGE,
 	STREAM_GOTRIP_AI_MESSAGE,
 	UPDATE_GOTRIP_AI_CONVERSATION,
 	DELETE_GOTRIP_AI_CONVERSATION,
@@ -18,8 +19,15 @@ import { GoTripAIConversation, GoTripAIMessageData, GoTripAIRole } from './types
  *  the private-messaging feature's socket — see libs/messagingSocket.ts's header comment),
  *  so a stale/tampered localStorage entry can never show fabricated history. */
 const ACTIVE_ID_KEY = 'gotrip-ai-active-conversation-v2';
+/** Which member the stored active id belongs to — a pointer left behind by another account (or a guest session) is never resumed. */
+const ACTIVE_OWNER_KEY = 'gotrip-ai-active-conversation-owner';
 const MESSAGE_PAGE_SIZE = 100;
 const CONVERSATION_LIST_SIZE = 30;
+
+/** Mirror the backend's SendGuestMessageInput limits (libs/dto/conversation/conversation.input.ts). */
+export const GUEST_CONTENT_MAX_LENGTH = 1000;
+const GUEST_HISTORY_MAX_ITEMS = 10;
+const GUEST_HISTORY_CONTENT_MAX_LENGTH = 2000;
 
 const uid = (): string =>
 	typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -28,20 +36,26 @@ const uid = (): string =>
 
 const now = () => Date.now();
 
-const readActiveId = (): string | null => {
-	if (typeof window === 'undefined') return null;
+const readActiveId = (ownerId: string): string | null => {
+	if (typeof window === 'undefined' || !ownerId) return null;
 	try {
+		if (window.localStorage.getItem(ACTIVE_OWNER_KEY) !== ownerId) return null;
 		return window.localStorage.getItem(ACTIVE_ID_KEY);
 	} catch {
 		return null;
 	}
 };
 
-const writeActiveId = (id: string | null) => {
+const writeActiveId = (id: string | null, ownerId: string) => {
 	if (typeof window === 'undefined') return;
 	try {
-		if (id) window.localStorage.setItem(ACTIVE_ID_KEY, id);
-		else window.localStorage.removeItem(ACTIVE_ID_KEY);
+		if (id && ownerId) {
+			window.localStorage.setItem(ACTIVE_ID_KEY, id);
+			window.localStorage.setItem(ACTIVE_OWNER_KEY, ownerId);
+		} else {
+			window.localStorage.removeItem(ACTIVE_ID_KEY);
+			window.localStorage.removeItem(ACTIVE_OWNER_KEY);
+		}
 	} catch {
 		// Storage can be full/unavailable (private browsing) — resume-after-refresh
 		// simply won't work; the in-memory session still works fine.
@@ -58,6 +72,18 @@ const toUiMessage = (raw: any): GoTripAIMessageData => ({
 	createdAt: raw.createdAt ? new Date(raw.createdAt).getTime() : now(),
 	streaming: raw.status === 'STREAMING',
 });
+
+/** Turns the guest mutation can't take back as history: failed/system notes and anything still streaming. */
+const toGuestHistory = (messages: GoTripAIMessageData[]) =>
+	messages
+		.filter((m) => (m.role === 'user' || m.role === 'assistant') && !m.streaming && m.content.trim())
+		.slice(-GUEST_HISTORY_MAX_ITEMS)
+		.map((m) => ({
+			role: m.role === 'user' ? 'USER' : 'ASSISTANT',
+			content: m.content.slice(0, GUEST_HISTORY_CONTENT_MAX_LENGTH),
+		}));
+
+const isRateLimitError = (err: unknown): boolean => /too many requests/i.test((err as Error)?.message ?? '');
 
 export type GoTripAIPanel = 'chat' | 'history';
 
@@ -86,7 +112,8 @@ export const useGoTripAIState = () => {
 
 	const user = useReactiveVar(userVar);
 	const socket = useReactiveVar(socketVar);
-	const isLoggedIn = !!user?._id;
+	const memberId = user?._id ?? '';
+	const isLoggedIn = !!memberId;
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [panel, setPanel] = useState<GoTripAIPanel>('chat');
@@ -110,12 +137,33 @@ export const useGoTripAIState = () => {
 		ensureMessagingSocket();
 	}, []);
 
+	/**
+	 * Login, logout and account switches all show up here as a change of
+	 * memberId (userVar is hydrated from the stored token after mount, so a
+	 * signed-in refresh is a ''-> id change too). Every such change drops the
+	 * in-memory chat — a guest chat is never carried into an account, and one
+	 * account's chat never stays on screen for another — then resumes only a
+	 * pointer the new member owns.
+	 */
+	const previousMemberIdRef = useRef<string | null>(null);
 	useEffect(() => {
-		const stored = readActiveId();
-		if (stored) setActiveIdState(stored);
-		// Only ever hydrate once on mount.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		const previous = previousMemberIdRef.current;
+		previousMemberIdRef.current = memberId;
+		if (previous === memberId) return;
+
+		sendGenerationRef.current += 1; // orphan any in-flight send from the previous identity
+		setActiveMessages([]);
+		setConversationSummaries([]);
+		setDraft('');
+		setPanel('chat');
+		setIsSending(false);
+		setIsTyping(false);
+
+		// Only a real logout (id -> '') clears storage; the initial '' before
+		// userVar hydrates must not, or a signed-in refresh could never resume.
+		if (previous && !memberId) writeActiveId(null, '');
+		setActiveIdState(readActiveId(memberId));
+	}, [memberId]);
 
 	useEffect(() => {
 		activeIdRef.current = activeId;
@@ -126,10 +174,13 @@ export const useGoTripAIState = () => {
 		setIsOpen(false);
 	}, [router.pathname]);
 
-	const setActiveId = useCallback((id: string | null) => {
-		setActiveIdState(id);
-		writeActiveId(id);
-	}, []);
+	const setActiveId = useCallback(
+		(id: string | null) => {
+			setActiveIdState(id);
+			writeActiveId(id, memberId);
+		},
+		[memberId],
+	);
 
 	/** CONVERSATION LIST **/
 
@@ -266,6 +317,7 @@ export const useGoTripAIState = () => {
 	/** MUTATIONS (GraphQL) **/
 
 	const [sendGoTripAIMessage] = useMutation(SEND_GOTRIP_AI_MESSAGE);
+	const [sendGoTripAIGuestMessage] = useMutation(SEND_GOTRIP_AI_GUEST_MESSAGE);
 	const [streamGoTripAIMessage] = useMutation(STREAM_GOTRIP_AI_MESSAGE);
 	const [updateGoTripAIConversationMutation] = useMutation(UPDATE_GOTRIP_AI_CONVERSATION);
 	const [deleteGoTripAIConversationMutation] = useMutation(DELETE_GOTRIP_AI_CONVERSATION);
@@ -274,13 +326,67 @@ export const useGoTripAIState = () => {
 		setActiveMessages((prev) => [...prev, { id: uid(), role: 'system', content, createdAt: now() }]);
 	}, []);
 
+	/**
+	 * Guest turn: stateless on the backend (nothing persisted), so the chat
+	 * lives only in activeMessages and is replayed as `history` each turn.
+	 * Lost on refresh by design; never migrated into an account on login.
+	 */
+	const sendGuestMessage = useCallback(
+		async (trimmed: string) => {
+			if (trimmed.length > GUEST_CONTENT_MAX_LENGTH) {
+				appendSystemNote(
+					t('Your message is too long. Please keep it under {{count}} characters.', { count: GUEST_CONTENT_MAX_LENGTH }) as string,
+				);
+				return;
+			}
+
+			const generation = ++sendGenerationRef.current;
+			const history = toGuestHistory(activeMessages);
+			setDraft('');
+			setActiveMessages((prev) => [...prev, { id: uid(), role: 'user', content: trimmed, createdAt: now() }]);
+			setIsSending(true);
+			setIsTyping(true);
+
+			const locale = (i18n.language ?? 'en').split('-')[0];
+			const currentPage = router.pathname?.slice(0, 200) || undefined;
+
+			try {
+				const { data } = await sendGoTripAIGuestMessage({
+					variables: { input: { content: trimmed, locale, currentPage, history } },
+				});
+				const result = data?.sendGoTripAIGuestMessage;
+				if (!result) throw new Error('Empty GoTrip AI response');
+				if (sendGenerationRef.current !== generation || stoppedGenerationsRef.current.has(generation)) return;
+
+				setActiveMessages((prev) => [
+					...prev,
+					{ id: uid(), role: ROLE_FROM_BACKEND[result.role] ?? 'assistant', content: result.content, createdAt: now() },
+				]);
+			} catch (err) {
+				if (sendGenerationRef.current !== generation || stoppedGenerationsRef.current.has(generation)) return;
+				appendSystemNote(
+					(isRateLimitError(err)
+						? t("You're sending messages too quickly. Please wait a minute and try again.")
+						: t('GoTrip AI could not respond just now. Please try again.')) as string,
+				);
+			} finally {
+				stoppedGenerationsRef.current.delete(generation);
+				if (sendGenerationRef.current === generation) {
+					setIsSending(false);
+					setIsTyping(false);
+				}
+			}
+		},
+		[activeMessages, i18n.language, router.pathname, sendGoTripAIGuestMessage, appendSystemNote, t],
+	);
+
 	const sendMessage = useCallback(
 		async (text: string) => {
 			const trimmed = text.trim();
 			if (!trimmed || isSending) return;
 
 			if (!isLoggedIn) {
-				appendSystemNote(t('Please log in to chat with GoTrip AI.') as string);
+				await sendGuestMessage(trimmed);
 				return;
 			}
 
@@ -343,7 +449,7 @@ export const useGoTripAIState = () => {
 				}
 			}
 		},
-		[isSending, isLoggedIn, activeId, i18n.language, socket, streamGoTripAIMessage, sendGoTripAIMessage, setActiveId, refetchConversations, appendSystemNote, t],
+		[isSending, isLoggedIn, activeId, i18n.language, socket, streamGoTripAIMessage, sendGoTripAIMessage, setActiveId, refetchConversations, appendSystemNote, t, sendGuestMessage],
 	);
 
 	/**
@@ -428,6 +534,7 @@ export const useGoTripAIState = () => {
 
 	return {
 		locale: i18n.language,
+		isGuest: !isLoggedIn,
 		isOpen,
 		toggleOpen,
 		close,

@@ -8,13 +8,15 @@ import { GoTripAIPanel } from './useGoTripAI';
 
 interface GoTripAIHeaderProps {
 	panel: GoTripAIPanel;
+	/** Guests have no saved history, so the history toggle is hidden for them. */
+	showHistory?: boolean;
 	onTogglePanel: () => void;
 	onNewChat: () => void;
 	onClose: () => void;
 }
 
 /** Premium window header: avatar + "GoTrip AI" + subtitle, history toggle, new chat, close. */
-const GoTripAIHeader = ({ panel, onTogglePanel, onNewChat, onClose }: GoTripAIHeaderProps) => {
+const GoTripAIHeader = ({ panel, showHistory = true, onTogglePanel, onNewChat, onClose }: GoTripAIHeaderProps) => {
 	const { t } = useTranslation();
 
 	return (
@@ -27,15 +29,17 @@ const GoTripAIHeader = ({ panel, onTogglePanel, onNewChat, onClose }: GoTripAIHe
 				</div>
 			</div>
 			<div className="gt-ai-header-actions">
-				<button
-					type="button"
-					className="gt-ai-icon-btn"
-					aria-pressed={panel === 'history'}
-					aria-label={t('Conversation history') as string}
-					onClick={onTogglePanel}
-				>
-					<HistoryOutlinedIcon fontSize="small" />
-				</button>
+				{showHistory && (
+					<button
+						type="button"
+						className="gt-ai-icon-btn"
+						aria-pressed={panel === 'history'}
+						aria-label={t('Conversation history') as string}
+						onClick={onTogglePanel}
+					>
+						<HistoryOutlinedIcon fontSize="small" />
+					</button>
+				)}
 				<button type="button" className="gt-ai-icon-btn" aria-label={t('New chat') as string} onClick={onNewChat}>
 					<AddCommentOutlinedIcon fontSize="small" />
 				</button>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from '../../i18n/useTranslation';
 import GoTripAIHeader from './GoTripAIHeader';
@@ -22,6 +23,7 @@ const MotionDiv = motion.div;
 const GoTripAIWindow = () => {
 	const { t } = useTranslation();
 	const {
+		isGuest,
 		isOpen,
 		close,
 		panel,
@@ -77,6 +79,7 @@ const GoTripAIWindow = () => {
 
 	const messages = activeConversation?.messages ?? [];
 	const showSuggestions = panel === 'chat' && messages.length === 0;
+	const showHistoryPanel = panel === 'history' && !isGuest;
 
 	return (
 		<AnimatePresence>
@@ -100,12 +103,13 @@ const GoTripAIWindow = () => {
 					>
 					<GoTripAIHeader
 						panel={panel}
+						showHistory={!isGuest}
 						onTogglePanel={() => openPanel(panel === 'history' ? 'chat' : 'history')}
 						onNewChat={startNewConversation}
 						onClose={close}
 					/>
 
-					{panel === 'history' ? (
+					{showHistoryPanel ? (
 						<GoTripAIHistory
 							conversations={conversations}
 							activeId={activeConversation?.id ?? null}
@@ -142,6 +146,13 @@ const GoTripAIWindow = () => {
 									</div>
 								)}
 							</div>
+
+							{isGuest && (
+								<p className="gt-ai-guest-note">
+									{t('Guest chats are not saved.')}{' '}
+									<Link href="/account/join">{t('Log in to save your chat history.')}</Link>
+								</p>
+							)}
 
 							<GoTripAIInput
 								value={draft}

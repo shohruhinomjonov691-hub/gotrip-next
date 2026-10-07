@@ -448,6 +448,18 @@ export const SEND_GOTRIP_AI_MESSAGE = gql`
 	}
 `;
 
+/** Login-free, stateless GoTrip AI turn: nothing is persisted server-side, so the
+ *  client replays its own recent turns as `history` (USER/ASSISTANT only). */
+export const SEND_GOTRIP_AI_GUEST_MESSAGE = gql`
+	mutation SendGoTripAIGuestMessage($input: SendGuestMessageInput!) {
+		sendGoTripAIGuestMessage(input: $input) {
+			role
+			content
+			status
+		}
+	}
+`;
+
 /** Persists + returns the final assistant message, same as SEND_GOTRIP_AI_MESSAGE — the
  *  incremental text is delivered separately over the shared messaging WebSocket
  *  (see libs/messagingSocket.ts) as 'gotripAiStream' frames while this is in flight. */

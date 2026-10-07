@@ -1096,5 +1096,9 @@
 	"Guide application update": "Guide application update",
 	"New message": "New message",
 	"{{name}} sent you a message": "{{name}} sent you a message",
-	"Notifications, {{count}} unread": "Notifications, {{count}} unread"
+	"Notifications, {{count}} unread": "Notifications, {{count}} unread",
+	"Guest chats are not saved.": "Guest chats are not saved.",
+	"Log in to save your chat history.": "Log in to save your chat history.",
+	"You're sending messages too quickly. Please wait a minute and try again.": "You're sending messages too quickly. Please wait a minute and try again.",
+	"Your message is too long. Please keep it under {{count}} characters.": "Your message is too long. Please keep it under {{count}} characters."
 }

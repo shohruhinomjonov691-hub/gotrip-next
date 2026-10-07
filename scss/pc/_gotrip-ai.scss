@@ -576,6 +576,19 @@
 /* ---------------------------------------------------------------------- */
 /* INPUT BAR                                                               */
 /* ---------------------------------------------------------------------- */
+.gt-ai-guest-note {
+	margin: 0;
+	padding: var(--gt-space-2) var(--gt-space-4) 0;
+	font-size: var(--gt-text-caption);
+	color: var(--gt-text-2);
+	flex: 0 0 auto;
+
+	a {
+		color: var(--gt-accent);
+		text-decoration: underline;
+	}
+}
+
 .gt-ai-input-bar {
 	display: flex;
 	align-items: flex-end;

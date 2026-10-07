@@ -1096,5 +1096,9 @@
 	"Guide application update": "Обновление заявки гида",
 	"New message": "Новое сообщение",
 	"{{name}} sent you a message": "Пользователь {{name}} отправил(а) вам сообщение",
-	"Notifications, {{count}} unread": "Уведомления, непрочитанных: {{count}}"
+	"Notifications, {{count}} unread": "Уведомления, непрочитанных: {{count}}",
+	"Guest chats are not saved.": "Гостевые чаты не сохраняются.",
+	"Log in to save your chat history.": "Войдите, чтобы сохранять историю чатов.",
+	"You're sending messages too quickly. Please wait a minute and try again.": "Вы отправляете сообщения слишком часто. Подождите минуту и попробуйте снова.",
+	"Your message is too long. Please keep it under {{count}} characters.": "Сообщение слишком длинное. Пожалуйста, не более {{count}} символов."
 }

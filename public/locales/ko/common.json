@@ -1096,5 +1096,9 @@
 	"Guide application update": "가이드 신청 업데이트",
 	"New message": "새 메시지",
 	"{{name}} sent you a message": "{{name}}님이 메시지를 보냈습니다",
-	"Notifications, {{count}} unread": "알림, 읽지 않음 {{count}}개"
+	"Notifications, {{count}} unread": "알림, 읽지 않음 {{count}}개",
+	"Guest chats are not saved.": "게스트 대화는 저장되지 않습니다.",
+	"Log in to save your chat history.": "대화 기록을 저장하려면 로그인하세요.",
+	"You're sending messages too quickly. Please wait a minute and try again.": "메시지를 너무 빠르게 보내고 있습니다. 잠시 후 다시 시도해 주세요.",
+	"Your message is too long. Please keep it under {{count}} characters.": "메시지가 너무 깁니다. {{count}}자 이내로 입력해 주세요."
 }
