@@ -1100,5 +1100,6 @@
 	"Guest chats are not saved.": "Guest chats are not saved.",
 	"Log in to save your chat history.": "Log in to save your chat history.",
 	"You're sending messages too quickly. Please wait a minute and try again.": "You're sending messages too quickly. Please wait a minute and try again.",
-	"Your message is too long. Please keep it under {{count}} characters.": "Your message is too long. Please keep it under {{count}} characters."
+	"Your message is too long. Please keep it under {{count}} characters.": "Your message is too long. Please keep it under {{count}} characters.",
+	"GoTrip AI could not respond just now. Please try again.": "GoTrip AI could not respond just now. Please try again."
 }

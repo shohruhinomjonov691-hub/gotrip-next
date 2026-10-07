@@ -1100,5 +1100,6 @@
 	"Guest chats are not saved.": "Гостевые чаты не сохраняются.",
 	"Log in to save your chat history.": "Войдите, чтобы сохранять историю чатов.",
 	"You're sending messages too quickly. Please wait a minute and try again.": "Вы отправляете сообщения слишком часто. Подождите минуту и попробуйте снова.",
-	"Your message is too long. Please keep it under {{count}} characters.": "Сообщение слишком длинное. Пожалуйста, не более {{count}} символов."
+	"Your message is too long. Please keep it under {{count}} characters.": "Сообщение слишком длинное. Пожалуйста, не более {{count}} символов.",
+	"GoTrip AI could not respond just now. Please try again.": "GoTrip AI сейчас не может ответить. Пожалуйста, попробуйте ещё раз."
 }

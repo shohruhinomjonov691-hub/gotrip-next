@@ -1101,5 +1101,6 @@
 	"Guest chats are not saved.": "Mehmon suhbatlari saqlanmaydi.",
 	"Log in to save your chat history.": "Suhbatlar tarixini saqlash uchun tizimga kiring.",
 	"You're sending messages too quickly. Please wait a minute and try again.": "Xabarlarni juda tez yuboryapsiz. Bir daqiqa kutib, qayta urinib ko'ring.",
-	"Your message is too long. Please keep it under {{count}} characters.": "Xabaringiz juda uzun. Iltimos, {{count}} belgidan oshirmang."
+	"Your message is too long. Please keep it under {{count}} characters.": "Xabaringiz juda uzun. Iltimos, {{count}} belgidan oshirmang.",
+	"GoTrip AI could not respond just now. Please try again.": "GoTrip AI hozir javob bera olmadi. Iltimos, qayta urinib ko'ring."
 }

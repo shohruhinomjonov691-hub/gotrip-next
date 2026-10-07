@@ -118,7 +118,11 @@ export const useGoTripAIState = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [panel, setPanel] = useState<GoTripAIPanel>('chat');
 	const [conversationSummaries, setConversationSummaries] = useState<GoTripAIConversation[]>([]);
-	const [activeId, setActiveIdState] = useState<string | null>(null);
+	// The active conversation pointer carries the member it belongs to, so in the
+	// render between an identity change and its reset effect the previous
+	// account's id already reads as null instead of being queried as the new one.
+	const [activePointer, setActivePointer] = useState<{ id: string | null; owner: string }>({ id: null, owner: '' });
+	const activeId = activePointer.owner === memberId ? activePointer.id : null;
 	const [activeMessages, setActiveMessages] = useState<GoTripAIMessageData[]>([]);
 	const [draft, setDraft] = useState('');
 	const [isSending, setIsSending] = useState(false);
@@ -130,6 +134,20 @@ export const useGoTripAIState = () => {
 	const activeIdRef = useRef<string | null>(null);
 	const sendGenerationRef = useRef(0); // bumped on every new send / stop / conversation switch — stale async work checks this before touching state
 	const stoppedGenerationsRef = useRef<Set<number>>(new Set());
+	// Bumped on every login/logout/account switch. Every async result (mutation,
+	// query, socket frame) captures it up front and is dropped if it changed —
+	// nothing from a previous identity may reach state or localStorage.
+	const sessionRef = useRef(0);
+	// The authenticated streaming send whose socket frames may currently be rendered.
+	const pendingStreamRef = useRef<{ session: number; generation: number } | null>(null);
+
+	/** Orphans whatever send is in flight and frees the input; its late result/finally then finds a newer generation and does nothing. */
+	const abandonInFlight = useCallback(() => {
+		sendGenerationRef.current += 1;
+		pendingStreamRef.current = null;
+		setIsSending(false);
+		setIsTyping(false);
+	}, []);
 
 	/** LIFECYCLE **/
 
@@ -151,19 +169,18 @@ export const useGoTripAIState = () => {
 		previousMemberIdRef.current = memberId;
 		if (previous === memberId) return;
 
-		sendGenerationRef.current += 1; // orphan any in-flight send from the previous identity
+		sessionRef.current += 1;
+		abandonInFlight(); // orphan any in-flight send from the previous identity
 		setActiveMessages([]);
 		setConversationSummaries([]);
 		setDraft('');
 		setPanel('chat');
-		setIsSending(false);
-		setIsTyping(false);
 
 		// Only a real logout (id -> '') clears storage; the initial '' before
 		// userVar hydrates must not, or a signed-in refresh could never resume.
 		if (previous && !memberId) writeActiveId(null, '');
-		setActiveIdState(readActiveId(memberId));
-	}, [memberId]);
+		setActivePointer({ id: readActiveId(memberId), owner: memberId });
+	}, [memberId, abandonInFlight]);
 
 	useEffect(() => {
 		activeIdRef.current = activeId;
@@ -176,7 +193,7 @@ export const useGoTripAIState = () => {
 
 	const setActiveId = useCallback(
 		(id: string | null) => {
-			setActiveIdState(id);
+			setActivePointer({ id, owner: memberId });
 			writeActiveId(id, memberId);
 		},
 		[memberId],
@@ -184,14 +201,21 @@ export const useGoTripAIState = () => {
 
 	/** CONVERSATION LIST **/
 
+	// Keyed on memberId (not just isLoggedIn) so an A -> B switch refetches B's list.
 	const refetchConversations = useCallback(async () => {
-		if (!isLoggedIn) return;
+		if (!memberId) return;
+		const session = sessionRef.current;
 		try {
 			const { data } = await apolloClient.query({
 				query: GET_GOTRIP_AI_CONVERSATIONS,
 				variables: { input: { page: 1, limit: CONVERSATION_LIST_SIZE, sort: 'lastMessageAt', direction: 'DESC' } },
 				fetchPolicy: 'network-only',
+				// Same document + variables for every member: with Apollo's default
+				// in-flight deduplication, B's refetch right after an A -> B switch would
+				// just reuse A's still-pending request and receive A's list.
+				context: { queryDeduplication: false },
 			});
+			if (sessionRef.current !== session) return; // resolved for a previous identity
 			const list = data?.getGoTripAIConversations?.list ?? [];
 			setConversationSummaries(
 				list.map((c: any) => ({
@@ -206,7 +230,7 @@ export const useGoTripAIState = () => {
 			// A failed list refresh shouldn't break the active chat — it just leaves
 			// the history panel showing whatever it last successfully loaded.
 		}
-	}, [apolloClient, isLoggedIn]);
+	}, [apolloClient, memberId]);
 
 	useEffect(() => {
 		refetchConversations();
@@ -215,26 +239,29 @@ export const useGoTripAIState = () => {
 	/** ACTIVE CONVERSATION HISTORY **/
 
 	useEffect(() => {
-		if (!activeId || !isLoggedIn) {
+		if (!activeId || !memberId) {
 			setActiveMessages([]);
 			return;
 		}
+		const session = sessionRef.current;
 		let cancelled = false;
+		const isStale = () => cancelled || sessionRef.current !== session;
 		(async () => {
 			try {
 				const { data } = await apolloClient.query({
 					query: GET_GOTRIP_AI_MESSAGES,
 					variables: { input: { conversationId: activeId, page: 1, limit: MESSAGE_PAGE_SIZE, direction: 'ASC' } },
 					fetchPolicy: 'network-only',
+					context: { queryDeduplication: false }, // per-member data — see refetchConversations
 				});
-				if (cancelled) return;
+				if (isStale()) return;
 				const list = data?.getGoTripAIMessages?.list ?? [];
 				setActiveMessages(list.filter((m: any) => m.role !== 'TOOL').map(toUiMessage));
 			} catch {
 				// Conversation no longer exists / no longer ours (e.g. a stale id from
 				// localStorage on another account) — fall back to a fresh, local chat
 				// instead of leaving the window stuck on a broken load.
-				if (!cancelled) {
+				if (!isStale()) {
 					setActiveMessages([]);
 					setActiveId(null);
 				}
@@ -243,7 +270,7 @@ export const useGoTripAIState = () => {
 		return () => {
 			cancelled = true;
 		};
-	}, [activeId, isLoggedIn, apolloClient, setActiveId]);
+	}, [activeId, memberId, apolloClient, setActiveId]);
 
 	/** STREAMING — shared socket, same one private messaging already keeps alive **/
 
@@ -258,8 +285,12 @@ export const useGoTripAIState = () => {
 			}
 			if (frame?.event !== 'gotripAiStream') return;
 
-			const generation = sendGenerationRef.current;
-			if (stoppedGenerationsRef.current.has(generation)) return; // user hit Stop — ignore further deltas for this turn
+			// Only the current identity's in-flight streaming send may render frames:
+			// a socket opened for a previous account, a New chat / switch, or a turn
+			// that already resolved all leave no matching pending stream.
+			const pending = pendingStreamRef.current;
+			if (!pending || pending.session !== sessionRef.current || pending.generation !== sendGenerationRef.current) return;
+			if (stoppedGenerationsRef.current.has(pending.generation)) return; // user hit Stop — ignore further deltas for this turn
 
 			// A brand-new conversation's id isn't known locally until the mutation
 			// resolves, so while activeId is still null this member's own in-flight
@@ -340,7 +371,10 @@ export const useGoTripAIState = () => {
 				return;
 			}
 
+			const session = sessionRef.current;
 			const generation = ++sendGenerationRef.current;
+			const isCurrent = () =>
+				sessionRef.current === session && sendGenerationRef.current === generation && !stoppedGenerationsRef.current.has(generation);
 			const history = toGuestHistory(activeMessages);
 			setDraft('');
 			setActiveMessages((prev) => [...prev, { id: uid(), role: 'user', content: trimmed, createdAt: now() }]);
@@ -348,22 +382,27 @@ export const useGoTripAIState = () => {
 			setIsTyping(true);
 
 			const locale = (i18n.language ?? 'en').split('-')[0];
-			const currentPage = router.pathname?.slice(0, 200) || undefined;
 
 			try {
+				// No currentPage: the backend no longer accepts it from guests (it would land in the SYSTEM prompt).
 				const { data } = await sendGoTripAIGuestMessage({
-					variables: { input: { content: trimmed, locale, currentPage, history } },
+					variables: { input: { content: trimmed, locale, history } },
 				});
 				const result = data?.sendGoTripAIGuestMessage;
 				if (!result) throw new Error('Empty GoTrip AI response');
-				if (sendGenerationRef.current !== generation || stoppedGenerationsRef.current.has(generation)) return;
+				if (!isCurrent()) return;
 
+				// A FAILED reply carries the backend's English fallback text — show the
+				// translated generic error instead, never the server-side wording.
+				const failed = result.status === 'FAILED';
 				setActiveMessages((prev) => [
 					...prev,
-					{ id: uid(), role: ROLE_FROM_BACKEND[result.role] ?? 'assistant', content: result.content, createdAt: now() },
+					failed
+						? { id: uid(), role: 'system', content: t('GoTrip AI could not respond just now. Please try again.') as string, createdAt: now() }
+						: { id: uid(), role: ROLE_FROM_BACKEND[result.role] ?? 'assistant', content: result.content, createdAt: now() },
 				]);
 			} catch (err) {
-				if (sendGenerationRef.current !== generation || stoppedGenerationsRef.current.has(generation)) return;
+				if (!isCurrent()) return;
 				appendSystemNote(
 					(isRateLimitError(err)
 						? t("You're sending messages too quickly. Please wait a minute and try again.")
@@ -371,13 +410,13 @@ export const useGoTripAIState = () => {
 				);
 			} finally {
 				stoppedGenerationsRef.current.delete(generation);
-				if (sendGenerationRef.current === generation) {
+				if (sessionRef.current === session && sendGenerationRef.current === generation) {
 					setIsSending(false);
 					setIsTyping(false);
 				}
 			}
 		},
-		[activeMessages, i18n.language, router.pathname, sendGoTripAIGuestMessage, appendSystemNote, t],
+		[activeMessages, i18n.language, sendGoTripAIGuestMessage, appendSystemNote, t],
 	);
 
 	const sendMessage = useCallback(
@@ -390,6 +429,7 @@ export const useGoTripAIState = () => {
 				return;
 			}
 
+			const session = sessionRef.current;
 			const generation = ++sendGenerationRef.current;
 			setDraft('');
 			setActiveMessages((prev) => [...prev, { id: uid(), role: 'user', content: trimmed, createdAt: now() }]);
@@ -406,17 +446,29 @@ export const useGoTripAIState = () => {
 			// disconnected socket falls back to the plain, non-streaming mutation
 			// instead of silently doing nothing until the whole reply is ready.
 			const canStream = socket?.readyState === WebSocket.OPEN;
+			if (canStream) pendingStreamRef.current = { session, generation };
 
 			try {
 				const { data } = canStream
 					? await streamGoTripAIMessage({ variables: { input } })
 					: await sendGoTripAIMessage({ variables: { input } });
+				// Resolved after a login/logout/account switch: the reply belongs to the
+				// previous identity — touch neither state nor the stored active id.
+				if (sessionRef.current !== session) return;
 				const result = data?.streamGoTripAIMessage ?? data?.sendGoTripAIMessage;
 				if (!result) throw new Error('Empty GoTrip AI response');
 
 				if (stoppedGenerationsRef.current.has(generation)) {
 					stoppedGenerationsRef.current.delete(generation);
 					return; // user already stopped watching this turn; don't resurrect loading state
+				}
+
+				// New chat / another conversation was opened meanwhile: the turn is
+				// persisted server-side, so only refresh the list — don't pull the
+				// old reply (or its conversation id) into the chat now on screen.
+				if (sendGenerationRef.current !== generation) {
+					refetchConversations();
+					return;
 				}
 
 				if (!activeId) setActiveId(result.conversationId);
@@ -441,9 +493,12 @@ export const useGoTripAIState = () => {
 					stoppedGenerationsRef.current.delete(generation);
 					return;
 				}
+				if (sessionRef.current !== session || sendGenerationRef.current !== generation) return;
 				appendSystemNote(t('GoTrip AI could not respond just now. Please try again.') as string);
 			} finally {
-				if (sendGenerationRef.current === generation) {
+				const pending = pendingStreamRef.current;
+				if (pending && pending.session === session && pending.generation === generation) pendingStreamRef.current = null;
+				if (sessionRef.current === session && sendGenerationRef.current === generation) {
 					setIsSending(false);
 					setIsTyping(false);
 				}
@@ -472,12 +527,12 @@ export const useGoTripAIState = () => {
 	const sendSuggestion = useCallback((label: string) => sendMessage(label), [sendMessage]);
 
 	const startNewConversation = useCallback(() => {
-		sendGenerationRef.current += 1; // orphan any in-flight send/stream for the conversation being left
+		abandonInFlight(); // orphan any in-flight send/stream for the conversation being left, and free the input
 		setActiveId(null);
 		setActiveMessages([]);
 		setPanel('chat');
 		setDraft('');
-	}, [setActiveId]);
+	}, [setActiveId, abandonInFlight]);
 
 	const selectConversation = useCallback(
 		(id: string) => {
@@ -485,11 +540,11 @@ export const useGoTripAIState = () => {
 				setPanel('chat');
 				return;
 			}
-			sendGenerationRef.current += 1;
+			abandonInFlight();
 			setActiveId(id);
 			setPanel('chat');
 		},
-		[activeId, setActiveId],
+		[activeId, setActiveId, abandonInFlight],
 	);
 
 	const renameConversation = useCallback(
@@ -512,7 +567,7 @@ export const useGoTripAIState = () => {
 			const wasActive = id === activeId;
 			setConversationSummaries((prev) => prev.filter((c) => c.id !== id));
 			if (wasActive) {
-				sendGenerationRef.current += 1;
+				abandonInFlight();
 				setActiveId(null);
 				setActiveMessages([]);
 			}
@@ -525,7 +580,7 @@ export const useGoTripAIState = () => {
 				refetchConversations();
 			}
 		},
-		[isLoggedIn, activeId, setActiveId, deleteGoTripAIConversationMutation, refetchConversations],
+		[isLoggedIn, activeId, setActiveId, deleteGoTripAIConversationMutation, refetchConversations, abandonInFlight],
 	);
 
 	const toggleOpen = useCallback(() => setIsOpen((prev) => !prev), []);
