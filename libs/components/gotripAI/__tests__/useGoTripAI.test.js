@@ -12,7 +12,13 @@ import { userVar, socketVar } from '../../../../apollo/store';
 import { useGoTripAIState } from '../useGoTripAI';
 
 jest.mock('next/router', () => ({ useRouter: () => ({ pathname: '/' }) }));
-jest.mock('../../../messagingSocket', () => ({ ensureMessagingSocket: jest.fn() }));
+// Socket ownership is modelled on the fake socket itself (`owner`, set once the
+// "server" confirms it) — the real confirmation logic is covered by
+// libs/__tests__/messagingSocket.test.js.
+jest.mock('../../../messagingSocket', () => ({
+	ensureMessagingSocket: jest.fn(),
+	isSocketReadyFor: (ws, memberId) => !!ws && !!memberId && ws.readyState === 1 && ws.owner === memberId,
+}));
 jest.mock('../../../i18n/useTranslation', () => {
 	// Stable references (the hook memoizes on `t`); `T:` prefix proves a string went through translation.
 	const t = (key, opts) => `T:${key}${opts?.count !== undefined ? `|${opts.count}` : ''}`;
@@ -70,10 +76,32 @@ const aiMessage = (overrides = {}) => ({
 
 const conversationList = (title, id) => ({
 	getGoTripAIConversations: {
-		list: [{ _id: id, title, status: 'ACTIVE', messageCount: 2, lastMessageAt: new Date().toISOString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }],
+		list: [{ _id: id, title, locale: 'en', status: 'ACTIVE', messageCount: 2, lastMessageAt: new Date().toISOString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }],
 		metaCounter: [{ total: 1 }],
 	},
 });
+
+/** A fake messaging socket; `owner` is the server-confirmed member (null = not confirmed yet). */
+const makeSocket = (owner, readyState = 1) => {
+	const ws = new EventTarget();
+	ws.readyState = readyState;
+	ws.owner = owner;
+	return ws;
+};
+
+const useSocket = async (ws) => {
+	await act(async () => {
+		socketVar(ws);
+	});
+	await flush();
+};
+
+const frame = (ws, payload) =>
+	act(async () => {
+		ws.dispatchEvent(new MessageEvent('message', { data: JSON.stringify({ event: 'gotripAiStream', conversationId: 'c1', messageId: 'm1', delta: '', done: false, ...payload }) }));
+	});
+
+const contents = () => result.current.activeConversation.messages.map((m) => m.content);
 
 const setIdentity = async (id) => {
 	await act(async () => {
@@ -163,23 +191,105 @@ describe('account isolation (authenticated)', () => {
 		expect(result.current.activeConversation.messages).toEqual([]);
 	});
 
-	it('ignores stream frames from a previous identity\'s socket', async () => {
-		const socket = new EventTarget();
-		socket.readyState = WebSocket.OPEN;
-		await act(async () => {
-			socketVar(socket);
-		});
+	it('A -> B -> B sends: frames from A\'s old socket are rejected, even with B\'s own requestId', async () => {
+		const socketA = makeSocket('A');
+		await useSocket(socketA);
 		await setIdentity('A');
-		await send('stream please');
-		expect(ops('StreamGoTripAIMessage')).toHaveLength(1);
+		await send('A question');
+		const streamA = ops('StreamGoTripAIMessage')[0];
+		const requestIdA = streamA.operation.variables.input.requestId;
+		expect(requestIdA).toEqual(expect.any(String));
 
 		await setIdentity('B');
-		await act(async () => {
-			socket.dispatchEvent(new MessageEvent('message', {
-				data: JSON.stringify({ event: 'gotripAiStream', conversationId: 'chatA', messageId: 'm1', delta: 'A private delta', done: false }),
-			}));
-		});
-		expect(result.current.activeConversation.messages).toEqual([]);
+		// B's socket has been reconnected and confirmed; A's old socket is still alive.
+		const socketB = makeSocket('B');
+		await useSocket(socketB);
+		await send('B question');
+		const streamB = ops('StreamGoTripAIMessage').find((p) => p.operation.variables.input.content === 'B question');
+		const requestIdB = streamB.operation.variables.input.requestId;
+		expect(requestIdB).not.toBe(requestIdA);
+
+		await frame(socketA, { delta: 'A private delta', requestId: requestIdA });
+		await frame(socketA, { delta: 'A forged delta', requestId: requestIdB });
+		await frame(socketA, { delta: '', done: true, requestId: requestIdB });
+		expect(contents()).toEqual(['B question']);
+		expect(result.current.isTyping).toBe(true);
+	});
+
+	it('streams B over B\'s own confirmed socket, accepting only the current request\'s frames', async () => {
+		await setIdentity('B');
+		const socketB = makeSocket('B');
+		await useSocket(socketB);
+		await send('hello');
+		const stream = ops('StreamGoTripAIMessage')[0];
+		expect(ops('SendGoTripAIMessage')).toHaveLength(0);
+		const { requestId } = stream.operation.variables.input;
+
+		await frame(socketB, { messageId: 'mB', delta: 'Hel', requestId });
+		await frame(socketB, { messageId: 'mB', delta: 'lo', requestId });
+		await frame(socketB, { messageId: 'mB', delta: ' ignored', requestId: 'someone-else' });
+		expect(contents()).toEqual(['hello', 'Hello']);
+		expect(result.current.isTyping).toBe(false);
+
+		await respond(stream, { streamGoTripAIMessage: aiMessage({ _id: 'mB', conversationId: 'chatB', memberId: 'B', content: 'Hello!' }) });
+		expect(contents()).toEqual(['hello', 'Hello!']);
+		expect(result.current.isSending).toBe(false);
+	});
+
+	it.each([
+		['not confirmed by the server yet', () => makeSocket(null)],
+		['still connecting', () => makeSocket('A', 0)],
+		["confirmed as another member (previous account's socket)", () => makeSocket('B')],
+	])('falls back to the non-stream mutation when the socket is %s', async (_label, build) => {
+		await setIdentity('A');
+		await useSocket(build());
+		await send('question');
+
+		expect(ops('StreamGoTripAIMessage')).toHaveLength(0);
+		const plain = ops('SendGoTripAIMessage')[0];
+		expect(plain).toBeDefined();
+		await respond(plain, { sendGoTripAIMessage: aiMessage({ content: 'plain reply' }) });
+		expect(contents()).toEqual(['question', 'plain reply']);
+	});
+
+	it('old stream -> New chat -> new send: the old delta/done/error frames do not touch the new chat or its loading state', async () => {
+		await setIdentity('A');
+		const socketA = makeSocket('A');
+		await useSocket(socketA);
+		await send('old question');
+		const oldStream = ops('StreamGoTripAIMessage')[0];
+		const oldRequestId = oldStream.operation.variables.input.requestId;
+
+		await act(async () => result.current.startNewConversation());
+		await send('new question');
+		const newStream = ops('StreamGoTripAIMessage').find((p) => p.operation.variables.input.content === 'new question');
+		const newRequestId = newStream.operation.variables.input.requestId;
+
+		await frame(socketA, { messageId: 'old', delta: 'old stream delta', requestId: oldRequestId });
+		await frame(socketA, { messageId: 'old', delta: '', done: true, requestId: oldRequestId });
+		await frame(socketA, { messageId: 'old', delta: 'GoTrip AI could not generate a reply', done: true, requestId: oldRequestId });
+		expect(contents()).toEqual(['new question']);
+		expect(result.current.isSending).toBe(true);
+		expect(result.current.isTyping).toBe(true);
+
+		await fail(oldStream, 'late failure of the old stream');
+		expect(contents()).toEqual(['new question']);
+		expect(result.current.isSending).toBe(true);
+
+		await frame(socketA, { messageId: 'new', delta: 'fresh', requestId: newRequestId });
+		expect(contents()).toEqual(['new question', 'fresh']);
+		await respond(newStream, { streamGoTripAIMessage: aiMessage({ _id: 'new', content: 'fresh answer' }) });
+		expect(contents()).toEqual(['new question', 'fresh answer']);
+		expect(result.current.isSending).toBe(false);
+	});
+
+	it('asks the socket module to reconnect on every identity change', async () => {
+		const { ensureMessagingSocket } = jest.requireMock('../../../messagingSocket');
+		ensureMessagingSocket.mockClear();
+		await setIdentity('A');
+		await setIdentity('B');
+		await setIdentity('');
+		expect(ensureMessagingSocket).toHaveBeenCalledTimes(3);
 	});
 
 	it('resumes only the stored conversation its owner saved', async () => {
@@ -237,6 +347,14 @@ describe('guest chat', () => {
 		await respond(second, { sendGoTripAIGuestMessage: { role: 'ASSISTANT', content: 'fresh answer', status: 'COMPLETE' } });
 		expect(result.current.isSending).toBe(false);
 		expect(result.current.activeConversation.messages.map((m) => m.content)).toEqual(['second question', 'fresh answer']);
+	});
+
+	it('never streams for a guest, even with an open socket around', async () => {
+		await useSocket(makeSocket('A'));
+		await send('guest q');
+		expect(ops('StreamGoTripAIMessage')).toHaveLength(0);
+		expect(ops('SendGoTripAIMessage')).toHaveLength(0);
+		expect(ops('SendGoTripAIGuestMessage')).toHaveLength(1);
 	});
 
 	it('sends history but never currentPage', async () => {

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useApolloClient, useMutation, useReactiveVar } from '@apollo/client';
 import { useTranslation } from '../../i18n/useTranslation';
 import { userVar, socketVar } from '../../../apollo/store';
-import { ensureMessagingSocket } from '../../messagingSocket';
+import { ensureMessagingSocket, isSocketReadyFor } from '../../messagingSocket';
 import {
 	SEND_GOTRIP_AI_MESSAGE,
 	SEND_GOTRIP_AI_GUEST_MESSAGE,
@@ -138,8 +138,11 @@ export const useGoTripAIState = () => {
 	// query, socket frame) captures it up front and is dropped if it changed —
 	// nothing from a previous identity may reach state or localStorage.
 	const sessionRef = useRef(0);
-	// The authenticated streaming send whose socket frames may currently be rendered.
-	const pendingStreamRef = useRef<{ session: number; generation: number } | null>(null);
+	// The authenticated streaming send whose socket frames may currently be
+	// rendered: frames must match its session, generation, socket and requestId.
+	const pendingStreamRef = useRef<{ session: number; generation: number; requestId: string; socket: WebSocket } | null>(null);
+	const memberIdRef = useRef(memberId);
+	memberIdRef.current = memberId;
 
 	/** Orphans whatever send is in flight and frees the input; its late result/finally then finds a newer generation and does nothing. */
 	const abandonInFlight = useCallback(() => {
@@ -170,7 +173,11 @@ export const useGoTripAIState = () => {
 		if (previous === memberId) return;
 
 		sessionRef.current += 1;
-		abandonInFlight(); // orphan any in-flight send from the previous identity
+		abandonInFlight(); // orphan any in-flight send (and its pending stream) from the previous identity
+		// The token changed with the identity: replace a socket still authenticated
+		// as the previous member (or close it on logout). Until the new socket's
+		// owner is confirmed by the server, sends use the non-streaming mutation.
+		ensureMessagingSocket();
 		setActiveMessages([]);
 		setConversationSummaries([]);
 		setDraft('');
@@ -285,11 +292,15 @@ export const useGoTripAIState = () => {
 			}
 			if (frame?.event !== 'gotripAiStream') return;
 
-			// Only the current identity's in-flight streaming send may render frames:
-			// a socket opened for a previous account, a New chat / switch, or a turn
-			// that already resolved all leave no matching pending stream.
+			// Only frames of the current identity's in-flight streaming send may
+			// render: same session and generation, arriving on the very socket that
+			// send chose (still confirmed as this member's), and echoing its
+			// requestId. A previous account's socket, a stream abandoned by New
+			// chat / a switch, or a turn that already resolved never match.
 			const pending = pendingStreamRef.current;
 			if (!pending || pending.session !== sessionRef.current || pending.generation !== sendGenerationRef.current) return;
+			if (event.target !== pending.socket || !isSocketReadyFor(pending.socket, memberIdRef.current)) return;
+			if (frame.requestId !== pending.requestId) return;
 			if (stoppedGenerationsRef.current.has(pending.generation)) return; // user hit Stop — ignore further deltas for this turn
 
 			// A brand-new conversation's id isn't known locally until the mutation
@@ -443,10 +454,15 @@ export const useGoTripAIState = () => {
 			// The socket is what delivers token-by-token deltas; without it connected,
 			// streamGoTripAIMessage would still work (the backend streams regardless)
 			// but nothing would render until the single final mutation response — so a
-			// disconnected socket falls back to the plain, non-streaming mutation
-			// instead of silently doing nothing until the whole reply is ready.
-			const canStream = socket?.readyState === WebSocket.OPEN;
-			if (canStream) pendingStreamRef.current = { session, generation };
+			// socket that isn't open AND server-confirmed as this member's falls back to
+			// the plain, non-streaming mutation instead.
+			const streamSocket = socket && isSocketReadyFor(socket, memberId) ? socket : null;
+			const canStream = !!streamSocket;
+			if (streamSocket) {
+				const requestId = uid();
+				input.requestId = requestId;
+				pendingStreamRef.current = { session, generation, requestId, socket: streamSocket };
+			}
 
 			try {
 				const { data } = canStream
@@ -504,7 +520,7 @@ export const useGoTripAIState = () => {
 				}
 			}
 		},
-		[isSending, isLoggedIn, activeId, i18n.language, socket, streamGoTripAIMessage, sendGoTripAIMessage, setActiveId, refetchConversations, appendSystemNote, t, sendGuestMessage],
+		[isSending, isLoggedIn, memberId, activeId, i18n.language, socket, streamGoTripAIMessage, sendGoTripAIMessage, setActiveId, refetchConversations, appendSystemNote, t, sendGuestMessage],
 	);
 
 	/**
